@@ -5,8 +5,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 
-// 🎨 Esquema de colores modo claro
+// 🎨 Esquema de colores modo claro (SOLO COLORES ESTÁNDAR)
 private val LightColorScheme = lightColorScheme(
     primary = LightPrimary,
     onPrimary = LightOnPrimary,
@@ -20,7 +21,7 @@ private val LightColorScheme = lightColorScheme(
     onError = LightOnError
 )
 
-// 🌙 Esquema de colores modo oscuro
+// 🌙 Esquema de colores modo oscuro (SOLO COLORES ESTÁNDAR)
 private val DarkColorScheme = darkColorScheme(
     primary = DarkPrimary,
     onPrimary = DarkOnPrimary,
@@ -41,11 +42,16 @@ fun TechHelpDeskTheme(
     content: @Composable () -> Unit
 ) {
     val colors = if (darkTheme) DarkColorScheme else LightColorScheme
+    val customColors = if (darkTheme) DarkCustomColors else LightCustomColors
 
-    MaterialTheme(
-        colorScheme = colors,
-        typography = AppTypography,
-        shapes = AppShapes,
-        content = content
-    )
+    CompositionLocalProvider(LocalCustomColors provides customColors) {
+
+        MaterialTheme(
+            colorScheme = colors,
+            typography = AppTypography,
+            shapes = AppShapes,
+            content = content
+        )
+    }
 }
+

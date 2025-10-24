@@ -14,6 +14,7 @@ val LightOnSurface = Color(0xFF64748B)    // Texto sobre superficie
 val LightError = Color(0xFFDC2626)        // Rojo error
 val LightOnError = Color(0xFFFFFFFF)
 
+
 // ----- Dark Theme Colors -----
 val DarkPrimary = Color(0xFF3B82F6)       // Azul brillante
 val DarkOnPrimary = Color(0xFF0F172A)     // Azul muy oscuro

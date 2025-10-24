@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
@@ -28,8 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,12 +51,14 @@ fun AppHeader(
     actions: @Composable RowScope.() -> Unit = {},
     bottomContent: @Composable (ColumnScope.() -> Unit)? = null // Contenido opcional
 ) {
+    val headerShape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(
                 color = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+                shape = headerShape
             )
             .statusBarsPadding() // Añade padding para la barra de estado
             .padding(horizontal = 16.dp, vertical = 20.dp) // Padding interno
@@ -239,7 +239,7 @@ fun DetailHeaderPreview() {
                     )
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Atrás",
                         modifier = Modifier.size(28.dp)
                     )
@@ -257,3 +257,4 @@ fun DetailHeaderPreview() {
         )
     }
 }
+
