@@ -3,12 +3,19 @@ package dev.boni.techhelpdesk.ui.components
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.MenuOpen
 import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
@@ -57,7 +64,9 @@ fun BottomNavigation(
     val navItems = listOf(
         NavItem("Inicio", "/dashboard", Icons.Filled.Home, Icons.Outlined.Home),
         NavItem("Tickets", "/tickets", Icons.Filled.ConfirmationNumber, Icons.Outlined.ConfirmationNumber),
-        NavItem("Notificaciones", "/notifications", Icons.Filled.Notifications, Icons.Outlined.Notifications),
+        NavItem("Conocimiento", "/notifications", Icons.AutoMirrored.Filled.LibraryBooks,
+            Icons.AutoMirrored.Outlined.LibraryBooks
+        ),
         NavItem("Perfil", "/profile", Icons.Filled.Person, Icons.Outlined.Person)
     )
 
