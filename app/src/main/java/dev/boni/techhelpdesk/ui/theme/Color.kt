@@ -7,10 +7,10 @@ val LightPrimary = Color(0xFF1E40AF)     // Azul intenso
 val LightOnPrimary = Color(0xFFFFFFFF)    // Blanco
 val LightSecondary = Color(0xFF64748B)    // Gris azulado
 val LightOnSecondary = Color(0xFFFFFFFF)  // Blanco
-val LightBackground = Color(0xFFF8FAFC)   // Gris muy claro
+val LightBackground = Color(0xFFF1F5F9)   // Gris muy claro
 val LightOnBackground = Color(0xFF0F172A) // Texto oscuro
 val LightSurface = Color(0xFFFFFFFF)      // Fondo de tarjetas, etc.
-val LightOnSurface = Color(0xFF1E293B)    // Texto sobre superficie
+val LightOnSurface = Color(0xFF64748B)    // Texto sobre superficie
 val LightError = Color(0xFFDC2626)        // Rojo error
 val LightOnError = Color(0xFFFFFFFF)
 
