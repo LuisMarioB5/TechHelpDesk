@@ -1,8 +1,11 @@
 package dev.boni.techhelpdesk.ui.components.dashboard
 
+import android.inputmethodservice.Keyboard
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
@@ -34,13 +37,15 @@ import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 @Composable
 fun TicketStatsGroup(
     modifier: Modifier = Modifier,
-    content: LazyListScope.() -> Unit
+    // --- CAMBIO: El contenido ahora es un RowScope ---
+    // Esto permite que los items de adentro usen Modifier.weight()
+    content: @Composable RowScope.() -> Unit
 ) {
-    LazyRow(
-        modifier = modifier.fillMaxWidth(),
-        // --- Centra los items Y les da espaciado ---
-        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-        contentPadding = PaddingValues(horizontal = 16.dp), // Padding del 'main'
+    Row (
+        modifier = modifier
+            .fillMaxWidth(),
+            // --- CAMBIO: Añadimos padding para que no se pegue a los bordes ---
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         content = content
     )
 }
@@ -56,56 +61,55 @@ fun TicketStatsGroupPreview() {
     val onSuccessColor = Color(0xFFFFFFFF) // Blanco
 
     TechHelpDeskTheme {
-        Column(Modifier.padding(vertical = 16.dp)) {
+        Column() {
             // 1. Título de la Sección
             SectionTitle(text = "Resumen de tickets")
 
             // 2. Grupo de Tarjetas
             TicketStatsGroup {
                 // 3. Las 3 Tarjetas de Estadísticas
-                item {
-                    TicketStatsCard(
-                        title = "Abiertos",
-                        count = 12,
-                        icon = Icons.Outlined.ConfirmationNumber,
-                        onClick = { },
-                        // Colores Primary (de tu tema)
-                        color = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
-                    )
-                }
-                item {
-                    TicketStatsCard(
-                        title = "En progreso",
-                        count = 5,
-                        icon = Icons.Outlined.Schedule,
-                        onClick = { },
-                        // Colores Warning (de ejemplo)
-                        color = warningColor,
-                        contentColor = onWarningColor,
-                        iconBackgroundColor = onWarningColor.copy(alpha = 0.2f)
-                    )
-                }
-                item {
-                    TicketStatsCard(
-                        title = "Cerrados",
-                        count = 28,
-                        icon = Icons.Outlined.CheckCircleOutline,
-                        onClick = { },
-                        // Colores Success (de ejemplo)
-                        color = successColor,
-                        contentColor = onSuccessColor,
-                        iconBackgroundColor = onSuccessColor.copy(alpha = 0.2f)
-                    )
-                }
+                TicketStatsCard(
+                    title = "Abiertos",
+                    count = 12,
+                    icon = Icons.Outlined.ConfirmationNumber,
+                    onClick = { },
+                    // Colores Primary (de tu tema)
+                    color = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    iconBackgroundColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
+                    modifier = Modifier.weight(1f)
+                )
+
+                TicketStatsCard(
+                    title = "En progreso",
+                    count = 5,
+                    icon = Icons.Outlined.Schedule,
+                    onClick = { },
+                    // Colores Warning (de ejemplo)
+                    color = warningColor,
+                    contentColor = onWarningColor,
+                    iconBackgroundColor = onWarningColor.copy(alpha = 0.2f),
+                    modifier = Modifier.weight(1f)
+                )
+
+                TicketStatsCard(
+                    title = "Cerrados",
+                    count = 28,
+                    icon = Icons.Outlined.CheckCircleOutline,
+                    onClick = { },
+                    // Colores Success (de ejemplo)
+                    color = successColor,
+                    contentColor = onSuccessColor,
+                    iconBackgroundColor = onSuccessColor.copy(alpha = 0.2f),
+                    modifier = Modifier.weight(1f)
+                )
             }
 
             // 3. Call to Action
             QuickActionCard(
                 icon = Icons.Outlined.AddCircleOutline,
                 title = "Ver Todos los Tickets",
-                description = "Gestiona todas tus solicitudes.",
+                description = null,
                 onClick = { },
                 Modifier.padding(vertical = 16.dp),
             )
