@@ -24,7 +24,6 @@ fun SectionTitle(
 ) {
     Text(
         text = text,
-        modifier = modifier.padding(bottom = 16.dp),
         style = MaterialTheme.typography.titleLarge.copy(
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,

@@ -1,8 +1,7 @@
-package dev.boni.techhelpdesk.ui.screens
+package dev.boni.techhelpdesk.ui.screens.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,9 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.CheckCircleOutline
@@ -29,7 +26,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -63,25 +59,10 @@ import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 fun DashboardScreen(
     navController: NavController
 ) {
-    // Usamos un Scaffold para la estructura de pantalla estándar de Material 3
+    // --- CAMBIO: Aplicada la Solución Definitiva ---
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            BottomNavigation(navController = navController)
-        },
-    ) { innerPadding ->
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-
-            DashboardContent(
-                modifier = Modifier.fillMaxSize(), // <-- Que llene todo
-                navController = navController
-            )
-
+        // 1. AppHeader vuelve al topBar
+        topBar = {
             AppHeader(
                 title = {
                     Column {
@@ -113,28 +94,44 @@ fun DashboardScreen(
                     }
                 }
             )
-        }
+        },
+        bottomBar = {
+            BottomNavigation(navController = navController)
+        },
+        // 2. Fondo del Scaffold es Transparente
+        containerColor = Color.Transparent
+    ) { innerPadding ->
+        // 3. Pasamos el innerPadding (que ahora incluye la altura del header)
+        //    directamente al contenido.
+        DashboardContent(
+            navController = navController,
+            innerPadding = innerPadding
+        )
     }
 }
 
 @Composable
 fun DashboardContent(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    innerPadding: PaddingValues
 ) {
     // Obtenemos los colores personalizados que provee el Tema
-    // (Asegúrate de haber modificado tu Theme.kt para proveerlos)
     val customColors = LocalCustomColors.current
 
     // Usamos LazyColumn para que la pantalla sea scrollable
     LazyColumn(
         modifier = modifier
-            .fillMaxSize(),
-        // Padding horizontal para todo el contenido
-//        contentPadding = PaddingValues(vertical = 24.dp), todo descomentar
-        // Espacio vertical entre las secciones (como el space-y-6 de React)
+            .fillMaxSize()
+            // 4. El LazyColumn dibuja el fondo
+            .background(MaterialTheme.colorScheme.background),
+        // 5. El padding del Scaffold (top y bottom) se aplica al *contenido* de la lista
+//        contentPadding = innerPadding,
+        contentPadding = PaddingValues(
+            top = innerPadding.calculateTopPadding() + 24.dp, // <-- Espacio entre header y contenido
+        ),
+        // Espacio vertical entre las secciones
         verticalArrangement = Arrangement.spacedBy(24.dp),
-
     ) {
 
         // --- SECCIÓN 1: Resumen de tickets ---
@@ -151,31 +148,26 @@ fun DashboardContent(
                     count = 12,
                     icon = Icons.Outlined.ConfirmationNumber,
                     onClick = { },
-                    // Colores Primary (de tu tema)
                     color = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                     iconBackgroundColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
                     modifier = Modifier.weight(1f)
                 )
-
                 TicketStatsCard(
                     title = "En progreso",
                     count = 5,
                     icon = Icons.Outlined.Schedule,
                     onClick = { },
-                    // Colores Warning (de ejemplo)
                     color = customColors.warning,
                     contentColor = customColors.onWarning,
                     iconBackgroundColor = customColors.onWarning.copy(alpha = 0.2f),
                     modifier = Modifier.weight(1f)
                 )
-
                 TicketStatsCard(
                     title = "Cerrados",
                     count = 28,
                     icon = Icons.Outlined.CheckCircleOutline,
                     onClick = { },
-                    // Colores Success (de ejemplo)
                     color = customColors.success,
                     contentColor = customColors.onSuccess,
                     iconBackgroundColor = customColors.onSuccess.copy(alpha = 0.2f),
@@ -191,6 +183,7 @@ fun DashboardContent(
                 title = "Ver Todos los Tickets",
                 description = null,
                 onClick = { },
+//                modifier = modifier.padding(bottom = 16.dp),
             )
         }
 
@@ -201,7 +194,8 @@ fun DashboardContent(
             )
         }
         item {
-            QuickActionGroup {
+            // CAMBIO: Añadido padding horizontal al grupo
+            QuickActionGroup(modifier = Modifier.padding(horizontal = 16.dp)) {
                 QuickActionItem(
                     icon = Icons.AutoMirrored.Outlined.List,
                     title = "Ver todos los tickets",
@@ -214,7 +208,7 @@ fun DashboardContent(
                     title = "Base de conocimiento",
                     description = "Encuentra respuestas rápidas",
                     onClick = { },
-                    // Traducción de 'secondary'
+                    // CAMBIO: Usamos secondaryContainer (más sutil)
                     iconBackgroundColor = MaterialTheme.colorScheme.secondary,
                 )
                 QuickActionItem(
@@ -222,7 +216,8 @@ fun DashboardContent(
                     title = "Chat de soporte",
                     description = "Habla con un técnico",
                     onClick = { },
-                    iconBackgroundColor = MaterialTheme.colorScheme.error,
+                    // CAMBIO: Usamos successContainer (más sutil y correcto)
+                    iconBackgroundColor = customColors.success,
                 )
             }
         }
@@ -247,9 +242,10 @@ fun DashboardScreenPreview() {
             onWarningContainer = MaterialTheme.colorScheme.onSecondaryContainer
         )
 
-        CompositionLocalProvider {
+        CompositionLocalProvider(LocalCustomColors provides customColors) {
             val navController = rememberNavController()
             DashboardScreen(navController = navController)
         }
     }
 }
+
