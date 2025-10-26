@@ -51,7 +51,8 @@ fun QuickActionCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     iconBackgroundColor: Color = MaterialTheme.colorScheme.primary,
-    color: Color = MaterialTheme.colorScheme.onPrimary
+    color: Color = MaterialTheme.colorScheme.onPrimary,
+    needChevron: Boolean = false,
 ) {
     Row(
         modifier = modifier
@@ -105,12 +106,14 @@ fun QuickActionCard(
         }
 
         // Chevron
-        Icon(
-            imageVector = Icons.Filled.ChevronRight,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(24.dp)
-        )
+        if (needChevron) {
+            Icon(
+                imageVector = Icons.Filled.ChevronRight,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
@@ -144,7 +147,8 @@ fun QuickActionCardPreviewNoDesc() {
             onClick = { },
             // --- CAMBIO: Pasamos los colores 'error' directamente ---
             iconBackgroundColor = MaterialTheme.colorScheme.errorContainer,
-            color = MaterialTheme.colorScheme.onErrorContainer
+            color = MaterialTheme.colorScheme.onErrorContainer,
+            needChevron = true
         )
     }
 }

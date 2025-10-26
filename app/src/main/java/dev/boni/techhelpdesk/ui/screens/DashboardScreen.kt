@@ -176,7 +176,7 @@ fun DashboardContent(
         item {
             QuickActionCard(
                 icon = Icons.Outlined.AddCircleOutline,
-                title = "Ver Todos los Tickets",
+                title = "Crear nuevo ticket",
                 description = null,
                 onClick = { },
             )
