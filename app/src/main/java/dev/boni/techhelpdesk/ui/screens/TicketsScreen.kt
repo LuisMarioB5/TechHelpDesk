@@ -29,6 +29,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Apps // Category Software
 import androidx.compose.material.icons.filled.ArrowDownward // Priority Low
 import androidx.compose.material.icons.filled.Category // Category All
@@ -97,6 +99,7 @@ import dev.boni.techhelpdesk.ui.theme.CustomColors
 import dev.boni.techhelpdesk.ui.theme.LightCustomColors // Usado en Preview
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
+import java.util.Locale
 
 // --- Definiciones de Datos ---
 // --- CAMBIO: Añadido TicketCategory ---
@@ -112,7 +115,19 @@ enum class TicketCategory(val displayName: String, val icon: ImageVector) {
 enum class TicketStatus(val displayName: String, val icon: ImageVector) {
     ABIERTO("Abierto", Icons.Default.RadioButtonUnchecked),
     EN_PROGRESO("En progreso", Icons.Default.Pending),
-    CERRADO("Cerrado", Icons.Default.CheckCircle)
+    CERRADO("Cerrado", Icons.Default.CheckCircle);
+
+    companion object {
+        fun fromRouteString(routeString: String?): TicketStatus? {
+            // Convierte "en-progreso" (de la ruta) a "en_progreso" (nombre del enum)
+            return when (routeString?.lowercase(Locale.ROOT)?.replace("-","_")) {
+                "abierto" -> ABIERTO
+                "en_progreso" -> EN_PROGRESO // Ahora coincide
+                "cerrado" -> CERRADO
+                else -> null // Si no viene nada o no coincide
+            }
+        }
+    }
 }
 
 enum class TicketPriority(val displayName: String, val icon: ImageVector) {
@@ -152,11 +167,12 @@ val categoryFilterOptions = listOf(null) + TicketCategory.entries // null es "To
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TicketsScreen(
-    navController: NavController
+    navController: NavController,
+    initialFilterStatus: String? = null,
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    // --- CAMBIO: Estados para los nuevos filtros ---
-    var selectedStatus by remember { mutableStateOf<TicketStatus?>(null) }
+    val initialStatusEnum = TicketStatus.fromRouteString(initialFilterStatus)
+    var selectedStatus by remember { mutableStateOf(initialStatusEnum) }
     var selectedPriority by remember { mutableStateOf<TicketPriority?>(null) }
     var selectedCategory by remember { mutableStateOf<TicketCategory?>(null) }
     var showFilters by remember { mutableStateOf(false) } // Estado para mostrar/ocultar filtros
@@ -340,7 +356,7 @@ fun TicketsContent(
                                 selected = isSelected,
                                 onClick = { onStatusChange(status) },
                                 label = { Text(status?.displayName ?: "Todos") },
-                                leadingIcon = { Icon(status?.icon ?: Icons.Default.List, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
+                                leadingIcon = { Icon(status?.icon ?: Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
                                 colors = getFilterChipColors(isSelected),
                                 border = getFilterChipBorder(isSelected),
                             )
@@ -364,7 +380,7 @@ fun TicketsContent(
                                 label = { Text(priority?.displayName ?: "Todas") },
                                 leadingIcon = {
                                     Icon(
-                                        priority?.icon ?: Icons.Default.List,
+                                        priority?.icon ?: Icons.AutoMirrored.Filled.List,
                                         contentDescription = null,
                                         modifier = Modifier.size(FilterChipDefaults.IconSize),
                                         tint = if(isSelected) LocalContentColor.current else iconColor // Tint icon when not selected
@@ -568,7 +584,7 @@ fun TicketListItem(
                 modifier = Modifier.padding(bottom = 12.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Label,
+                    imageVector = Icons.AutoMirrored.Filled.Label,
                     contentDescription = "Categoría",
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant

@@ -37,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -63,7 +64,7 @@ fun BottomNavigation(
 ) {
     val navItems = listOf(
         NavItem("Inicio", "/dashboard", Icons.Filled.Home, Icons.Outlined.Home),
-        NavItem("Tickets", "/tickets", Icons.Filled.ConfirmationNumber, Icons.Outlined.ConfirmationNumber),
+        NavItem("Tickets", "/tickets?status={status}", Icons.Filled.ConfirmationNumber, Icons.Outlined.ConfirmationNumber),
         NavItem("Conocimiento", "/knowledge", Icons.AutoMirrored.Filled.LibraryBooks,
             Icons.AutoMirrored.Outlined.LibraryBooks
         ),
@@ -99,15 +100,32 @@ fun BottomNavigation(
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {
-                    navController.navigate(item.route) {
-                        // Evita acumular historial al navegar
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
+                    // Obtenemos la ruta base actual (sin argumentos como ?status=...)
+                    val currentBaseRoute = navBackStackEntry?.destination?.route?.substringBefore('?')
+                    // Obtenemos la ruta de inicio (la pantalla principal del grafo)
+                    val startDestinationRoute = navController.graph.findStartDestination().route
+
+                    if (item.route == startDestinationRoute) { // Si el item clicado ES la pantalla de inicio (ej: "/dashboard")
+                        if (currentBaseRoute != startDestinationRoute) {
+                            // Y SI NO estamos ya en la pantalla de inicio,
+                            // simplemente volvemos atrás.
+                            navController.popBackStack()
                         }
-                        launchSingleTop = true // Evita relanzar la misma pantalla
-                        restoreState = true // Restaura el estado
+                        // Si ya estamos en la pantalla de inicio, no hacemos nada (evita recargas innecesarias)
+
+                    } else { // Si el item clicado NO ES la pantalla de inicio (ej: "/tickets", "/knowledge")
+                        // Usamos la lógica estándar para cambiar a OTRA pestaña principal.
+                        navController.navigate(item.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
-                },
+                }, // Fin del onClick
+
+
                 icon = {
                     Icon(
                         imageVector = icon,
@@ -138,7 +156,6 @@ fun BottomNavigation(
 }
 
 // --- VISTA PREVIA AÑADIDA ---
-
 @Preview(showBackground = true, name = "Bottom Navigation Preview")
 @Composable
 fun BottomNavigationPreview() {

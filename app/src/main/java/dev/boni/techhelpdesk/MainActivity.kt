@@ -14,9 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import dev.boni.techhelpdesk.ui.components.BottomNavigation
 import dev.boni.techhelpdesk.ui.screens.DashboardScreen
 import dev.boni.techhelpdesk.ui.screens.TicketsScreen
@@ -46,9 +48,32 @@ class MainActivity : ComponentActivity() {
                             // DashboardScreen maneja su propio padding superior
                             DashboardScreen(navController = navController)
                         }
-                        composable(route = "/tickets") {
-                            TicketsScreen(navController = navController)
+//                        composable(route = "/tickets") {
+//                            TicketsScreen(navController = navController)
+//                        }
+                        composable(
+                            // 1. Definimos la ruta con el argumento opcional entre {} y ?...=
+                            route = "/tickets?status={status}",
+                            // 2. Definimos el argumento 'status'
+                            arguments = listOf(
+                                navArgument("status") {
+                                    type = NavType.StringType // Es un texto
+                                    nullable = true        // Puede ser nulo (si no se pasa filtro)
+                                    defaultValue = null      // Valor por defecto si no se pasa
+                                }
+                            )
+                        ) { backStackEntry -> // 'backStackEntry' contiene los argumentos
+                            // 3. Leemos el argumento 'status' que llegó
+                            val initialStatus = backStackEntry.arguments?.getString("status")
+
+                            // 4. Llamamos a TicketsScreen pasándole el filtro inicial
+                            TicketsScreen(
+                                navController = navController,
+                                initialFilterStatus = initialStatus
+                            )
                         }
+
+
                         composable(route = "/notifications") {
                             PlaceholderScreen(text = "Pantalla de Notificaciones")
                         }

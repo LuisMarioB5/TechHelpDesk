@@ -143,7 +143,7 @@ fun DashboardContent(
                     title = "Abiertos",
                     count = 12,
                     icon = Icons.Outlined.ConfirmationNumber,
-                    onClick = { },
+                    onClick = { navController.navigate("/tickets?status=abierto") },
                     color = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                     iconBackgroundColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
@@ -153,7 +153,7 @@ fun DashboardContent(
                     title = "En progreso",
                     count = 5,
                     icon = Icons.Outlined.Schedule,
-                    onClick = { },
+                    onClick = { navController.navigate("/tickets?status=en_progreso") },
                     color = customColors.warning,
                     contentColor = customColors.onWarning,
                     iconBackgroundColor = customColors.onWarning.copy(alpha = 0.2f),
@@ -163,7 +163,7 @@ fun DashboardContent(
                     title = "Cerrados",
                     count = 28,
                     icon = Icons.Outlined.CheckCircleOutline,
-                    onClick = { },
+                    onClick = { navController.navigate("/tickets?status=cerrado") },
                     color = customColors.success,
                     contentColor = customColors.onSuccess,
                     iconBackgroundColor = customColors.onSuccess.copy(alpha = 0.2f),
@@ -195,9 +195,8 @@ fun DashboardContent(
                     icon = Icons.AutoMirrored.Outlined.List,
                     title = "Ver todos los tickets",
                     description = "Gestiona tus solicitudes",
-                    onClick = { }
-                    // Colores por defecto (Primary)
-                )
+                    onClick = { navController.navigate("/tickets") },
+                    )
                 QuickActionItem(
                     icon = Icons.AutoMirrored.Outlined.LibraryBooks,
                     title = "Base de conocimiento",
