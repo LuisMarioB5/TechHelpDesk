@@ -1,4 +1,4 @@
-package dev.boni.techhelpdesk.ui.screens.dashboard
+package dev.boni.techhelpdesk.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -9,9 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
+import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.automirrored.outlined.List
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.CheckCircleOutline
@@ -34,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import dev.boni.techhelpdesk.ui.components.AppHeader
-import dev.boni.techhelpdesk.ui.components.BottomNavigation
 import dev.boni.techhelpdesk.ui.components.SectionTitle
 import dev.boni.techhelpdesk.ui.components.dashboard.QuickActionCard
 import dev.boni.techhelpdesk.ui.components.dashboard.QuickActionGroup
@@ -95,9 +93,6 @@ fun DashboardScreen(
                 }
             )
         },
-        bottomBar = {
-            BottomNavigation(navController = navController)
-        },
         // 2. Fondo del Scaffold es Transparente
         containerColor = Color.Transparent
     ) { innerPadding ->
@@ -124,11 +119,12 @@ fun DashboardContent(
         modifier = modifier
             .fillMaxSize()
             // 4. El LazyColumn dibuja el fondo
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 16.dp),
         // 5. El padding del Scaffold (top y bottom) se aplica al *contenido* de la lista
-//        contentPadding = innerPadding,
         contentPadding = PaddingValues(
             top = innerPadding.calculateTopPadding() + 24.dp, // <-- Espacio entre header y contenido
+            bottom = innerPadding.calculateBottomPadding()
         ),
         // Espacio vertical entre las secciones
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -183,7 +179,6 @@ fun DashboardContent(
                 title = "Ver Todos los Tickets",
                 description = null,
                 onClick = { },
-//                modifier = modifier.padding(bottom = 16.dp),
             )
         }
 
@@ -204,7 +199,7 @@ fun DashboardContent(
                     // Colores por defecto (Primary)
                 )
                 QuickActionItem(
-                    icon = Icons.AutoMirrored.Outlined.MenuBook,
+                    icon = Icons.AutoMirrored.Outlined.LibraryBooks,
                     title = "Base de conocimiento",
                     description = "Encuentra respuestas rápidas",
                     onClick = { },
