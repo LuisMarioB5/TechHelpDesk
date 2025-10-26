@@ -64,7 +64,7 @@ fun BottomNavigation(
     val navItems = listOf(
         NavItem("Inicio", "/dashboard", Icons.Filled.Home, Icons.Outlined.Home),
         NavItem("Tickets", "/tickets", Icons.Filled.ConfirmationNumber, Icons.Outlined.ConfirmationNumber),
-        NavItem("Conocimiento", "/notifications", Icons.AutoMirrored.Filled.LibraryBooks,
+        NavItem("Conocimiento", "/knowledge", Icons.AutoMirrored.Filled.LibraryBooks,
             Icons.AutoMirrored.Outlined.LibraryBooks
         ),
         NavItem("Perfil", "/profile", Icons.Filled.Person, Icons.Outlined.Person)
@@ -162,7 +162,7 @@ fun BottomNavigationPreview() {
             ) {
                 composable("/dashboard") { Text("Página de Inicio") }
                 composable("/tickets") { Text("Página de Tickets") }
-                composable("/notifications") { Text("Página de Notificaciones") }
+                composable("/knowledge") { Text("Página de Conocimientos") }
                 composable("/profile") { Text("Página de Perfil") }
             }
         }
