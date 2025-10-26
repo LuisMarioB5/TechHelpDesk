@@ -1,6 +1,7 @@
 package dev.boni.techhelpdesk.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -310,13 +311,12 @@ fun TicketsContent(
     Column( // Usamos Column para poder poner el panel de filtros arriba
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .animateContentSize(),
     ){
         // --- CAMBIO: Panel de Filtros Desplegable ---
         AnimatedVisibility(
             visible = showFilters,
             enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(animationSpec = tween(200)),
-            exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(animationSpec = tween(200))
         ) {
             Surface( // Fondo blanco para el panel
                 modifier = Modifier.fillMaxWidth(),
