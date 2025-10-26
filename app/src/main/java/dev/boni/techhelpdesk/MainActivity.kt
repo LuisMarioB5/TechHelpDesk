@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.boni.techhelpdesk.ui.components.BottomNavigation
 import dev.boni.techhelpdesk.ui.screens.DashboardScreen
+import dev.boni.techhelpdesk.ui.screens.TicketsScreen
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 
 class MainActivity : ComponentActivity() {
@@ -46,7 +47,7 @@ class MainActivity : ComponentActivity() {
                             DashboardScreen(navController = navController)
                         }
                         composable(route = "/tickets") {
-                            PlaceholderScreen(text = "Pantalla de Tickets")
+                            TicketsScreen(navController = navController)
                         }
                         composable(route = "/notifications") {
                             PlaceholderScreen(text = "Pantalla de Notificaciones")
