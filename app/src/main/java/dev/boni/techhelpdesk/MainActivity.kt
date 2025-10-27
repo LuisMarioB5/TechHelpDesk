@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dev.boni.techhelpdesk.ui.components.BottomNavigation
+import dev.boni.techhelpdesk.ui.screens.CreateTicketScreen
 import dev.boni.techhelpdesk.ui.screens.DashboardScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.TicketsScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.id.TicketDetailScreen
@@ -72,7 +73,7 @@ class MainActivity : ComponentActivity() {
 
                         composable(
                             // La ruta base es diferente para evitar conflictos con /tickets?status
-                            route = "/ticketdetail/{ticketId}",
+                            route = "/ticket/detail/{ticketId}",
                             arguments = listOf(
                                 navArgument("ticketId") {
                                     type = NavType.StringType
@@ -86,7 +87,11 @@ class MainActivity : ComponentActivity() {
                                 ticketId = ticketId
                             )
                         }
-
+                        composable(route = "/ticket/create") {
+                            CreateTicketScreen(
+                                navController = navController,
+                            )
+                        }
 
                         composable(route = "/notifications") {
                             PlaceholderScreen(text = "Pantalla de Notificaciones")

@@ -199,7 +199,7 @@ fun DashboardContent(
                 icon = Icons.Outlined.AddCircleOutline,
                 title = "Crear nuevo ticket",
                 description = null,
-                onClick = { },
+                onClick = { navController.navigate("/ticket/create") },
             )
         }
 

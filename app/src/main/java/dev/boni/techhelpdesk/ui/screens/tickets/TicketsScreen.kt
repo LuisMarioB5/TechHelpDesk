@@ -261,7 +261,7 @@ fun TicketsScreen(
             onPriorityChange = { selectedPriority = it },
             onCategoryChange = { selectedCategory = it },
             tickets = filteredTickets,
-            onTicketClick = { ticketId -> navController.navigate("/ticketdetail/$ticketId") },
+            onTicketClick = { ticketId -> navController.navigate("/ticket/detail/$ticketId") },
             showFilters = showFilters, // Pasar el estado de visibilidad
             activeFiltersCount = activeFiltersCount, // Pasar contador
             onClearFilters = clearAllFilters // Pasar función de limpiar
