@@ -22,6 +22,7 @@ import androidx.navigation.navArgument
 import dev.boni.techhelpdesk.ui.components.BottomNavigation
 import dev.boni.techhelpdesk.ui.screens.DashboardScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.TicketsScreen
+import dev.boni.techhelpdesk.ui.screens.tickets.id.TicketDetailScreen
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 
 class MainActivity : ComponentActivity() {
@@ -48,11 +49,7 @@ class MainActivity : ComponentActivity() {
                             // DashboardScreen maneja su propio padding superior
                             DashboardScreen(navController = navController)
                         }
-//                        composable(route = "/tickets") {
-//                            TicketsScreen(navController = navController)
-//                        }
                         composable(
-                            // 1. Definimos la ruta con el argumento opcional entre {} y ?...=
                             route = "/tickets?status={status}",
                             // 2. Definimos el argumento 'status'
                             arguments = listOf(
@@ -70,6 +67,23 @@ class MainActivity : ComponentActivity() {
                             TicketsScreen(
                                 navController = navController,
                                 initialFilterStatus = initialStatus
+                            )
+                        }
+
+                        composable(
+                            // La ruta base es diferente para evitar conflictos con /tickets?status
+                            route = "/ticketdetail/{ticketId}",
+                            arguments = listOf(
+                                navArgument("ticketId") {
+                                    type = NavType.StringType
+                                }
+                            )
+                        ) { backStackEntry ->
+                            val ticketId = backStackEntry.arguments?.getString("ticketId") ?: "ID_INVALIDO"
+
+                            TicketDetailScreen(
+                                navController = navController,
+                                ticketId = ticketId
                             )
                         }
 
