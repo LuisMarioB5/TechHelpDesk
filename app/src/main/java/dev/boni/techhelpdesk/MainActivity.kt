@@ -21,7 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dev.boni.techhelpdesk.ui.components.BottomNavigation
 import dev.boni.techhelpdesk.ui.screens.DashboardScreen
-import dev.boni.techhelpdesk.ui.screens.TicketsScreen
+import dev.boni.techhelpdesk.ui.screens.tickets.TicketsScreen
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 
 class MainActivity : ComponentActivity() {

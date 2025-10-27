@@ -2,11 +2,14 @@ package dev.boni.techhelpdesk.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
@@ -25,7 +28,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -78,18 +83,34 @@ fun DashboardScreen(
                     }
                 },
                 actions = {
+                    // --- ¡CAMBIO AQUÍ! ---
                     IconButton(
-                        onClick = { /* navController.navigate("/profile") */ },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
+                        onClick = { navController.navigate("/profile") },
+                        // El IconButton ya no necesita fondo, solo tamaño si quieres un área de clic mayor
+                        modifier = Modifier.size(48.dp) // Área de clic
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Perfil",
-                            modifier = Modifier.padding(8.dp)
-                        )
+                        // 1. Envolvemos el Icon en un Box
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp) // Tamaño del círculo de fondo
+                                .clip(CircleShape)
+                                .background(
+                                    // Color de fondo semitransparente
+                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
+                                ),
+                            contentAlignment = Alignment.Center // Centra el Icon dentro del Box
+                        ) {
+                            // 2. El Icon ahora va dentro del Box
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Perfil",
+                                // 3. Tintamos el icono y le damos tamaño
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(28.dp) // Tamaño del icono
+                            )
+                        }
                     }
+                    // --- FIN DEL CAMBIO ---
                 }
             )
         },

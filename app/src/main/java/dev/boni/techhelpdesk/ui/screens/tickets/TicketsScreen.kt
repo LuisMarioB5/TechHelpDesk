@@ -1,28 +1,21 @@
-package dev.boni.techhelpdesk.ui.screens
+package dev.boni.techhelpdesk.ui.screens.tickets
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
@@ -42,10 +35,7 @@ import androidx.compose.material.icons.filled.Email // Category Email
 import androidx.compose.material.icons.filled.ErrorOutline // Para Alta prioridad
 import androidx.compose.material.icons.filled.Inbox // Para "No tickets"
 import androidx.compose.material.icons.filled.KeyboardArrowDown // Para Baja prioridad
-import androidx.compose.material.icons.filled.Label // Para Categoría
-import androidx.compose.material.icons.filled.List // Status All / Priority All
 import androidx.compose.material.icons.filled.Lock // Category Permissions
-import androidx.compose.material.icons.filled.Mail // Category Email (alternative)
 import androidx.compose.material.icons.filled.MoreHoriz // Category Other
 import androidx.compose.material.icons.filled.Pending // Status In Progress
 import androidx.compose.material.icons.filled.PriorityHigh // Priority High
@@ -79,7 +69,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -95,7 +84,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import dev.boni.techhelpdesk.ui.components.AppHeader
-import dev.boni.techhelpdesk.ui.components.BottomNavigation
 import dev.boni.techhelpdesk.ui.theme.CustomColors
 import dev.boni.techhelpdesk.ui.theme.LightCustomColors // Usado en Preview
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
