@@ -2,6 +2,7 @@
 
 package dev.boni.techhelpdesk.ui.screens // O el paquete correcto
 
+import android.util.Patterns
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.* // Importar todos
 import androidx.compose.material.icons.outlined.* // Importar todos outlined
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,18 +46,42 @@ fun LoginScreen(
     var showPassword by remember { mutableStateOf(false) }
     var rememberMe by remember { mutableStateOf(false) }
 
+    var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+
+    val validateLogin: () -> Boolean = {
+        val newErrors = mutableMapOf<String, String>()
+        if (email.isBlank()) {
+            newErrors["email"] = "El correo es requerido"
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            newErrors["email"] = "Formato de correo inválido"
+        }
+        if (password.isBlank()) {
+            newErrors["password"] = "La contraseña es requerida"
+        }
+        errors = newErrors
+        newErrors.isEmpty()
+    }
+
     // --- Lógica Simulada ---
     val handleLogin = {
-        // En una app real, llamarías a una API
-        navController.navigate("/dashboard") {
-            // Limpia la pila hasta el inicio para que no puedas volver al login
-            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-            launchSingleTop = true
+        // --- CAMBIO: Llamar validación ---
+        if (validateLogin()) {
+            println("Login Válido: $email") // Simulación
+            navController.navigate("/dashboard") {
+                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                launchSingleTop = true
+            }
+        } else {
+            println("Errores de Login: $errors") // Simulación
         }
     }
     val handleSocialLogin = { provider: String ->
-        println("Logging in with $provider") // Simulación
-        handleLogin() // Navega al dashboard después del login social simulado
+        println("Logging in with $provider")
+        // No validamos aquí, asumimos que el proveedor social lo hace
+        navController.navigate("/dashboard") {
+            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+            launchSingleTop = true
+        }
     }
 
 
@@ -113,19 +139,21 @@ fun LoginScreen(
                 // Email
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = { email = it; errors = errors - "email" },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Correo electrónico") },
                     placeholder = { Text("tu@email.com") },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    singleLine = true
+                    singleLine = true,
+                    isError = errors.containsKey("email"),
+                    supportingText = { FormFieldErrorText(error = errors["email"]) }
                 )
 
                 // Password
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { password = it; errors = errors - "password" },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Contraseña") },
                     placeholder = { Text("••••••••") },
@@ -140,7 +168,9 @@ fun LoginScreen(
                             )
                         }
                     },
-                    singleLine = true
+                    singleLine = true,
+                    isError = errors.containsKey("password"),
+                    supportingText = { FormFieldErrorText(error = errors["password"]) }
                 )
 
                 // Remember Me & Forgot Password
@@ -156,7 +186,7 @@ fun LoginScreen(
                         )
                         Text("Recordarme", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    TextButton(onClick = { /* navController.navigate("/forgot-password") */ }) {
+                    TextButton(onClick = { navController.navigate("/forgot-password") }) {
                         Text("¿Olvidaste tu contraseña?", style = MaterialTheme.typography.bodySmall)
                     }
                 }
@@ -177,14 +207,22 @@ fun LoginScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Divider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        thickness = DividerDefaults.Thickness,
+                        color = MaterialTheme.colorScheme.outline
+                    )
                     Text(
                         "O continúa con",
                         modifier = Modifier.padding(horizontal = 16.dp), // px-4
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Divider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        thickness = DividerDefaults.Thickness,
+                        color = MaterialTheme.colorScheme.outline
+                    )
                 }
 
                 // Social Login Buttons
@@ -253,6 +291,20 @@ fun LoginScreen(
     }
 }
 
+@Composable
+fun FormFieldErrorText(error: String?, modifier: Modifier = Modifier) {
+    val errorColor = MaterialTheme.colorScheme.error
+    // Usamos un Box con altura mínima para reservar espacio y evitar saltos
+    Box(modifier = modifier.heightIn(min = 16.dp)) {
+        if (error != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.Error, contentDescription = null, tint = errorColor, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(text = error, color = errorColor, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
 
 // --- Preview ---
 @Preview(showBackground = true)

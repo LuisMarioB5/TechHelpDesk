@@ -178,7 +178,7 @@ fun SplashScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp) // space-y-3
             ) {
                 // Botón Iniciar Sesión (Usando MobileButton si existe, si no, Button normal)
-                Button( // O usa MobileButton(...) si ya lo tienes
+                Button(
                     onClick = onNavigateToLogin,
                     modifier = Modifier
                         .fillMaxWidth()

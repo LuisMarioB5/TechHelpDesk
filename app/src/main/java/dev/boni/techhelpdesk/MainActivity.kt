@@ -22,6 +22,10 @@ import androidx.navigation.navArgument
 import dev.boni.techhelpdesk.ui.components.BottomNavigation
 import dev.boni.techhelpdesk.ui.screens.CreateTicketScreen
 import dev.boni.techhelpdesk.ui.screens.DashboardScreen
+import dev.boni.techhelpdesk.ui.screens.LoginScreen
+import dev.boni.techhelpdesk.ui.screens.RegisterScreen
+import dev.boni.techhelpdesk.ui.screens.ForgotPasswordScreen
+import dev.boni.techhelpdesk.ui.screens.SplashScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.TicketsScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.id.TicketDetailScreen
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
@@ -36,20 +40,33 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    bottomBar = {
-                        BottomNavigation(navController = navController)
-                    }
                 ) { innerPadding ->
 
                     NavHost(
                         navController = navController,
-                        startDestination = "/dashboard",
+                        startDestination = "/splash",
                         modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
                     ) {
+                        composable(route = "/splash") {
+                            SplashScreen(
+                                onNavigateToLogin = { navController.navigate("/login") },
+                                onNavigateToRegister = { navController.navigate("/register") }
+                            )
+                        }
                         composable(route = "/dashboard") {
                             // DashboardScreen maneja su propio padding superior
                             DashboardScreen(navController = navController)
                         }
+                        composable(route = "/login") {
+                            LoginScreen(navController = navController)
+                        }
+                        composable(route = "/forgot-password") {
+                            ForgotPasswordScreen(navController = navController)
+                        }
+                        composable(route = "/register") {
+                            RegisterScreen(navController = navController)
+                        }
+
                         composable(
                             route = "/tickets?status={status}",
                             // 2. Definimos el argumento 'status'
