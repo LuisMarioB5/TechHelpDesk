@@ -1,26 +1,25 @@
-// RegisterScreen.kt
-
 package dev.boni.techhelpdesk.ui.screens // O el paquete correcto
 
 import android.util.Patterns
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.* // Importar todos
-import androidx.compose.material.icons.outlined.* // Importar todos outlined
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler // Para abrir enlaces (simulado)
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import dev.boni.techhelpdesk.R
 import dev.boni.techhelpdesk.ui.components.MobileButton // Reutilizamos MobileButton
 import dev.boni.techhelpdesk.ui.components.MobileButtonVariant // Enum de MobileButton
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
@@ -89,7 +89,9 @@ fun RegisterScreen(
             ) {
                 IconButton(
                     onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(bottom = 16.dp).offset(x = (-8).dp)
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .offset(x = (-8).dp)
                 ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
                 }
@@ -124,7 +126,8 @@ fun RegisterScreen(
                     placeholder = { Text("tu@email.com") },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    singleLine = true
+                    singleLine = true,
+                    isError = email.isNotBlank() && !Patterns.EMAIL_ADDRESS.matcher(email).matches() // Validación simple
                 )
 
                 // Password
@@ -145,7 +148,8 @@ fun RegisterScreen(
                             )
                         }
                     },
-                    singleLine = true
+                    singleLine = true,
+
                 )
 
                 // Confirm Password
@@ -189,44 +193,82 @@ fun RegisterScreen(
 
                 // Divider
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Divider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        thickness = DividerDefaults.Thickness,
+                        color = MaterialTheme.colorScheme.outline
+                    )
                     Text("O regístrate con", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Divider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        thickness = DividerDefaults.Thickness,
+                        color = MaterialTheme.colorScheme.outline
+                    )
                 }
 
                 // Social Register Buttons
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedButton(
+                    // Google
+                    Button(
                         onClick = { handleSocialRegister("Google") },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        modifier = Modifier.fillMaxWidth().height(56.dp), // h-14
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface) // bg-white
                     ) {
-                        Icon(Icons.Filled.AccountCircle, contentDescription = "Google Logo", tint = Color.Unspecified, modifier = Modifier.size(24.dp)) // Placeholder
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_logo_google),
+                            contentDescription = "Google Logo",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(24.dp)
+                        )
                         Spacer(Modifier.width(12.dp))
-                        Text("Google", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Continuar con Google", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }
-                    OutlinedButton(
+                    // Microsoft
+                    Button(
                         onClick = { handleSocialRegister("Microsoft") },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
-                        Icon(Icons.Filled.Window, contentDescription = "Microsoft Logo", tint = Color(0xFF5E5E5E), modifier = Modifier.size(24.dp)) // Placeholder
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_logo_windows),
+                            contentDescription = "Microsoft Logo",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(24.dp)
+                        )
                         Spacer(Modifier.width(12.dp))
-                        Text("Microsoft", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Continuar con Microsoft", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                    // Apple
+                    Button(
+                        onClick = { handleSocialRegister("Apple") },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_logo_apple),
+                            contentDescription = "Apple Logo",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text("Continuar con Apple", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
 
                 // Login Link
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 32.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ){
@@ -240,48 +282,57 @@ fun RegisterScreen(
     } // Fin Scaffold
 }
 
-// Helper Composable para el texto de Términos y Condiciones
+// Helper Composable para el texto de Términos y Condiciones (CORREGIDO)
+@OptIn(ExperimentalTextApi::class)
 @Composable
 fun AcceptTermsText(modifier: Modifier = Modifier) {
     val uriHandler = LocalUriHandler.current
     val annotatedString = buildAnnotatedString {
         append("Acepto los ")
-        pushStringAnnotation(tag = "terms", annotation = "https://example.com/terms") // URL de ejemplo
-        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium, textDecoration = TextDecoration.Underline)) {
+
+        pushLink(LinkAnnotation.Clickable(
+            tag = "terms",
+            linkInteractionListener = {
+                println("Clicked Terms")
+            }
+        ))
+        withStyle(style = SpanStyle(
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Medium,
+            textDecoration = TextDecoration.Underline)
+        ) {
             append("términos y condiciones")
         }
         pop()
+
         append(" y la ")
-        pushStringAnnotation(tag = "privacy", annotation = "https://example.com/privacy") // URL de ejemplo
-        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium, textDecoration = TextDecoration.Underline)) {
+
+        pushLink(LinkAnnotation.Clickable(
+            tag = "privacy",
+            linkInteractionListener = {
+                println("Clicked Privacy")
+                // uriHandler.openUri("https://example.com/privacy") // URL real
+            }
+        ))
+        withStyle(style = SpanStyle(
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Medium,
+            textDecoration = TextDecoration.Underline)
+        ) {
             append("política de privacidad")
         }
         pop()
     }
 
-    ClickableText(
+    Text(
         text = annotatedString,
         modifier = modifier,
-        style = MaterialTheme.typography.bodySmall.copy( // text-sm
+        style = MaterialTheme.typography.bodySmall.copy(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            lineHeight = 20.sp // leading-relaxed approx
-        ),
-        onClick = { offset ->
-            annotatedString.getStringAnnotations(tag = "terms", start = offset, end = offset)
-                .firstOrNull()?.let { annotation ->
-                    println("Clicked Terms: ${annotation.item}")
-                    // uriHandler.openUri(annotation.item) // Descomentar para abrir URL real
-                }
-            annotatedString.getStringAnnotations(tag = "privacy", start = offset, end = offset)
-                .firstOrNull()?.let { annotation ->
-                    println("Clicked Privacy: ${annotation.item}")
-                    // uriHandler.openUri(annotation.item) // Descomentar para abrir URL real
-                }
-        }
+            lineHeight = 20.sp
+        )
     )
 }
-
-
 // --- Preview ---
 @Preview(showBackground = true)
 @Composable

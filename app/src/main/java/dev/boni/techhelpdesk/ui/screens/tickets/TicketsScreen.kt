@@ -84,6 +84,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import dev.boni.techhelpdesk.ui.components.AppHeader
+import dev.boni.techhelpdesk.ui.components.BottomNavigation
 import dev.boni.techhelpdesk.ui.theme.CustomColors
 import dev.boni.techhelpdesk.ui.theme.LightCustomColors // Usado en Preview
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
@@ -249,7 +250,10 @@ fun TicketsScreen(
                 }
             )
         },
-        containerColor = Color.Transparent // Para el efecto edge-to-edge
+        containerColor = Color.Transparent,
+        bottomBar = {
+            BottomNavigation(navController = navController)
+        },
     ) { innerPadding ->
         TicketsContent(
             innerPadding = innerPadding,

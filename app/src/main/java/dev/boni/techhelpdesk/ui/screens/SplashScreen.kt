@@ -80,10 +80,10 @@ fun SplashScreen(
         modifier = modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient( // bg-gradient-to-b
+                Brush.verticalGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.primaryContainer // Asumiendo primaryContainer como el color final
+                        MaterialTheme.colorScheme.primaryContainer,
                     )
                 )
             )

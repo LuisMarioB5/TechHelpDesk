@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import dev.boni.techhelpdesk.ui.components.AppHeader
+import dev.boni.techhelpdesk.ui.components.BottomNavigation
 import dev.boni.techhelpdesk.ui.components.SectionTitle
 import dev.boni.techhelpdesk.ui.components.dashboard.QuickActionCard
 import dev.boni.techhelpdesk.ui.components.dashboard.QuickActionGroup
@@ -113,6 +114,9 @@ fun DashboardScreen(
                     // --- FIN DEL CAMBIO ---
                 }
             )
+        },
+        bottomBar = {
+            BottomNavigation(navController = navController)
         },
         // 2. Fondo del Scaffold es Transparente
         containerColor = Color.Transparent

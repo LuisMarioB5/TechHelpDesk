@@ -1,9 +1,6 @@
-// LoginScreen.kt
-
-package dev.boni.techhelpdesk.ui.screens // O el paquete correcto
+package dev.boni.techhelpdesk.ui.screens
 
 import android.util.Patterns
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,8 +9,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.* // Importar todos
-import androidx.compose.material.icons.outlined.* // Importar todos outlined
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
@@ -24,14 +20,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import dev.boni.techhelpdesk.ui.components.MobileButton // Reutilizamos MobileButton
-import dev.boni.techhelpdesk.ui.components.MobileButtonVariant // Enum de MobileButton
+import dev.boni.techhelpdesk.R
+import dev.boni.techhelpdesk.ui.components.MobileButton
+import dev.boni.techhelpdesk.ui.components.MobileButtonVariant
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -228,48 +224,66 @@ fun LoginScreen(
                 // Social Login Buttons
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { // space-y-3
                     // Google
-                    OutlinedButton(
+                    Button(
                         onClick = { handleSocialLogin("Google") },
                         modifier = Modifier.fillMaxWidth().height(56.dp), // h-14
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White) // bg-white
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface) // bg-white
                     ) {
-                        Icon(Icons.Filled.AccountCircle, contentDescription = "Google Logo", tint = Color.Unspecified, modifier = Modifier.size(24.dp)) // Usar icono de Google real o SVG
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_logo_google),
+                            contentDescription = "Google Logo",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(24.dp)
+                        )
                         Spacer(Modifier.width(12.dp))
                         Text("Continuar con Google", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }
                     // Microsoft
-                    OutlinedButton(
+                    Button(
                         onClick = { handleSocialLogin("Microsoft") },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
-                        Icon(Icons.Filled.Window, contentDescription = "Microsoft Logo", tint = Color(0xFF5E5E5E), modifier = Modifier.size(24.dp)) // Usar icono real o SVG
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_logo_windows),
+                            contentDescription = "Microsoft Logo",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(24.dp)
+                        )
                         Spacer(Modifier.width(12.dp))
                         Text("Continuar con Microsoft", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }
-//                    // Apple
-//                    Button(
-//                        onClick = { handleSocialLogin("Apple") },
-//                        modifier = Modifier.fillMaxWidth().height(56.dp),
-//                        shape = RoundedCornerShape(12.dp),
-//                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black, contentColor = Color.White) // bg-black text-white
-//                    ) {
-//                        Icon(Icons.Filled.Apple, contentDescription = "Apple Logo", tint = Color.Unspecified, modifier = Modifier.size(24.dp)) // Usar icono real o SVG
-//                        Spacer(Modifier.width(12.dp))
-//                        Text("Continuar con Apple", fontWeight = FontWeight.Medium)
-//                    }
+                    // Apple
+                    Button(
+                        onClick = { handleSocialLogin("Apple") },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_logo_apple),
+                            contentDescription = "Apple Logo",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text("Continuar con Apple", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    }
                     // Biometric
                     Button( // Usar Button o OutlinedButton según prefieras
                         onClick = { handleSocialLogin("Biometric") },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant) // bg-[var(--color-surface-variant)]
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
-                        Icon(Icons.Filled.Fingerprint, contentDescription = "Biometric", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp)) // text-3xl approx
+                        Icon(
+                            Icons.Filled.Fingerprint,
+                            contentDescription = "Biometric",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp)
+                        )
                         Spacer(Modifier.width(12.dp))
                         Text("Usar huella digital", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }

@@ -133,14 +133,14 @@ fun ForgotPasswordFormContent(
             // Info Card 1
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.primaryContainer, // bg-[var(--color-primary-container)]
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
                     Icon(Icons.Filled.LockReset, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(end = 12.dp).size(24.dp))
                     Column {
-                        Text("¿Olvidaste tu contraseña?", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 4.dp))
-                        Text("No te preocupes. Ingresa tu correo electrónico...", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 18.sp)
+                        Text("¿Olvidaste tu contraseña?", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 4.dp), color = MaterialTheme.colorScheme.onSurface)
+                        Text("No te preocupes. Ingresa tu correo electrónico...", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface, lineHeight = 18.sp)
                     }
                 }
             }
