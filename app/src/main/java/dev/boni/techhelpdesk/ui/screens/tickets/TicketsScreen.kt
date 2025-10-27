@@ -90,11 +90,9 @@ import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 import java.util.Locale
 
-// --- Definiciones de Datos ---
-// --- CAMBIO: Añadido TicketCategory ---
 enum class TicketCategory(val displayName: String, val icon: ImageVector) {
     EMAIL("Email", Icons.Default.Email),
-    HARDWARE("Hardware", Icons.Default.SettingsSuggest), // Using alternative icon
+    HARDWARE("Hardware", Icons.Default.SettingsSuggest),
     SOFTWARE("Software", Icons.Default.Apps),
     RED("Red", Icons.Default.Wifi),
     PERMISOS("Permisos", Icons.Default.Lock),
@@ -108,7 +106,6 @@ enum class TicketStatus(val displayName: String, val icon: ImageVector) {
 
     companion object {
         fun fromRouteString(routeString: String?): TicketStatus? {
-            // Convierte "en-progreso" (de la ruta) a "en_progreso" (nombre del enum)
             return when (routeString?.lowercase(Locale.ROOT)?.replace("-","_")) {
                 "abierto" -> ABIERTO
                 "en_progreso" -> EN_PROGRESO // Ahora coincide
@@ -173,7 +170,6 @@ fun TicketsScreen(
                         ticket.title.contains(searchQuery, ignoreCase = true) ||
                         ticket.category.displayName.contains(searchQuery, ignoreCase = true) || // Buscar por nombre de categoría
                         ticket.id.contains(searchQuery, ignoreCase = true)
-                // --- CAMBIO: Lógica de filtro actualizada ---
                 val matchesStatus = selectedStatus == null || ticket.status == selectedStatus
                 val matchesPriority = selectedPriority == null || ticket.priority == selectedPriority
                 val matchesCategory = selectedCategory == null || ticket.category == selectedCategory
@@ -182,7 +178,6 @@ fun TicketsScreen(
         }
     }
 
-    // --- CAMBIO: Contar filtros activos ---
     val activeFiltersCount by remember {
         derivedStateOf {
             listOfNotNull(selectedStatus, selectedPriority, selectedCategory).size
@@ -266,7 +261,7 @@ fun TicketsScreen(
             onPriorityChange = { selectedPriority = it },
             onCategoryChange = { selectedCategory = it },
             tickets = filteredTickets,
-            onTicketClick = { ticketId -> /* navController.navigate("/tickets/$ticketId") */ },
+            onTicketClick = { ticketId -> navController.navigate("/tickets/$ticketId") },
             showFilters = showFilters, // Pasar el estado de visibilidad
             activeFiltersCount = activeFiltersCount, // Pasar contador
             onClearFilters = clearAllFilters // Pasar función de limpiar
@@ -520,7 +515,6 @@ fun getFilterChipBorder(isSelected: Boolean) = FilterChipDefaults.filterChipBord
     borderColor = Color.Transparent, // No border by default
     borderWidth = 0.dp,
     selectedBorderWidth = 0.dp,
-    // Provide defaults for required parameters, even if unused
     disabledBorderColor = Color.Transparent,
     selectedBorderColor = Color.Transparent,
     enabled = true,
