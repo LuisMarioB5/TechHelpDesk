@@ -142,16 +142,15 @@ fun DashboardContent(
 
     // Usamos LazyColumn para que la pantalla sea scrollable
     LazyColumn(
+        contentPadding = PaddingValues(
+            top = innerPadding.calculateTopPadding() + 24.dp, // <-- Espacio entre header y contenido
+            bottom = innerPadding.calculateBottomPadding()
+        ),
         modifier = modifier
             .fillMaxSize()
             // 4. El LazyColumn dibuja el fondo
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp),
-        // 5. El padding del Scaffold (top y bottom) se aplica al *contenido* de la lista
-        contentPadding = PaddingValues(
-            top = innerPadding.calculateTopPadding() + 24.dp, // <-- Espacio entre header y contenido
-            bottom = innerPadding.calculateBottomPadding()
-        ),
         // Espacio vertical entre las secciones
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
@@ -215,8 +214,7 @@ fun DashboardContent(
             )
         }
         item {
-            // CAMBIO: Añadido padding horizontal al grupo
-            QuickActionGroup(modifier = Modifier.padding(horizontal = 16.dp)) {
+            QuickActionGroup(modifier = Modifier.padding(bottom = 24.dp)) {
                 QuickActionItem(
                     icon = Icons.AutoMirrored.Outlined.List,
                     title = "Ver todos los tickets",
