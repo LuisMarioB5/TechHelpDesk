@@ -46,8 +46,6 @@ import androidx.compose.material.icons.filled.SettingsSuggest // Category Hardwa
 import androidx.compose.material.icons.filled.Tune // Filter button icon
 import androidx.compose.material.icons.filled.WarningAmber // Para Media prioridad (sustituto)
 import androidx.compose.material.icons.filled.Wifi // Category Network
-// import androidx.compose.material3.CircularProgressIndicator // No se usa
-// import androidx.compose.material3.RadioButton // No se usa
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button // For Clear Filters button
@@ -358,7 +356,7 @@ fun TicketsContent(
                             val iconColor = when (priority) {
                                 TicketPriority.ALTA -> MaterialTheme.colorScheme.error
                                 TicketPriority.MEDIA -> customColors.warning
-                                TicketPriority.BAJA -> MaterialTheme.colorScheme.primary // O un color 'info'
+                                TicketPriority.BAJA -> customColors.success
                                 null -> MaterialTheme.colorScheme.onSurfaceVariant
                             }
                             FilterChip(
@@ -676,8 +674,8 @@ fun PriorityBadge(priority: TicketPriority, customColors: CustomColors) {
             Icons.Default.WarningAmber
         )
         TicketPriority.BAJA -> Triple(
-            MaterialTheme.colorScheme.secondaryContainer,
-            MaterialTheme.colorScheme.secondary,
+            customColors.successContainer,
+            customColors.success,
             Icons.Default.KeyboardArrowDown
         )
     }

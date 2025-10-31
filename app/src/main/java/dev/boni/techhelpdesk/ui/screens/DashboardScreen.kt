@@ -46,6 +46,7 @@ import dev.boni.techhelpdesk.ui.components.dashboard.QuickActionItem
 import dev.boni.techhelpdesk.ui.components.dashboard.TicketStatsCard
 import dev.boni.techhelpdesk.ui.components.dashboard.TicketStatsGroup
 import dev.boni.techhelpdesk.ui.theme.CustomColors
+import dev.boni.techhelpdesk.ui.theme.LightCustomColors
 import dev.boni.techhelpdesk.ui.theme.LightOnSuccess
 import dev.boni.techhelpdesk.ui.theme.LightOnWarning
 import dev.boni.techhelpdesk.ui.theme.LightSuccess
@@ -227,7 +228,6 @@ fun DashboardContent(
                     title = "Base de conocimiento",
                     description = "Encuentra respuestas rápidas",
                     onClick = { },
-                    // CAMBIO: Usamos secondaryContainer (más sutil)
                     iconBackgroundColor = MaterialTheme.colorScheme.secondary,
                 )
                 QuickActionItem(
@@ -235,7 +235,6 @@ fun DashboardContent(
                     title = "Chat de soporte",
                     description = "Habla con un técnico",
                     onClick = { },
-                    // CAMBIO: Usamos successContainer (más sutil y correcto)
                     iconBackgroundColor = customColors.success,
                 )
             }
@@ -248,23 +247,8 @@ fun DashboardContent(
 @Composable
 fun DashboardScreenPreview() {
     TechHelpDeskTheme {
-        // Para que la preview funcione, "proveemos" los colores personalizados
-        // (En tu app real, esto lo harás en tu 'Theme.kt' principal)
-        val customColors = CustomColors(
-            success = LightSuccess,
-            onSuccess = LightOnSuccess,
-            successContainer = MaterialTheme.colorScheme.tertiaryContainer, // Usamos un sustituto para el preview
-            onSuccessContainer = MaterialTheme.colorScheme.onTertiaryContainer,
-            warning = LightWarning,
-            onWarning = LightOnWarning,
-            warningContainer = MaterialTheme.colorScheme.secondaryContainer, // Usamos un sustituto para el preview
-            onWarningContainer = MaterialTheme.colorScheme.onSecondaryContainer
-        )
-
-        CompositionLocalProvider(LocalCustomColors provides customColors) {
-            val navController = rememberNavController()
-            DashboardScreen(navController = navController)
-        }
+        val navController = rememberNavController()
+        DashboardScreen(navController = navController)
     }
 }
 

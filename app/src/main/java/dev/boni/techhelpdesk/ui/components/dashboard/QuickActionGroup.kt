@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
+import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Chat
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.List
@@ -57,14 +59,14 @@ fun QuickActionGroupPreview() {
             SectionTitle(text = "Accesos rápidos")
             QuickActionGroup {
                 QuickActionItem(
-                    icon = Icons.Outlined.List,
+                    icon = Icons.AutoMirrored.Outlined.List,
                     title = "Ver todos los tickets",
                     description = "Gestiona tus solicitudes",
                     onClick = { }
                     // Colores por defecto (Primary)
                 )
                 QuickActionItem(
-                    icon = Icons.Outlined.MenuBook,
+                    icon = Icons.AutoMirrored.Outlined.MenuBook,
                     title = "Base de conocimiento",
                     description = "Encuentra respuestas rápidas",
                     onClick = { },

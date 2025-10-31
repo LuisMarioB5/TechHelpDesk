@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Warning
@@ -132,7 +133,7 @@ fun TicketStatsCardPreview() {
             TicketStatsCard(
                 title = "Tickets Abiertos",
                 count = 12,
-                icon = Icons.Default.List,
+                icon = Icons.AutoMirrored.Filled.List,
                 onClick = { }
             )
 

@@ -15,11 +15,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.Label // Icono para Category Option
 import androidx.compose.material.icons.automirrored.filled.Send // Icono Enviar
 import androidx.compose.material.icons.filled.* // Importar todos
 import androidx.compose.material.icons.outlined.* // Importar todos outlined
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,7 +59,7 @@ val categories = listOf(
     CategoryOption("software", "Software", Icons.Default.Apps, "Aplicaciones y programas"),
     CategoryOption("network", "Red", Icons.Default.Wifi, "Conectividad e internet"),
     CategoryOption("permissions", "Permisos", Icons.Default.Lock, "Accesos y autorizaciones"),
-    CategoryOption("other", "Otro", Icons.Default.HelpOutline, "Otros problemas"),
+    CategoryOption("other", "Otro", Icons.AutoMirrored.Filled.HelpOutline, "Otros problemas"),
 )
 
 val priorities = listOf(
@@ -396,7 +398,12 @@ fun CreateTicketScreen(
             // --- Optional Fields ---
             item {
                 Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Divider(Modifier.padding(vertical = 16.dp)) // Separador
+                    HorizontalDivider(
+                        Modifier.padding(vertical = 16.dp),
+                        DividerDefaults.Thickness,
+                        DividerDefaults.color
+                    )
+                    // Separador
                     Surface( // Botón para expandir
                         onClick = { showOptionalFields = !showOptionalFields },
                         shape = RoundedCornerShape(12.dp),
