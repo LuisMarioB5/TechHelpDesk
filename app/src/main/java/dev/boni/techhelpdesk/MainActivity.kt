@@ -10,6 +10,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,12 +23,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import dev.boni.techhelpdesk.ui.components.BottomNavigation
 import dev.boni.techhelpdesk.ui.screens.CreateTicketScreen
 import dev.boni.techhelpdesk.ui.screens.DashboardScreen
 import dev.boni.techhelpdesk.ui.screens.LoginScreen
 import dev.boni.techhelpdesk.ui.screens.RegisterScreen
 import dev.boni.techhelpdesk.ui.screens.ForgotPasswordScreen
+import dev.boni.techhelpdesk.ui.screens.NotificationsScreen
+import dev.boni.techhelpdesk.ui.screens.ProfileScreen
 import dev.boni.techhelpdesk.ui.screens.SplashScreen
 import dev.boni.techhelpdesk.ui.screens.knowledge.KnowledgeBaseScreen
 import dev.boni.techhelpdesk.ui.screens.knowledge.id.KnowledgeArticleScreen
@@ -37,7 +42,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TechHelpDeskTheme {
+            var themeSetting by remember { mutableStateOf("system") }
+
+            TechHelpDeskTheme (themeSetting = themeSetting) {
                 val navController = rememberNavController()
 
                 Scaffold(
@@ -55,16 +62,20 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToRegister = { navController.navigate("/register") }
                             )
                         }
+
                         composable(route = "/dashboard") {
                             // DashboardScreen maneja su propio padding superior
                             DashboardScreen(navController = navController)
                         }
+
                         composable(route = "/login") {
                             LoginScreen(navController = navController)
                         }
+
                         composable(route = "/forgot-password") {
                             ForgotPasswordScreen(navController = navController)
                         }
+
                         composable(route = "/register") {
                             RegisterScreen(navController = navController)
                         }
@@ -89,7 +100,6 @@ class MainActivity : ComponentActivity() {
                                 initialFilterStatus = initialStatus
                             )
                         }
-
                         composable(
                             // La ruta base es diferente para evitar conflictos con /tickets?status
                             route = "/ticket/detail/{ticketId}",
@@ -131,11 +141,18 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(route = "/notifications") {
-                            PlaceholderScreen(text = "Pantalla de Notificaciones")
-                        }
                         composable(route = "/profile") {
-                            PlaceholderScreen(text = "Pantalla de Perfil")
+                            ProfileScreen(
+                                navController = navController,
+                                currentTheme = themeSetting,
+                                onThemeChange = { newTheme ->
+                                    themeSetting = newTheme
+                                }
+                            )
+                        }
+
+                        composable(route = "/notifications") {
+                            NotificationsScreen(navController = navController)
                         }
                     }
                 }

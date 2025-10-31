@@ -227,7 +227,7 @@ fun DashboardContent(
                     icon = Icons.AutoMirrored.Outlined.LibraryBooks,
                     title = "Base de conocimiento",
                     description = "Encuentra respuestas rápidas",
-                    onClick = { },
+                    onClick = { navController.navigate("/knowledge") },
                     iconBackgroundColor = MaterialTheme.colorScheme.secondary,
                 )
                 QuickActionItem(
