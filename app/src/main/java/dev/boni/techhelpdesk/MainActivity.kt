@@ -26,6 +26,8 @@ import dev.boni.techhelpdesk.ui.screens.LoginScreen
 import dev.boni.techhelpdesk.ui.screens.RegisterScreen
 import dev.boni.techhelpdesk.ui.screens.ForgotPasswordScreen
 import dev.boni.techhelpdesk.ui.screens.SplashScreen
+import dev.boni.techhelpdesk.ui.screens.knowledge.KnowledgeBaseScreen
+import dev.boni.techhelpdesk.ui.screens.knowledge.id.KnowledgeArticleScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.TicketsScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.id.TicketDetailScreen
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
@@ -110,11 +112,27 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        composable(route = "/knowledge") {
+                            KnowledgeBaseScreen(navController = navController)
+                        }
+                        composable(
+                            route = "/knowledge/article/{articleId}",
+                            arguments = listOf(
+                                navArgument("articleId") {
+                                    type = NavType.StringType
+                                }
+                            )
+                        ) { backStackEntry ->
+                            val articleId = backStackEntry.arguments?.getString("articleId") ?: "ID_INVALIDO"
+
+                            KnowledgeArticleScreen(
+                                navController = navController,
+                                articleId = articleId,
+                            )
+                        }
+
                         composable(route = "/notifications") {
                             PlaceholderScreen(text = "Pantalla de Notificaciones")
-                        }
-                        composable(route = "/knowledge") {
-                            PlaceholderScreen(text = "Pantalla de Conocimiento")
                         }
                         composable(route = "/profile") {
                             PlaceholderScreen(text = "Pantalla de Perfil")
