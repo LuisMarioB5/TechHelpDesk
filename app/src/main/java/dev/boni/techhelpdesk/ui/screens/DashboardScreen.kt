@@ -232,7 +232,7 @@ fun DashboardContent(
                     icon = Icons.AutoMirrored.Outlined.Chat,
                     title = "Chat de soporte",
                     description = "Habla con un técnico",
-                    onClick = { },
+                    onClick = { navController.navigate("/conversation") },
                     iconBackgroundColor = customColors.success,
                 )
             }

@@ -3,7 +3,11 @@ package dev.boni.techhelpdesk.ui.components
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.ContactSupport
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
+import androidx.compose.material.icons.automirrored.outlined.Chat
+import androidx.compose.material.icons.automirrored.outlined.ContactSupport
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.Home
@@ -58,8 +62,8 @@ fun BottomNavigation(
     val navItems = listOf(
         NavItem("Inicio", "/dashboard", Icons.Filled.Home, Icons.Outlined.Home),
         NavItem("Tickets", "/tickets?status={status}", Icons.Filled.ConfirmationNumber, Icons.Outlined.ConfirmationNumber),
-        NavItem("Conocimiento", "/knowledge", Icons.AutoMirrored.Filled.LibraryBooks,
-            Icons.AutoMirrored.Outlined.LibraryBooks
+        NavItem("Chat", "/conversation", Icons.AutoMirrored.Filled.Chat,
+            Icons.AutoMirrored.Outlined.Chat
         ),
         NavItem("Perfil", "/profile", Icons.Filled.Person, Icons.Outlined.Person)
     )
@@ -172,7 +176,7 @@ fun BottomNavigationPreview() {
             ) {
                 composable("/dashboard") { Text("Página de Inicio") }
                 composable("/tickets") { Text("Página de Tickets") }
-                composable("/knowledge") { Text("Página de Conocimientos") }
+                composable("/conversation") { Text("Página de Conversaciones (soporte)") }
                 composable("/profile") { Text("Página de Perfil") }
             }
         }

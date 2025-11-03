@@ -23,16 +23,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import dev.boni.techhelpdesk.ui.screens.ConversationsScreen
 import dev.boni.techhelpdesk.ui.screens.CreateTicketScreen
 import dev.boni.techhelpdesk.ui.screens.DashboardScreen
 import dev.boni.techhelpdesk.ui.screens.LoginScreen
 import dev.boni.techhelpdesk.ui.screens.RegisterScreen
 import dev.boni.techhelpdesk.ui.screens.ForgotPasswordScreen
+import dev.boni.techhelpdesk.ui.screens.NewConversationScreen
 import dev.boni.techhelpdesk.ui.screens.NotificationsScreen
 import dev.boni.techhelpdesk.ui.screens.ProfileScreen
 import dev.boni.techhelpdesk.ui.screens.SplashScreen
 import dev.boni.techhelpdesk.ui.screens.knowledge.KnowledgeBaseScreen
 import dev.boni.techhelpdesk.ui.screens.knowledge.id.KnowledgeArticleScreen
+import dev.boni.techhelpdesk.ui.screens.conversation.ConversationDetailScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.TicketsScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.id.TicketDetailScreen
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
@@ -153,6 +156,31 @@ class MainActivity : ComponentActivity() {
 
                         composable(route = "/notifications") {
                             NotificationsScreen(navController = navController)
+                        }
+
+                        composable(route = "/conversation") {
+                            ConversationsScreen(navController = navController)
+                        }
+                        composable(route = "/conversation/new") {
+                            NewConversationScreen(navController = navController)
+                        }
+                        composable(
+                            // La ruta debe coincidir con la llamada: "/conversation/detail/{ID}"
+                            route = "/conversation/detail/{chatId}",
+                            arguments = listOf(
+                                navArgument("chatId") {
+                                    type = NavType.StringType // Es un texto
+                                }
+                            )
+                        ) { backStackEntry ->
+                            // 1. Obtenemos el ID del chat de la ruta
+                            val chatId = backStackEntry.arguments?.getString("chatId") ?: "ID_INVALIDO"
+
+                            // 2. Llamamos a la pantalla de detalle del chat
+                            ConversationDetailScreen(
+                                navController = navController,
+                                chatId = chatId
+                            )
                         }
                     }
                 }

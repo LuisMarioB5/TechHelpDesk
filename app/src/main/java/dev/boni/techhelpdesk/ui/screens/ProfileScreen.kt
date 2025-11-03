@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
+import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -111,6 +113,16 @@ fun ProfileScreen(
                     icon = Icons.Default.Notifications,
                     badgeCount = 3,
                     onClick = { navController.navigate("/notifications") }
+                )
+            }
+
+            // Conocimiento (Preguntas frecuentes)
+            item {
+                SettingsClickableItem(
+                    label = "Conocimiento",
+                    subtext = "Ver preguntas frecuentes",
+                    icon = Icons.AutoMirrored.Filled.LibraryBooks,
+                    onClick = { navController.navigate("/knowledge") }
                 )
             }
 
