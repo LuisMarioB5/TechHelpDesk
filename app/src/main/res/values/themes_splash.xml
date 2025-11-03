@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+
+        <!-- 1. El color de fondo de la pantalla de carga. -->
+        <item name="windowSplashScreenBackground">@color/DarkPrimary</item>
+
+        <!-- 2. El icono que se mostrará. -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+
+        <!-- 3. El tema que se usará DESPUÉS de que termine esta pantalla de carga -->
+        <item name="postSplashScreenTheme">@style/Theme.TechHelpDesk</item>
+    </style>
+</resources>
+
