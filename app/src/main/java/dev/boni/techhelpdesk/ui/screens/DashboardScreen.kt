@@ -137,10 +137,10 @@ fun DashboardContent(
     navController: NavController,
     innerPadding: PaddingValues
 ) {
-    // Obtenemos los colores personalizados que provee el Tema
+    // Se obtienen los colores personalizados que provee el Tema
     val customColors = LocalCustomColors.current
 
-    // Usamos LazyColumn para que la pantalla sea scrollable
+    // LazyColumn para que la pantalla sea scrollable
     LazyColumn(
         contentPadding = PaddingValues(
             top = innerPadding.calculateTopPadding() + 24.dp, // <-- Espacio entre header y contenido
