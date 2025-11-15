@@ -37,6 +37,9 @@ import dev.boni.techhelpdesk.R
 import dev.boni.techhelpdesk.ui.components.MobileButton // Reutilizamos MobileButton
 import dev.boni.techhelpdesk.ui.components.MobileButtonVariant // Enum de MobileButton
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
+import androidx.compose.runtime.rememberCoroutineScope
+import dev.boni.techhelpdesk.data.repository.AuthRepository
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,17 +55,85 @@ fun RegisterScreen(
     var showPassword by remember { mutableStateOf(false) }
     var acceptTerms by remember { mutableStateOf(false) }
 
-    // --- Lógica Simulada ---
+    // Estado para Errores ---
+    var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+
+    // Validación en tiempo real ---
+    val isEmailValid by remember {
+        derivedStateOf {
+            // El email es válido si está vacío O si cumple el patrón
+            email.isBlank() || Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        }
+    }
+    val doPasswordsMatch by remember {
+        derivedStateOf {
+            // Las contraseñas coinciden si la confirmación está vacía O si son iguales
+            confirmPassword.isBlank() || password == confirmPassword
+        }
+    }
+
+    val scope = rememberCoroutineScope()
+    val authRepo = remember { AuthRepository() }
+
+    // Función de Validación Completa ---
+    val validateRegisterForm: () -> Boolean = {
+        val newErrors = mutableMapOf<String, String>()
+        // Nombre
+        if (name.isBlank()) {
+            newErrors["name"] = "El nombre es requerido"
+        }
+        // Email
+        if (email.isBlank()) {
+            newErrors["email"] = "El correo es requerido"
+        } else if (!isEmailValid) {
+            newErrors["email"] = "Formato de correo inválido"
+        }
+        // Contraseña
+        if (password.isBlank()) {
+            newErrors["password"] = "La contraseña es requerida"
+        } else if (password.length < 6) {
+            newErrors["password"] = "La contraseña debe tener al menos 6 caracteres"
+        }
+        // Confirmar Contraseña
+        if (confirmPassword.isBlank()) {
+            newErrors["confirmPassword"] = "Confirma la contraseña"
+        } else if (!doPasswordsMatch) {
+            newErrors["confirmPassword"] = "Las contraseñas no coinciden"
+        }
+        // Términos
+        if (!acceptTerms) {
+            newErrors["acceptTerms"] = "Debes aceptar los términos"
+        }
+
+        errors = newErrors // Actualiza el estado de errores
+        newErrors.isEmpty() // Devuelve true si NO hay errores
+    }
+
+    // Lógica de Registro con Validación ---
     val handleRegister = {
-        // En una app real, validarías y llamarías a una API
+        if (validateRegisterForm()) { // Llama a la validación
+            scope.launch {
+                val result = authRepo.registerUser(name, email, password)
+                // ¡Éxito! Navega al Dashboard
+                if (result.isSuccess) {
+                    navController.navigate("/dashboard") {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                } else {
+                    // Muestra el error de Firebase (ej. "email ya en uso")
+                    errors = errors + ("email" to (result.exceptionOrNull()?.message ?: "Error desconocido"))
+                }
+            }
+        }
+    }
+
+    val handleSocialRegister = { provider: String ->
+        println("Registering with $provider") // Simulación
         navController.navigate("/dashboard") {
             popUpTo(navController.graph.startDestinationId) { inclusive = true }
             launchSingleTop = true
         }
-    }
-    val handleSocialRegister = { provider: String ->
-        println("Registering with $provider") // Simulación
-        handleRegister()
     }
 
     Scaffold(
@@ -78,14 +149,14 @@ fun RegisterScreen(
         ) {
             // --- Header Simple ---
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
-                    )
-                    .statusBarsPadding()
-                    .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp)
+            modifier = Modifier
+            .fillMaxWidth()
+            .background(
+            color = MaterialTheme.colorScheme.primary,
+            shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+            )
+            .statusBarsPadding()
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp)
             ) {
                 IconButton(
                     onClick = { navController.popBackStack() },
@@ -109,33 +180,40 @@ fun RegisterScreen(
                 // Name
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = { name = it; errors = errors - "name" }, // Limpia error
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Nombre completo") },
+                    label = { Text("Nombre completo *") },
                     placeholder = { Text("María López") },
                     leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    singleLine = true
+                    singleLine = true,
+                    isError = errors.containsKey("name"), // Muestra error
+                    supportingText = { FormFieldErrorText(error = errors["name"]) } // Muestra mensaje
                 )
 
                 // Email
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = { email = it; errors = errors - "email" }, // Limpia error
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Correo electrónico") },
+                    label = { Text("Correo electrónico *") },
                     placeholder = { Text("tu@email.com") },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     singleLine = true,
-                    isError = email.isNotBlank() && !Patterns.EMAIL_ADDRESS.matcher(email).matches() // Validación simple
+                    // Error si está en el map O si el formato en tiempo real es inválido
+                    isError = errors.containsKey("email") || !isEmailValid,
+                    supportingText = {
+                        val realTimeError = if (!isEmailValid) "Formato de correo inválido" else null
+                        FormFieldErrorText(error = errors["email"] ?: realTimeError)
+                    }
                 )
 
                 // Password
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { password = it; errors = errors - "password" }, // Limpia error
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Contraseña") },
+                    label = { Text("Contraseña *") },
                     placeholder = { Text("••••••••") },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
@@ -149,44 +227,56 @@ fun RegisterScreen(
                         }
                     },
                     singleLine = true,
-
+                    isError = errors.containsKey("password"),
+                    supportingText = {
+                        FormFieldErrorText(error = errors["password"], defaultText = "Mínimo 6 caracteres")
+                    }
                 )
 
                 // Confirm Password
                 OutlinedTextField(
                     value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
+                    onValueChange = { confirmPassword = it; errors = errors - "confirmPassword" },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Confirmar contraseña") },
+                    label = { Text("Confirmar contraseña *") },
                     placeholder = { Text("••••••••") },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    singleLine = true
-                    // Podrías añadir validación isError = password != confirmPassword
+                    singleLine = true,
+                    // Error si está en el map O si no coincide en tiempo real
+                    isError = errors.containsKey("confirmPassword") || !doPasswordsMatch,
+                    supportingText = {
+                        val realTimeError = if (!doPasswordsMatch) "Las contraseñas no coinciden" else null
+                        FormFieldErrorText(error = errors["confirmPassword"] ?: realTimeError)
+                    }
                 )
 
                 // Accept Terms
-                Row(
-                    verticalAlignment = Alignment.Top, // Alinea el checkbox arriba
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Checkbox(
-                        checked = acceptTerms,
-                        onCheckedChange = { acceptTerms = it },
-                        modifier = Modifier.padding(top = 0.dp) // Ajusta si es necesario
-                    )
-                    Spacer(Modifier.width(8.dp)) // gap-3
-                    AcceptTermsText() // Texto clickeable
+                Column { // Envolvemos en Column para poner el error debajo
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(
+                            checked = acceptTerms,
+                            onCheckedChange = { acceptTerms = it; errors = errors - "acceptTerms" },
+                            modifier = Modifier.padding(top = 0.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        AcceptTermsText()
+                    }
+                    // Mostrar error de términos
+                    FormFieldErrorText(error = errors["acceptTerms"], modifier = Modifier.padding(start = 16.dp))
                 }
 
                 // Register Button
                 MobileButton(
-                    onClick = handleRegister,
+                    onClick = handleRegister, // Llama a la función con validación
                     variant = MobileButtonVariant.FILLED,
                     fullWidth = true,
-                    enabled = acceptTerms, // Habilitado solo si acepta términos
-                    modifier = Modifier.padding(top = 16.dp) // mt-6
+                    enabled = true, // El botón siempre está habilitado, la validación se encarga
+                    modifier = Modifier.padding(top = 16.dp)
                 ) {
                     Text("Crear cuenta")
                 }
@@ -280,6 +370,35 @@ fun RegisterScreen(
             } // Fin Column principal del formulario
         } // Fin Column scrollable
     } // Fin Scaffold
+}
+
+@Composable
+fun FormFieldErrorText(error: String?, modifier: Modifier = Modifier, defaultText: String? = null) {
+    val errorColor = MaterialTheme.colorScheme.error
+    // Usamos un Box con altura mínima para reservar espacio y evitar saltos
+    Box(modifier = modifier.heightIn(min = 16.dp)) {
+        val textToShow = error ?: defaultText
+        if (textToShow != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Muestra el icono solo si es un error real
+                if (error != null) {
+                    Icon(
+                        Icons.Filled.Error,
+                        contentDescription = null,
+                        tint = errorColor,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                }
+                Text(
+                    text = textToShow,
+                    // Color de error si hay error, si no, color de texto de ayuda normal
+                    color = if (error != null) errorColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
 }
 
 // Helper Composable para el texto de Términos y Condiciones (CORREGIDO)
