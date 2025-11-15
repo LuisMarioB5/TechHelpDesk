@@ -29,6 +29,9 @@ import dev.boni.techhelpdesk.R
 import dev.boni.techhelpdesk.ui.components.MobileButton
 import dev.boni.techhelpdesk.ui.components.MobileButtonVariant
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
+import androidx.compose.runtime.rememberCoroutineScope
+import dev.boni.techhelpdesk.data.repository.AuthRepository
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,19 +61,28 @@ fun LoginScreen(
         newErrors.isEmpty()
     }
 
-    // --- Lógica Simulada ---
+    val scope = rememberCoroutineScope()
+    val authRepo = remember { AuthRepository() }
+
     val handleLogin = {
-        // --- CAMBIO: Llamar validación ---
         if (validateLogin()) {
-            println("Login Válido: $email") // Simulación
-            navController.navigate("/dashboard") {
-                popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                launchSingleTop = true
+            scope.launch {
+                val result = authRepo.loginUser(email, password)
+
+                if (result.isSuccess) {
+                    // ¡Éxito! Navega al Dashboard
+                    navController.navigate("/dashboard") {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                } else {
+                    // ¡Error! Muestra el error en el campo de contraseña
+                    errors = errors + ("password" to "Email o contraseña incorrectos")
+                }
             }
-        } else {
-            println("Errores de Login: $errors") // Simulación
         }
     }
+
     val handleSocialLogin = { provider: String ->
         println("Logging in with $provider")
         // No validamos aquí, asumimos que el proveedor social lo hace
@@ -79,7 +91,6 @@ fun LoginScreen(
             launchSingleTop = true
         }
     }
-
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
