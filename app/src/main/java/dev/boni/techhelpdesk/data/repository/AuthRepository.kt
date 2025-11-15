@@ -17,6 +17,13 @@ class AuthRepository {
     private val db = Firebase.firestore
 
     /**
+     * Cierra la sesión del usuario actual de Firebase.
+     */
+    fun signOut() {
+        auth.signOut()
+    }
+
+    /**
      * Obtiene el nombre del usuario actualmente logueado desde Firestore.
      *
      * @return Result.success(String) con el nombre del usuario.

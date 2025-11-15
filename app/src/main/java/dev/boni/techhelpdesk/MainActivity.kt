@@ -40,6 +40,7 @@ import dev.boni.techhelpdesk.ui.screens.conversation.ConversationDetailScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.TicketsScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.id.TicketDetailScreen
 import dev.boni.techhelpdesk.ui.screens.viewmodels.DashboardViewModel
+import dev.boni.techhelpdesk.ui.screens.viewmodels.ProfileViewModel
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 
 class MainActivity : ComponentActivity() {
@@ -152,6 +153,7 @@ class MainActivity : ComponentActivity() {
                             ProfileScreen(
                                 navController = navController,
                                 currentTheme = themeSetting,
+                                viewModel = ProfileViewModel(),
                                 onThemeChange = { newTheme ->
                                     themeSetting = newTheme
                                 }

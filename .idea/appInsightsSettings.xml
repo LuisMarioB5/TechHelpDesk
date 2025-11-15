@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="dev.boni.techhelpdesk" />
+                  <option name="mobileSdkAppId" value="1:1087074208934:android:f739bc71698e3b4330f867" />
+                  <option name="projectId" value="techhelpdesk-216b2" />
+                  <option name="projectNumber" value="1087074208934" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

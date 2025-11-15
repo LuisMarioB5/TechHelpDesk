@@ -9,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
-import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,9 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import dev.boni.techhelpdesk.ui.components.BottomNavigation
+import dev.boni.techhelpdesk.ui.screens.viewmodels.ProfileViewModel
 import dev.boni.techhelpdesk.ui.theme.LightCustomColors
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
@@ -35,6 +36,7 @@ import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 fun ProfileScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
+    viewModel: ProfileViewModel,
     currentTheme: String,
     onThemeChange: (String) -> Unit,
 ) {
@@ -60,7 +62,9 @@ fun ProfileScreen(
                 TextButton(
                     onClick = {
                         showLogoutDialog = false
-                        navController.navigate("auth_graph") { // Asumiendo que "auth_graph" es la ruta de tu grafo de login/splash
+                        viewModel.onConfirmLogout() // Llama a la lógica de signOut
+                        // Navega al login y limpia la pila
+                        navController.navigate("/login") {
                             popUpTo(navController.graph.id) { inclusive = true }
                         }
                     }
@@ -475,9 +479,14 @@ fun ProfileScreenPreview() {
     TechHelpDeskTheme {
         CompositionLocalProvider(LocalCustomColors provides LightCustomColors) {
             val navController = rememberNavController()
+
+            // ViewModel falso ---
+            val previewViewModel: ProfileViewModel = viewModel()
             var previewTheme by remember { mutableStateOf("system") }
+
             ProfileScreen(
                 navController = navController,
+                viewModel = previewViewModel, // <-- Pasa el ViewModel
                 currentTheme = previewTheme,
                 onThemeChange = { previewTheme = it }
             )
