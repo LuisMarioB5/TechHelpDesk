@@ -17,6 +17,34 @@ class AuthRepository {
     private val db = Firebase.firestore
 
     /**
+     * Obtiene el nombre del usuario actualmente logueado desde Firestore.
+     *
+     * @return Result.success(String) con el nombre del usuario.
+     * @return Result.failure(Exception) si el usuario no está logueado o no se encuentra el nombre.
+     */
+    suspend fun getCurrentUserName(): Result<String> {
+        return try {
+            // 1. Obtener el usuario actual de Firebase Auth
+            val currentUser = auth.currentUser
+                ?: throw IllegalStateException("Nadie ha iniciado sesión")
+
+            // 2. Obtener el documento del usuario de Firestore usando su UID
+            val userDocument = db.collection("users").document(currentUser.uid).get().await()
+
+            // 3. Extraer el campo "name" del documento
+            val userName = userDocument.getString("name")
+                ?: throw IllegalStateException("El documento de usuario no tiene campo 'name'")
+
+            // 4. Devolver el nombre
+            Result.success(userName)
+
+        } catch (e: Exception) {
+            println("Error en getCurrentUserName: ${e.message}")
+            Result.failure(e)
+        }
+    }
+    
+    /**
      * Registra un nuevo usuario con email y contraseña.
      * Si tiene éxito, también guarda el nombre y email en Firestore.
      *
