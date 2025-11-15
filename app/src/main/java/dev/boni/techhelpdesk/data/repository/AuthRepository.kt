@@ -43,7 +43,7 @@ class AuthRepository {
             Result.failure(e)
         }
     }
-    
+
     /**
      * Registra un nuevo usuario con email y contraseña.
      * Si tiene éxito, también guarda el nombre y email en Firestore.

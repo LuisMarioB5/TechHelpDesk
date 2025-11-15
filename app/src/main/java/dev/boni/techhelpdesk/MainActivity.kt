@@ -39,6 +39,7 @@ import dev.boni.techhelpdesk.ui.screens.knowledge.id.KnowledgeArticleScreen
 import dev.boni.techhelpdesk.ui.screens.conversation.ConversationDetailScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.TicketsScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.id.TicketDetailScreen
+import dev.boni.techhelpdesk.ui.screens.viewmodels.DashboardViewModel
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 
 class MainActivity : ComponentActivity() {
@@ -71,7 +72,7 @@ class MainActivity : ComponentActivity() {
 
                         composable(route = "/dashboard") {
                             // DashboardScreen maneja su propio padding superior
-                            DashboardScreen(navController = navController)
+                            DashboardScreen(navController = navController, viewModel = DashboardViewModel())
                         }
 
                         composable(route = "/login") {

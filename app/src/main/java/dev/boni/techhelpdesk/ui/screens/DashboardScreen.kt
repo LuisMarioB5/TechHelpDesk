@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,20 +16,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.CheckCircleOutline
 import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,40 +42,43 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import dev.boni.techhelpdesk.ui.components.AppHeader
 import dev.boni.techhelpdesk.ui.components.BottomNavigation
+import dev.boni.techhelpdesk.ui.components.MobileButton
+import dev.boni.techhelpdesk.ui.components.MobileButtonVariant
 import dev.boni.techhelpdesk.ui.components.SectionTitle
-import dev.boni.techhelpdesk.ui.components.dashboard.QuickActionCard
 import dev.boni.techhelpdesk.ui.components.dashboard.QuickActionGroup
 import dev.boni.techhelpdesk.ui.components.dashboard.QuickActionItem
 import dev.boni.techhelpdesk.ui.components.dashboard.TicketStatsCard
-import dev.boni.techhelpdesk.ui.components.dashboard.TicketStatsGroup
-import dev.boni.techhelpdesk.ui.theme.CustomColors
+import dev.boni.techhelpdesk.ui.screens.viewmodels.DashboardViewModel
 import dev.boni.techhelpdesk.ui.theme.LightCustomColors
-import dev.boni.techhelpdesk.ui.theme.LightOnSuccess
-import dev.boni.techhelpdesk.ui.theme.LightOnWarning
-import dev.boni.techhelpdesk.ui.theme.LightSuccess
-import dev.boni.techhelpdesk.ui.theme.LightWarning
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow // Para la preview
+import kotlinx.coroutines.flow.asStateFlow // Para la preview
 
 /**
  * Pantalla principal del Dashboard.
  *
  * @param navController El controlador de navegación para manejar las acciones.
+ * @param viewModel El ViewModel que gestiona el estado de esta pantalla.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: DashboardViewModel
 ) {
-    // --- CAMBIO: Aplicada la Solución Definitiva ---
+    // Observa el nombre de usuario desde el ViewModel ---
+    val userName by viewModel.userName.collectAsState()
+
     Scaffold(
-        // 1. AppHeader vuelve al topBar
         topBar = {
             AppHeader(
                 title = {
                     Column {
                         Text(
-                            text = "Hola, Luis",
+                            // Usa el nombre de usuario del ViewModel ---
+                            text = "Hola, $userName",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimary
@@ -85,48 +91,40 @@ fun DashboardScreen(
                     }
                 },
                 actions = {
-                    // --- ¡CAMBIO AQUÍ! ---
                     IconButton(
                         onClick = { navController.navigate("/profile") },
-                        // El IconButton ya no necesita fondo, solo tamaño si quieres un área de clic mayor
-                        modifier = Modifier.size(48.dp) // Área de clic
+                        modifier = Modifier.size(48.dp)
                     ) {
-                        // 1. Envolvemos el Icon en un Box
                         Box(
                             modifier = Modifier
-                                .size(40.dp) // Tamaño del círculo de fondo
+                                .size(40.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    // Color de fondo semitransparente
                                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
                                 ),
-                            contentAlignment = Alignment.Center // Centra el Icon dentro del Box
+                            contentAlignment = Alignment.Center
                         ) {
-                            // 2. El Icon ahora va dentro del Box
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = "Perfil",
-                                // 3. Tintamos el icono y le damos tamaño
                                 tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(28.dp) // Tamaño del icono
+                                modifier = Modifier.size(28.dp)
                             )
                         }
                     }
-                    // --- FIN DEL CAMBIO ---
                 }
             )
         },
         bottomBar = {
             BottomNavigation(navController = navController)
         },
-        // 2. Fondo del Scaffold es Transparente
         containerColor = Color.Transparent
     ) { innerPadding ->
-        // 3. Pasamos el innerPadding (que ahora incluye la altura del header)
-        //    directamente al contenido.
+        // Pasa el ViewModel al contenido ---
         DashboardContent(
             navController = navController,
-            innerPadding = innerPadding
+            innerPadding = innerPadding,
+            viewModel = viewModel // Pasa el ViewModel
         )
     }
 }
@@ -135,23 +133,23 @@ fun DashboardScreen(
 fun DashboardContent(
     modifier: Modifier = Modifier,
     navController: NavController,
-    innerPadding: PaddingValues
+    innerPadding: PaddingValues,
+    viewModel: DashboardViewModel // <-- Recibe el ViewModel
 ) {
-    // Se obtienen los colores personalizados que provee el Tema
+    // Obtenemos los colores personalizados (esto no cambia)
     val customColors = LocalCustomColors.current
 
-    // LazyColumn para que la pantalla sea scrollable
+    // (Opcional: Podrías observar más estados aquí, ej.
+    // val stats by viewModel.ticketStats.collectAsState() )
+
     LazyColumn(
         contentPadding = PaddingValues(
-            top = innerPadding.calculateTopPadding() + 24.dp, // <-- Espacio entre header y contenido
-            bottom = innerPadding.calculateBottomPadding()
+            top = innerPadding.calculateTopPadding() + 24.dp,
+            bottom = innerPadding.calculateBottomPadding() + 24.dp // Añadido padding inferior
         ),
         modifier = modifier
             .fillMaxSize()
-            // 4. El LazyColumn dibuja el fondo
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp),
-        // Espacio vertical entre las secciones
+            .background(MaterialTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
 
@@ -159,16 +157,19 @@ fun DashboardContent(
         item {
             SectionTitle(
                 text = "Resumen de tickets",
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
         item {
-            TicketStatsGroup {
-                // 3. Las 3 Tarjetas de Estadísticas
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ){
                 TicketStatsCard(
                     title = "Abiertos",
-                    count = 12,
+                    count = 12, // TODO En el futuro esto vendra del viewModel de los tickets
                     icon = Icons.Outlined.ConfirmationNumber,
-                    onClick = { navController.navigate("/tickets?status=abierto") },
+                    onClick = { navController.navigate("/tickets?status=abierto") { popUpTo("/tickets"){ inclusive = true }; launchSingleTop = true } },
                     color = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                     iconBackgroundColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
@@ -176,9 +177,9 @@ fun DashboardContent(
                 )
                 TicketStatsCard(
                     title = "En progreso",
-                    count = 5,
+                    count = 5, // TODO En el futuro esto vendra del viewModel de los tickets
                     icon = Icons.Outlined.Schedule,
-                    onClick = { navController.navigate("/tickets?status=en_progreso") },
+                    onClick = { navController.navigate("/tickets?status=en_progreso") { popUpTo("/tickets"){ inclusive = true }; launchSingleTop = true } },
                     color = customColors.warning,
                     contentColor = customColors.onWarning,
                     iconBackgroundColor = customColors.onWarning.copy(alpha = 0.2f),
@@ -186,9 +187,9 @@ fun DashboardContent(
                 )
                 TicketStatsCard(
                     title = "Cerrados",
-                    count = 28,
+                    count = 28, // TODO En el futuro esto vendra del viewModel de los tickets
                     icon = Icons.Outlined.CheckCircleOutline,
-                    onClick = { navController.navigate("/tickets?status=cerrado") },
+                    onClick = { navController.navigate("/tickets?status=cerrado") { popUpTo("/tickets"){ inclusive = true }; launchSingleTop = true } },
                     color = customColors.success,
                     contentColor = customColors.onSuccess,
                     iconBackgroundColor = customColors.onSuccess.copy(alpha = 0.2f),
@@ -199,18 +200,26 @@ fun DashboardContent(
 
         // --- SECCIÓN 2: Botón de Nuevo Ticket ---
         item {
-            QuickActionCard(
-                icon = Icons.Outlined.AddCircleOutline,
-                title = "Crear nuevo ticket",
-                description = null,
+            MobileButton(
                 onClick = { navController.navigate("/ticket/create") },
-            )
+                variant = MobileButtonVariant.FILLED,
+                fullWidth = true,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AddCircle,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text(text = "Nuevo ticket", style = MaterialTheme.typography.labelLarge)
+            }
         }
 
         // --- SECCIÓN 3: Accesos Rápidos ---
         item {
             SectionTitle(
                 text = "Accesos rápidos",
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
         item {
@@ -220,20 +229,24 @@ fun DashboardContent(
                     title = "Ver todos los tickets",
                     description = "Gestiona tus solicitudes",
                     onClick = { navController.navigate("/tickets") },
-                    )
+                    iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
                 QuickActionItem(
                     icon = Icons.AutoMirrored.Outlined.LibraryBooks,
                     title = "Base de conocimiento",
                     description = "Encuentra respuestas rápidas",
                     onClick = { navController.navigate("/knowledge") },
-                    iconBackgroundColor = MaterialTheme.colorScheme.secondary,
+                    iconBackgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 QuickActionItem(
                     icon = Icons.AutoMirrored.Outlined.Chat,
                     title = "Chat de soporte",
                     description = "Habla con un técnico",
-                    onClick = { navController.navigate("/conversation") },
-                    iconBackgroundColor = customColors.success,
+                    onClick = { navController.navigate("/support-chat") },
+                    iconBackgroundColor = customColors.successContainer,
+                    contentColor = customColors.onSuccessContainer
                 )
             }
         }
@@ -245,8 +258,20 @@ fun DashboardContent(
 @Composable
 fun DashboardScreenPreview() {
     TechHelpDeskTheme {
-        val navController = rememberNavController()
-        DashboardScreen(navController = navController)
+        // La Preview ahora necesita un ViewModel falso ---
+        // 1. Creamos una implementación falsa (Stub) de la clase
+        class PreviewDashboardViewModel : DashboardViewModel() {
+            // Sobrescribimos el estado para la preview
+            override val userName: StateFlow<String> = MutableStateFlow("Luis (Preview)").asStateFlow()
+        }
+
+        CompositionLocalProvider(LocalCustomColors provides LightCustomColors) {
+            val navController = rememberNavController()
+            // 2. Pasamos el ViewModel falso a la pantalla
+            DashboardScreen(
+                navController = navController,
+                viewModel = PreviewDashboardViewModel()
+            )
+        }
     }
 }
-
