@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1087074208934",
+    "project_id": "techhelpdesk-216b2",
+    "storage_bucket": "techhelpdesk-216b2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1087074208934:android:f739bc71698e3b4330f867",
+        "android_client_info": {
+          "package_name": "dev.boni.techhelpdesk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQmGeeecB2dIDEygEXsOhF0aG5M_ata9Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
