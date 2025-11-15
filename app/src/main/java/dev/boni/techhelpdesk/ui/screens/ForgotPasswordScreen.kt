@@ -34,7 +34,9 @@ import dev.boni.techhelpdesk.ui.components.MobileButtonVariant
 import dev.boni.techhelpdesk.ui.theme.LightCustomColors
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
-
+import androidx.compose.runtime.rememberCoroutineScope
+import dev.boni.techhelpdesk.data.repository.AuthRepository
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,42 +44,67 @@ fun ForgotPasswordScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    // --- Estado ---
+    //  Estado 
     var email by remember { mutableStateOf("") }
-    var emailSent by remember { mutableStateOf(false) } // Controla qué vista mostrar
+    var emailSent by remember { mutableStateOf(false) }
 
-    // --- Lógica Simulada ---
+    // Estado de Errores 
+    var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    val scope = rememberCoroutineScope()
+    val authRepo = remember { AuthRepository() }
+
+    // Función de Validación 
+    val validateForm: () -> Boolean = {
+        val newErrors = mutableMapOf<String, String>()
+        if (email.isBlank()) {
+            newErrors["email"] = "El correo es requerido"
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            newErrors["email"] = "Formato de correo inválido"
+        }
+        errors = newErrors
+        newErrors.isEmpty()
+    }
+
+    // Lógica de Envío Actualizada
     val handleResetPassword = {
-        if (email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            println("Sending password reset email to: $email") // Simulación
-            emailSent = true // Cambia al estado de éxito
+        if (validateForm()) { // Llama a la validación primero
+            scope.launch {
+                val result = authRepo.recoverPassword(email)
+                if (result.isSuccess) {
+                    emailSent = true // Muestra la pantalla de éxito
+                } else {
+                    // Muestra error de Firebase (ej. usuario no encontrado)
+                    errors = errors + ("email" to (result.exceptionOrNull()?.message ?: "Error al enviar el correo"))
+                }
+            }
         } else {
-            // Podrías añadir un estado de error aquí si quisieras
-            println("Invalid email")
+            println("Errores de validación: $errors")
         }
     }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background
-    ) { innerPadding -> // Scaffold no aplica padding superior si no hay topBar
+    ) { innerPadding ->
 
-        // --- Vista Condicional: Formulario o Éxito ---
         if (emailSent) {
-            // --- Vista de Éxito ---
             ForgotPasswordSuccessContent(
                 innerPadding = innerPadding,
                 email = email,
-                onSendAgain = { emailSent = false }, // Vuelve al formulario
-                onBackToLogin = { navController.navigate("/login") { popUpTo(navController.graph.startDestinationId) } } // Vuelve al login
+                onSendAgain = { emailSent = false },
+                onBackToLogin = { navController.navigate("/login") { popUpTo(navController.graph.startDestinationId) } }
             )
         } else {
-            // --- Vista de Formulario ---
             ForgotPasswordFormContent(
                 innerPadding = innerPadding,
                 email = email,
-                onEmailChange = { email = it },
-                onSubmit = handleResetPassword,
+                // Pasa el error y limpia al escribir 
+                onEmailChange = {
+                    email = it
+                    errors = errors - "email"
+                },
+                onSubmit = { handleResetPassword() },
+                emailError = errors["email"], // Pasa el string de error
                 navController = navController
             )
         }
@@ -85,7 +112,7 @@ fun ForgotPasswordScreen(
 }
 
 
-// --- Contenido del Formulario ---
+//  Contenido del Formulario 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ForgotPasswordFormContent(
@@ -93,16 +120,24 @@ fun ForgotPasswordFormContent(
     email: String,
     onEmailChange: (String) -> Unit,
     onSubmit: () -> Unit,
-    navController: NavController, // Necesario para "Volver al login"
+    emailError: String?,
+    navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    // Validación en tiempo real solo para el botón 
+    val isButtonEnabled by remember(email) {
+        derivedStateOf {
+            email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(bottom = innerPadding.calculateBottomPadding()) // Solo padding inferior
+            .padding(bottom = innerPadding.calculateBottomPadding())
             .verticalScroll(rememberScrollState())
     ) {
-        // --- Header Simple ---
+        //  Header Simple 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -115,7 +150,9 @@ fun ForgotPasswordFormContent(
         ) {
             IconButton(
                 onClick = { navController.popBackStack() }, // Botón atrás
-                modifier = Modifier.padding(bottom = 16.dp).offset(x = (-8).dp)
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .offset(x = (-8).dp)
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
             }
@@ -123,7 +160,7 @@ fun ForgotPasswordFormContent(
             Text("Te enviaremos un enlace de recuperación", style = MaterialTheme.typography.bodyLarge, color = Color.White.copy(alpha = 0.8f))
         }
 
-        // --- Formulario ---
+        //  Formulario 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -137,7 +174,9 @@ fun ForgotPasswordFormContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
-                    Icon(Icons.Filled.LockReset, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(end = 12.dp).size(24.dp))
+                    Icon(Icons.Filled.LockReset, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier
+                        .padding(end = 12.dp)
+                        .size(24.dp))
                     Column {
                         Text("¿Olvidaste tu contraseña?", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 4.dp), color = MaterialTheme.colorScheme.onSurface)
                         Text("No te preocupes. Ingresa tu correo electrónico...", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface, lineHeight = 18.sp)
@@ -153,10 +192,17 @@ fun ForgotPasswordFormContent(
                 label = { Text("Correo electrónico") },
                 placeholder = { Text("tu@email.com") },
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                supportingText = { Text("Ingresa el correo asociado a tu cuenta") },
+                // supportingText ahora muestra el error 
+                supportingText = {
+                    FormFieldErrorText(
+                        error = emailError,
+                        defaultText = "Ingresa el correo asociado a tu cuenta"
+                    )
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true,
-                isError = email.isNotBlank() && !Patterns.EMAIL_ADDRESS.matcher(email).matches() // Validación simple
+                // isError se basa en si el error existe 
+                isError = emailError != null
             )
 
             // Reset Button
@@ -164,8 +210,8 @@ fun ForgotPasswordFormContent(
                 onClick = onSubmit,
                 variant = MobileButtonVariant.FILLED,
                 fullWidth = true,
-                enabled = email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches(), // Habilitar solo si es email válido
-                modifier = Modifier.padding(top = 16.dp) // mt-6
+                enabled = email.isNotBlank() && emailError == null,
+                modifier = Modifier.padding(top = 16.dp)
             ) {
                 Text("Enviar enlace de recuperación")
             }
@@ -178,7 +224,9 @@ fun ForgotPasswordFormContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
-                    Icon(Icons.Filled.Security, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end = 12.dp).size(20.dp))
+                    Icon(Icons.Filled.Security, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier
+                        .padding(end = 12.dp)
+                        .size(20.dp))
                     Column {
                         Text("Por tu seguridad, el enlace de recuperación expirará en 24 horas...", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 16.sp)
                     }
@@ -188,7 +236,9 @@ fun ForgotPasswordFormContent(
             // Back to Login Link
             TextButton(
                 onClick = { navController.navigate("/login"){ popUpTo(navController.graph.startDestinationId)} },
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp) // mt-8
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 16.dp)
             ){
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
@@ -200,7 +250,7 @@ fun ForgotPasswordFormContent(
 }
 
 
-// --- Contenido de la Pantalla de Éxito ---
+//  Contenido de la Pantalla de Éxito 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ForgotPasswordSuccessContent(
@@ -216,7 +266,7 @@ fun ForgotPasswordSuccessContent(
             .padding(bottom = innerPadding.calculateBottomPadding())
             .verticalScroll(rememberScrollState())
     ) {
-        // --- Header Simple ---
+        //  Header Simple 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -230,7 +280,9 @@ fun ForgotPasswordSuccessContent(
             IconButton(
                 // Vuelve al login directamente desde el éxito
                 onClick = onBackToLogin,
-                modifier = Modifier.padding(bottom = 16.dp).offset(x = (-8).dp)
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .offset(x = (-8).dp)
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
             }
@@ -238,7 +290,7 @@ fun ForgotPasswordSuccessContent(
             Text("Revisa tu bandeja de entrada", style = MaterialTheme.typography.bodyLarge, color = Color.White.copy(alpha = 0.8f))
         }
 
-        // --- Mensaje de Éxito ---
+        //  Mensaje de Éxito 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -252,7 +304,7 @@ fun ForgotPasswordSuccessContent(
                     .size(96.dp) // w-24 h-24
                     .clip(CircleShape)
                     // Usamos success container con alpha bajo
-                    .background(LocalCustomColors.current.successContainer.copy(alpha=0.1f)),
+                    .background(LocalCustomColors.current.successContainer.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -290,10 +342,15 @@ fun ForgotPasswordSuccessContent(
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp) // mb-6
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp) // mb-6
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
-                    Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(end = 12.dp).size(24.dp).padding(top = 2.dp)) // mt-1
+                    Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier
+                        .padding(end = 12.dp)
+                        .size(24.dp)
+                        .padding(top = 2.dp)) // mt-1
                     Column {
                         Text("¿No recibiste el correo?", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp)) // mb-2
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)){ // space-y-1
@@ -328,7 +385,7 @@ fun ForgotPasswordSuccessContent(
 }
 
 
-// --- Preview ---
+//  Preview 
 @Preview(showBackground = true)
 @Composable
 fun ForgotPasswordScreenPreview() {
