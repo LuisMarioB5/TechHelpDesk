@@ -1,57 +1,64 @@
 package dev.boni.techhelpdesk.ui.auth
 
 import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 
+/**
+ * Verifica si el dispositivo tiene hardware biométrico y si el usuario ha registrado una huella.
+ * Retorna TRUE solo si todo está listo para usarse.
+ */
+fun checkBiometricAvailability(context: Context): Boolean {
+    val biometricManager = BiometricManager.from(context)
 
-    private var canAuthenticate = false
-    private lateinit var promptInfo: BiometricPrompt.PromptInfo
+    // Aceptamos huella (STRONG) o reconocimiento facial simple (WEAK)
+    val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
 
-    fun authenticateWithBiometric(
-        context: Context,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        // 1. Obtenemos la actividad. Necesitamos castearla a FragmentActivity
-        val activity = context as? FragmentActivity ?: return
-
-        val executor = ContextCompat.getMainExecutor(activity)
-
-        // 2. Configurar el prompt (Ahora sí reconocerá PromptInfo)
-        promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Inicio de sesión biométrico")
-            .setSubtitle("Usa tu huella o rostro")
-            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-            .setNegativeButtonText("Cancelar")
-            .build()
-
-        // 3. Configurar los callbacks
-        if(canAuthenticate) {
-            val biometricPrompt = BiometricPrompt(activity, executor,
-                object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        super.onAuthenticationSucceeded(result)
-                        onSuccess()
-                    }
-
-                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                        super.onAuthenticationError(errorCode, errString)
-                        onError(errString.toString())
-                    }
-
-                    override fun onAuthenticationFailed() {
-                        super.onAuthenticationFailed()
-                        // La huella no coincide
-                    }
-                }
-            )
-
-            // 4. Lanzar la autenticación
-            biometricPrompt.authenticate(promptInfo)
-        }
-
+    return when (biometricManager.canAuthenticate(authenticators)) {
+        BiometricManager.BIOMETRIC_SUCCESS -> true // ¡Todo listo!
+        BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> false // Dispositivo viejo sin sensor
+        BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> false // Sensor ocupado o dañado
+        BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> false // Tiene sensor, pero el usuario no ha guardado su huella en Android
+        else -> false
     }
+}
+
+/**
+ * Lanza el prompt biométrico. (Esta es la que ya tenías, optimizada)
+ */
+fun authenticateWithBiometric(
+    context: Context,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit
+) {
+    val activity = context as? FragmentActivity ?: return
+    val executor = ContextCompat.getMainExecutor(activity)
+    val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+
+    val promptInfo = BiometricPrompt.PromptInfo.Builder()
+        .setTitle("Inicio de sesión biométrico")
+        .setSubtitle("Verifica tu identidad")
+        .setAllowedAuthenticators(authenticators)
+        .setNegativeButtonText("Cancelar")
+        .build()
+
+    val biometricPrompt = BiometricPrompt(activity, executor,
+        object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                onSuccess()
+            }
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                // Filtramos "User Canceled" para no mostrar error si el usuario lo cierra a propósito
+                if (errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
+                    errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
+                    onError(errString.toString())
+                }
+            }
+        }
+    )
+    biometricPrompt.authenticate(promptInfo)
+}

@@ -1,6 +1,7 @@
 package dev.boni.techhelpdesk.ui.screens
 
 import android.util.Patterns
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -32,6 +34,9 @@ import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 import androidx.compose.runtime.rememberCoroutineScope
 import dev.boni.techhelpdesk.data.repository.AuthRepository
 import kotlinx.coroutines.launch
+import dev.boni.techhelpdesk.ui.auth.authenticateWithBiometric
+import androidx.compose.runtime.LaunchedEffect
+import dev.boni.techhelpdesk.ui.auth.checkBiometricAvailability
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +44,8 @@ fun LoginScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
     // --- Estado del Formulario ---
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -46,6 +53,11 @@ fun LoginScreen(
     var rememberMe by remember { mutableStateOf(false) }
 
     var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+
+    var isBiometricAvailable by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        isBiometricAvailable = checkBiometricAvailability(context)
+    }
 
     val validateLogin: () -> Boolean = {
         val newErrors = mutableMapOf<String, String>()
@@ -83,12 +95,32 @@ fun LoginScreen(
         }
     }
 
-    val handleSocialLogin = { provider: String ->
-        println("Logging in with $provider")
-        // No validamos aquí, asumimos que el proveedor social lo hace
+    val onLoginSuccess = {
         navController.navigate("/dashboard") {
             popUpTo(navController.graph.startDestinationId) { inclusive = true }
             launchSingleTop = true
+        }
+    }
+
+    val handleSocialLogin = { provider: String ->
+        if (provider == "Biometric") {
+
+            authenticateWithBiometric(
+                context = context,
+                onSuccess = {
+                    // Aquí deberías idealmente recuperar las credenciales guardadas
+                    // y hacer login en Firebase silenciosamente.
+                    // Por ahora, simulamos éxito directo:
+                    onLoginSuccess()
+                },
+                onError = { errorMsg ->
+                    Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                }
+            )
+        } else {
+            println("Logging in with $provider")
+            // Lógica para Google/Microsoft/Apple
+            onLoginSuccess()
         }
     }
 
@@ -282,21 +314,24 @@ fun LoginScreen(
                         Spacer(Modifier.width(12.dp))
                         Text("Continuar con Apple", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }
-                    // Biometric
-                    Button( // Usar Button o OutlinedButton según prefieras
-                        onClick = { handleSocialLogin("Biometric") },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface)
-                    ) {
-                        Icon(
-                            Icons.Filled.Fingerprint,
-                            contentDescription = "Biometric",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Text("Usar huella digital", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+
+                    if(isBiometricAvailable) {
+                        // Biometric
+                        Button(
+                            onClick = { handleSocialLogin("Biometric") },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface)
+                        ) {
+                            Icon(
+                                Icons.Filled.Fingerprint,
+                                contentDescription = "Biometric",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text("Usar huella digital", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                        }
                     }
                 }
 
