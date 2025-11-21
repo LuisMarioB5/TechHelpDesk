@@ -149,7 +149,8 @@ fun DashboardContent(
         ),
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
 
@@ -162,7 +163,7 @@ fun DashboardContent(
         }
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ){
                 TicketStatsCard(
@@ -204,7 +205,6 @@ fun DashboardContent(
                 onClick = { navController.navigate("/ticket/create") },
                 variant = MobileButtonVariant.FILLED,
                 fullWidth = true,
-                modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.AddCircle,
@@ -238,7 +238,7 @@ fun DashboardContent(
                     description = "Encuentra respuestas rápidas",
                     onClick = { navController.navigate("/knowledge") },
                     iconBackgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 QuickActionItem(
                     icon = Icons.AutoMirrored.Outlined.Chat,
@@ -246,7 +246,7 @@ fun DashboardContent(
                     description = "Habla con un técnico",
                     onClick = { navController.navigate("/support-chat") },
                     iconBackgroundColor = customColors.successContainer,
-                    contentColor = customColors.onSuccessContainer
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
