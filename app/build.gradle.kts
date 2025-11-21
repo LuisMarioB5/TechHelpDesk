@@ -59,6 +59,9 @@ dependencies {
     implementation(libs.google.firebase.firestore.ktx)
     implementation(libs.kotlinx.coroutines.playservices)
 
+    implementation(libs.androidx.biometric)
+    implementation(libs.androidx.appcompat)
+
     testImplementation(libs.junit)
 
     androidTestImplementation(libs.androidx.junit)
