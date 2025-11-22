@@ -13,9 +13,6 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="ConversationDetailScreenPreview">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="ConversationsScreenPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>

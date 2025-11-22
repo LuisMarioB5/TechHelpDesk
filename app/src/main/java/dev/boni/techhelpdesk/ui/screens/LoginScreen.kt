@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import dev.boni.techhelpdesk.ui.auth.authenticateWithBiometric
 import androidx.compose.runtime.LaunchedEffect
 import dev.boni.techhelpdesk.ui.auth.checkBiometricAvailability
+import dev.boni.techhelpdesk.data.local.SessionPreferences
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,18 +46,62 @@ fun LoginScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // Dependencias
+    val authRepo = remember { AuthRepository() }
+    val sessionPrefs = remember { SessionPreferences(context) }
+
+    val hasActiveSession = authRepo.isSessionActive()
+    val wantsToRemember = sessionPrefs.shouldRememberMe()
 
     // --- Estado del Formulario ---
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
-    var rememberMe by remember { mutableStateOf(false) }
+    var rememberMe by remember { mutableStateOf(sessionPrefs.shouldRememberMe()) }
 
     var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
-    var isBiometricAvailable by remember { mutableStateOf(false) }
+    // Estado para saber si el botón biométrico debe mostrarse
+    var isBiometricHardwareAvailable by remember { mutableStateOf(false) }
+
+    // --- LÓGICA DE NAVEGACIÓN EXITOSA ---
+    val navigateToDashboard = {
+        navController.navigate("/dashboard") {
+            popUpTo("/login") { inclusive = true } // Limpiamos el login del historial
+            launchSingleTop = true
+        }
+    }
+
+    // --- LÓGICA DE LOGIN BIOMÉTRICO ---
+    val triggerBiometricLogin = {
+        authenticateWithBiometric(
+            context = context,
+            onSuccess = {
+                navigateToDashboard()
+            },
+            onError = { msg ->
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    // --- EFECTO DE INICIO (Auto-Login y Chequeo de Hardware) ---
     LaunchedEffect(Unit) {
-        isBiometricAvailable = checkBiometricAvailability(context)
+        isBiometricHardwareAvailable = checkBiometricAvailability(context)
+
+        if (hasActiveSession) {
+            if (wantsToRemember) {
+                if (isBiometricHardwareAvailable) {
+                    triggerBiometricLogin()
+                } else {
+                    navigateToDashboard()
+                }
+            } else {
+                authRepo.signOut()
+            }
+        }
     }
 
     val validateLogin: () -> Boolean = {
@@ -73,69 +118,47 @@ fun LoginScreen(
         newErrors.isEmpty()
     }
 
-    val scope = rememberCoroutineScope()
-    val authRepo = remember { AuthRepository() }
-
+    // --- MANEJADORES DE BOTONES ---
     val handleLogin = {
         if (validateLogin()) {
+            sessionPrefs.setRememberMe(rememberMe)
+
             scope.launch {
                 val result = authRepo.loginUser(email, password)
-
                 if (result.isSuccess) {
-                    // ¡Éxito! Navega al Dashboard
-                    navController.navigate("/dashboard") {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navigateToDashboard()
                 } else {
-                    // ¡Error! Muestra el error en el campo de contraseña
-                    errors = errors + ("password" to "Email o contraseña incorrectos")
+                    errors = errors + ("password" to "Credenciales incorrectas")
                 }
             }
         }
     }
 
-    val onLoginSuccess = {
-        navController.navigate("/dashboard") {
-            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-            launchSingleTop = true
-        }
-    }
-
     val handleSocialLogin = { provider: String ->
-        if (provider == "Biometric") {
+        sessionPrefs.setRememberMe(rememberMe)
 
-            authenticateWithBiometric(
-                context = context,
-                onSuccess = {
-                    // Aquí deberías idealmente recuperar las credenciales guardadas
-                    // y hacer login en Firebase silenciosamente.
-                    // Por ahora, simulamos éxito directo:
-                    onLoginSuccess()
-                },
-                onError = { errorMsg ->
-                    Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
-                }
-            )
+        if (provider == "Biometric") {
+            triggerBiometricLogin()
         } else {
-            println("Logging in with $provider")
             // Lógica para Google/Microsoft/Apple
-            onLoginSuccess()
+            Toast.makeText(context, "Login con $provider", Toast.LENGTH_SHORT).show()
+        // Si es exitoso -> navigateToDashboard()
         }
     }
 
+    // --- UI ---
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background // Fondo principal
-    ) { innerPadding -> // Scaffold no aplica padding superior si no hay topBar
+        containerColor = MaterialTheme.colorScheme.background
+    ) { innerPadding ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = innerPadding.calculateBottomPadding()) // Solo padding inferior del Scaffold
-                .verticalScroll(rememberScrollState()) // Hacemos toda la columna scrollable
+                .padding(bottom = innerPadding.calculateBottomPadding())
+                .verticalScroll(rememberScrollState())
         ) {
-            // --- Header Simple ---
+            // --- Header ---
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -143,8 +166,8 @@ fun LoginScreen(
                         color = MaterialTheme.colorScheme.primary,
                         shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
                     )
-                    .statusBarsPadding() // Padding para la barra de estado
-                    .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp) // px-6 pt-12 pb-8
+                    .statusBarsPadding()
+                    .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp)
             ) {
                 // Botón Atrás
                 IconButton(
@@ -153,18 +176,19 @@ fun LoginScreen(
                 ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
                 }
+
                 // Títulos
                 Text(
                     "Bienvenido de nuevo",
-                    style = MaterialTheme.typography.headlineSmall, // text-3xl approx
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
-                    modifier = Modifier.padding(bottom = 8.dp) // mb-2
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
                 Text(
                     "Inicia sesión para continuar",
-                    style = MaterialTheme.typography.bodyLarge, // text-base
-                    color = Color.White.copy(alpha = 0.8f) // text-white/80
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White.copy(alpha = 0.8f)
                 )
             }
 
@@ -172,8 +196,8 @@ fun LoginScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 32.dp), // px-6 py-8
-                verticalArrangement = Arrangement.spacedBy(20.dp) // space-y-5 approx
+                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 // Email
                 OutlinedTextField(
@@ -235,14 +259,14 @@ fun LoginScreen(
                     onClick = handleLogin,
                     variant = MobileButtonVariant.FILLED,
                     fullWidth = true,
-                    modifier = Modifier.padding(top = 16.dp) // mt-6
+                    modifier = Modifier.padding(top = 16.dp)
                 ) {
                     Text("Iniciar sesión")
                 }
 
                 // Divider
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp), // py-4
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
@@ -253,7 +277,7 @@ fun LoginScreen(
                     )
                     Text(
                         "O continúa con",
-                        modifier = Modifier.padding(horizontal = 16.dp), // px-4
+                        modifier = Modifier.padding(horizontal = 16.dp),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -265,13 +289,13 @@ fun LoginScreen(
                 }
 
                 // Social Login Buttons
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { // space-y-3
-                    // Google
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // --- GOOGLE ---
                     Button(
                         onClick = { handleSocialLogin("Google") },
-                        modifier = Modifier.fillMaxWidth().height(56.dp), // h-14
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface) // bg-white
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_logo_google),
@@ -282,7 +306,7 @@ fun LoginScreen(
                         Spacer(Modifier.width(12.dp))
                         Text("Continuar con Google", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }
-                    // Microsoft
+                    // --- MICROSOFT ---
                     Button(
                         onClick = { handleSocialLogin("Microsoft") },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -298,7 +322,7 @@ fun LoginScreen(
                         Spacer(Modifier.width(12.dp))
                         Text("Continuar con Microsoft", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }
-                    // Apple
+                    // --- APPLE ---
                     Button(
                         onClick = { handleSocialLogin("Apple") },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -314,9 +338,8 @@ fun LoginScreen(
                         Spacer(Modifier.width(12.dp))
                         Text("Continuar con Apple", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }
-
-                    if(isBiometricAvailable) {
-                        // Biometric
+                    // --- BOTÓN BIOMÉTRICO CONDICIONAL ---
+                    if (isBiometricHardwareAvailable && hasActiveSession && wantsToRemember) {
                         Button(
                             onClick = { handleSocialLogin("Biometric") },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -330,7 +353,7 @@ fun LoginScreen(
                                 modifier = Modifier.size(28.dp)
                             )
                             Spacer(Modifier.width(12.dp))
-                            Text("Usar huella digital", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                            Text("Usar huella digital", color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }

@@ -8,40 +8,34 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+
 /**
- * ViewModel para la DashboardScreen.
- * Se encarga de obtener y mantener el estado de la UI del Dashboard.
+ * ViewModel encargado de gestionar el estado y la lógica de negocio del Dashboard.
  */
 open class DashboardViewModel : ViewModel() {
 
-    // Instancia del repositorio
     private val authRepo = AuthRepository()
 
-    // --- Estado del Nombre de Usuario ---
-    // Privado y mutable (solo el ViewModel puede cambiarlo)
-    private val _userName = MutableStateFlow("Usuario") // Valor por defecto
-    // Público e inmutable (la UI solo puede leerlo)
+    /**
+     * Estado del nombre de usuario.
+     * Inicializamos llamando al repositorio (caché) para que sea instantáneo.
+     */
+    private val _userName = MutableStateFlow(authRepo.getCachedDisplayName() ?: "Usuario")
     open val userName: StateFlow<String> = _userName.asStateFlow()
 
-    // Bloque de inicialización: se llama en cuanto el ViewModel se crea
     init {
-        loadUserName()
+        refreshUserName()
     }
 
     /**
-     * Llama al repositorio para obtener el nombre del usuario
-     * y actualiza el estado _userName.
+     * Refresca el nombre de usuario desde el repositorio de manera asíncrona
+     * para asegurar consistencia en caso de cambios remotos.
      */
-    private fun loadUserName() {
-        // viewModelScope se encarga de cancelar esto si el ViewModel se destruye
+    private fun refreshUserName() {
         viewModelScope.launch {
-            val result = authRepo.getCurrentUserName()
+            val result = authRepo.getCurrentUserNameFromFirestore()
             if (result.isSuccess) {
-                // Si se obtiene el nombre, actualiza el valor del StateFlow
                 _userName.value = result.getOrNull() ?: "Usuario"
-            } else {
-                // Si falla (ej. no logueado), se queda como "Usuario"
-                _userName.value = "Invitado" // O puedes manejar el error
             }
         }
     }
