@@ -1,6 +1,9 @@
-package dev.boni.techhelpdesk.ui.screens // O el paquete correcto
+package dev.boni.techhelpdesk.ui.screens
 
 import android.util.Patterns
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -9,14 +12,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.* // Importar todos
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalUriHandler // Para abrir enlaces (simulado)
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.LinkAnnotation
@@ -33,9 +36,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
 import dev.boni.techhelpdesk.R
-import dev.boni.techhelpdesk.ui.components.MobileButton // Reutilizamos MobileButton
-import dev.boni.techhelpdesk.ui.components.MobileButtonVariant // Enum de MobileButton
+import dev.boni.techhelpdesk.ui.components.MobileButton
+import dev.boni.techhelpdesk.ui.components.MobileButtonVariant
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 import androidx.compose.runtime.rememberCoroutineScope
 import dev.boni.techhelpdesk.data.repository.AuthRepository
@@ -47,6 +54,11 @@ fun RegisterScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
+    val scope = rememberCoroutineScope()
+    val authRepo = remember { AuthRepository() }
+
     // --- Estado del Formulario ---
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -54,6 +66,9 @@ fun RegisterScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var acceptTerms by remember { mutableStateOf(false) }
+
+    // --- Flag para mostrar/ocultar los botones extra (Microsoft y Apple) ---
+    val showExtraProviders = false
 
     // Estado para Errores ---
     var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
@@ -71,9 +86,6 @@ fun RegisterScreen(
             confirmPassword.isBlank() || password == confirmPassword
         }
     }
-
-    val scope = rememberCoroutineScope()
-    val authRepo = remember { AuthRepository() }
 
     // Función de Validación Completa ---
     val validateRegisterForm: () -> Boolean = {
@@ -105,8 +117,45 @@ fun RegisterScreen(
             newErrors["acceptTerms"] = "Debes aceptar los términos"
         }
 
-        errors = newErrors // Actualiza el estado de errores
-        newErrors.isEmpty() // Devuelve true si NO hay errores
+        errors = newErrors
+        newErrors.isEmpty()
+    }
+
+    val googleSignInClient = remember {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(context.getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+        GoogleSignIn.getClient(context, gso)
+    }
+
+    // Lanzador de Google
+    val googleLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            val idToken = account.idToken
+            if (idToken != null) {
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
+
+                scope.launch {
+                    // Esto crea el usuario en Firestore si no existe
+                    val authResult = authRepo.signInWithCredential(credential)
+                    if (authResult.isSuccess) {
+                        navController.navigate("/dashboard") {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    } else {
+                        Toast.makeText(context, "Error al registrar con Google", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        } catch (e: ApiException) {
+            Toast.makeText(context, "Google Register falló: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     // Lógica de Registro con Validación ---
@@ -129,10 +178,16 @@ fun RegisterScreen(
     }
 
     val handleSocialRegister = { provider: String ->
-        println("Registering with $provider") // Simulación
-        navController.navigate("/dashboard") {
-            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-            launchSingleTop = true
+        when (provider) {
+            "Google" -> {
+                googleSignInClient.signOut().addOnCompleteListener {
+                    googleLauncher.launch(googleSignInClient.signInIntent)
+                }
+            }
+//            "Microsoft" -> {
+//            }
+//            "Apple" -> {
+//            }
         }
     }
 
@@ -320,37 +375,40 @@ fun RegisterScreen(
                         Spacer(Modifier.width(12.dp))
                         Text("Continuar con Google", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }
-                    // Microsoft
-                    Button(
-                        onClick = { handleSocialRegister("Microsoft") },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_logo_windows),
-                            contentDescription = "Microsoft Logo",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Text("Continuar con Microsoft", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
-                    }
-                    // Apple
-                    Button(
-                        onClick = { handleSocialRegister("Apple") },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_logo_apple),
-                            contentDescription = "Apple Logo",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Text("Continuar con Apple", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+
+                    if(showExtraProviders) {
+                        // Microsoft
+                        Button(
+                            onClick = { handleSocialRegister("Microsoft") },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_logo_windows),
+                                contentDescription = "Microsoft Logo",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text("Continuar con Microsoft", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                        }
+                        // Apple
+                        Button(
+                            onClick = { handleSocialRegister("Apple") },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_logo_apple),
+                                contentDescription = "Apple Logo",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text("Continuar con Apple", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                        }
                     }
                 }
 

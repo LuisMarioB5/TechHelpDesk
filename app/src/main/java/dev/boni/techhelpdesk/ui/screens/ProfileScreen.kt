@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,8 @@ fun ProfileScreen(
     currentTheme: String,
     onThemeChange: (String) -> Unit,
 ) {
+    val context = LocalContext.current
+
     // --- Estado ---
     var biometricEnabled by remember { mutableStateOf(true) }
     var notificationsEnabled by remember { mutableStateOf(true) }
@@ -62,11 +65,16 @@ fun ProfileScreen(
                 TextButton(
                     onClick = {
                         showLogoutDialog = false
-                        viewModel.onConfirmLogout() // Llama a la lógica de signOut
-                        // Navega al login y limpia la pila
-                        navController.navigate("/login") {
-                            popUpTo(navController.graph.id) { inclusive = true }
-                        }
+                        viewModel.onConfirmLogout(
+                            context,
+                            onSuccess = {
+                                navController.navigate("/login") {
+                                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
+
                     }
                 ) {
                     Text("Cerrar sesión", color = MaterialTheme.colorScheme.error)

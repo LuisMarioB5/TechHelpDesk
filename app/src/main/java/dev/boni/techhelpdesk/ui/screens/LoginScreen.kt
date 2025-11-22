@@ -68,7 +68,7 @@ fun LoginScreen(
 
     var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
-    // --- Flag para mostrar/ocultar los botones de inicio de sesión con Microsoft y Apple ---
+    // --- Flag para mostrar/ocultar los botones extra (Microsoft y Apple) ---
     val showExtraProviders = false
 
     // Estado para saber si el botón biométrico debe mostrarse
@@ -107,7 +107,7 @@ fun LoginScreen(
                     navigateToDashboard()
                 }
             } else {
-                authRepo.signOut()
+                authRepo.signOut(context)
             }
         }
     }

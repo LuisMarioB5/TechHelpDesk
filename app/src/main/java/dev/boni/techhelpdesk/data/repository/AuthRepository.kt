@@ -1,11 +1,15 @@
 package dev.boni.techhelpdesk.data.repository
 
+import android.content.Context
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
+import android.widget.Toast
 
 /**
  * Un repositorio para manejar todas las tareas de autenticación
@@ -18,10 +22,31 @@ class AuthRepository {
     private val db = Firebase.firestore
 
     /**
-     * Cierra la sesión del usuario actual de Firebase.
+     * Cierra sesión COMPLETAMENTE: Firebase + Google.
+     * Es una función 'suspend' para que espere a que Google termine antes de retornar.
      */
-    fun signOut() {
-        auth.signOut()
+    suspend fun signOut(context: Context) {
+        try {
+            // 1. Cerrar sesión en Firebase (esto es síncrono e instantáneo)
+            auth.signOut()
+
+            // 2. Obtener el cliente de Google
+            // No necesitamos configurar el RequestToken aquí, solo con DEFAULT_SIGN_IN basta para el signOut
+            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
+            val googleSignInClient = GoogleSignIn.getClient(context, gso)
+
+            // 3. Cerrar sesión en Google y ESPERAR (.await())
+            // Esto limpia la caché de la cuenta seleccionada
+            googleSignInClient.signOut().await()
+
+        } catch (e: Exception) {
+            val msg = "Error al cerrar sesión de Google: ${e.message}"
+
+            // Si falla Google (ej. no había sesión de Google), no pasa nada, seguimos
+            println(msg)
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+
+        }
     }
 
     /**
