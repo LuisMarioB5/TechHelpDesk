@@ -70,7 +70,7 @@ fun LoginScreen(
 
     // --- Flag para mostrar/ocultar los botones de inicio de sesión con Microsoft y Apple ---
     val showExtraProviders = false
-    
+
     // Estado para saber si el botón biométrico debe mostrarse
     var isBiometricHardwareAvailable by remember { mutableStateOf(false) }
 
@@ -128,7 +128,7 @@ fun LoginScreen(
 
     val googleSignInClient = remember {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(context.getString(R.string.my_google_auth_id))
+            .requestIdToken(context.getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
         GoogleSignIn.getClient(context, gso)
