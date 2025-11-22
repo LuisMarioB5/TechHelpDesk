@@ -38,7 +38,12 @@ import dev.boni.techhelpdesk.ui.auth.authenticateWithBiometric
 import androidx.compose.runtime.LaunchedEffect
 import dev.boni.techhelpdesk.ui.auth.checkBiometricAvailability
 import dev.boni.techhelpdesk.data.local.SessionPreferences
-
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
@@ -63,6 +68,9 @@ fun LoginScreen(
 
     var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
+    // --- Flag para mostrar/ocultar los botones de inicio de sesión con Microsoft y Apple ---
+    val showExtraProviders = false
+    
     // Estado para saber si el botón biométrico debe mostrarse
     var isBiometricHardwareAvailable by remember { mutableStateOf(false) }
 
@@ -118,8 +126,41 @@ fun LoginScreen(
         newErrors.isEmpty()
     }
 
+    val googleSignInClient = remember {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(context.getString(R.string.my_google_auth_id))
+            .requestEmail()
+            .build()
+        GoogleSignIn.getClient(context, gso)
+    }
+
+    val googleLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            val idToken = account.idToken
+            if (idToken != null) {
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
+
+                scope.launch {
+                    val authResult = authRepo.signInWithCredential(credential)
+                    if (authResult.isSuccess) {
+                        sessionPrefs.setRememberMe(rememberMe)
+                        navigateToDashboard()
+                    } else {
+                        Toast.makeText(context, "Error al iniciar con Google", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        } catch (e: ApiException) {
+            Toast.makeText(context, "Google Sign In falló: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     // --- MANEJADORES DE BOTONES ---
-    val handleLogin = {
+     val handleLogin = {
         if (validateLogin()) {
             sessionPrefs.setRememberMe(rememberMe)
 
@@ -137,12 +178,15 @@ fun LoginScreen(
     val handleSocialLogin = { provider: String ->
         sessionPrefs.setRememberMe(rememberMe)
 
-        if (provider == "Biometric") {
-            triggerBiometricLogin()
-        } else {
-            // Lógica para Google/Microsoft/Apple
-            Toast.makeText(context, "Login con $provider", Toast.LENGTH_SHORT).show()
-        // Si es exitoso -> navigateToDashboard()
+        when (provider) {
+            "Google" -> {
+                googleLauncher.launch(googleSignInClient.signInIntent)
+            }
+//            "Microsoft" -> {
+//            }
+//            "Apple" -> {
+//            }
+            "Biometric" -> triggerBiometricLogin()
         }
     }
 
@@ -306,37 +350,41 @@ fun LoginScreen(
                         Spacer(Modifier.width(12.dp))
                         Text("Continuar con Google", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }
-                    // --- MICROSOFT ---
-                    Button(
-                        onClick = { handleSocialLogin("Microsoft") },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_logo_windows),
-                            contentDescription = "Microsoft Logo",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Text("Continuar con Microsoft", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
-                    }
-                    // --- APPLE ---
-                    Button(
-                        onClick = { handleSocialLogin("Apple") },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_logo_apple),
-                            contentDescription = "Apple Logo",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Text("Continuar con Apple", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+
+                    if(showExtraProviders) {
+
+                        // --- MICROSOFT ---
+                        Button(
+                            onClick = { handleSocialLogin("Microsoft") },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_logo_windows),
+                                contentDescription = "Microsoft Logo",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text("Continuar con Microsoft", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                        }
+                        // --- APPLE ---
+                        Button(
+                            onClick = { handleSocialLogin("Apple") },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_logo_apple),
+                                contentDescription = "Apple Logo",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text("Continuar con Apple", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                        }
                     }
                     // --- BOTÓN BIOMÉTRICO CONDICIONAL ---
                     if (isBiometricHardwareAvailable && hasActiveSession && wantsToRemember) {

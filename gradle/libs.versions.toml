@@ -15,6 +15,7 @@ kotlinxCoroutines = "1.8.1"
 firebase = "33.1.2"
 biometric = "1.1.0"
 appcompat = "1.4.1"
+googleAndroidGms = "21.0.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -43,6 +44,7 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 google-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase" }
 google-firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx" }
 google-firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx" }
+google-android-gms = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "googleAndroidGms" }
 
 kotlinx-coroutines-playservices = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutines" }
 

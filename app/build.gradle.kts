@@ -57,6 +57,7 @@ dependencies {
     implementation(platform(libs.google.firebase.bom))
     implementation(libs.google.firebase.auth.ktx)
     implementation(libs.google.firebase.firestore.ktx)
+    implementation(libs.google.android.gms)
     implementation(libs.kotlinx.coroutines.playservices)
 
     implementation(libs.androidx.biometric)

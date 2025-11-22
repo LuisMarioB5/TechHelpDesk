@@ -1,5 +1,6 @@
 package dev.boni.techhelpdesk.data.repository
 
+import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -139,6 +140,41 @@ class AuthRepository {
         } catch (e: Exception) {
             // Si algo falla (ej. email no registrado)
             println("Error en recoverPassword: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Esta función es el CORAZÓN del Social Login.
+     * Recibe la credencial (sea de Google, Apple o Microsoft), hace login en Firebase
+     * y si el usuario es nuevo, lo registra en Firestore.
+     */
+    suspend fun signInWithCredential(credential: AuthCredential): Result<Unit> {
+        return try {
+            val authResult = auth.signInWithCredential(credential).await()
+            val firebaseUser = authResult.user ?: throw IllegalStateException("Usuario nulo")
+
+            val userDocRef = db.collection("users").document(firebaseUser.uid)
+            val documentSnapshot = userDocRef.get().await()
+
+            if (!documentSnapshot.exists()) {
+                val userMap = hashMapOf(
+                    "uid" to firebaseUser.uid,
+                    "name" to (firebaseUser.displayName ?: "Usuario sin nombre"),
+                    "email" to (firebaseUser.email ?: ""),
+                    "photoUrl" to (firebaseUser.photoUrl?.toString() ?: ""),
+                    "createdAt" to System.currentTimeMillis(),
+                    "provider" to (firebaseUser.providerData.getOrNull(1)?.providerId ?: "unknown")
+                )
+
+                userDocRef.set(userMap).await()
+            } else {
+                 userDocRef.update("lastLogin", System.currentTimeMillis())
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            println("Error en signInWithCredential: ${e.message}")
             Result.failure(e)
         }
     }
