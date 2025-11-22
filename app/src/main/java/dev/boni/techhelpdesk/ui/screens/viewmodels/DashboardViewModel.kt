@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-
+import kotlinx.coroutines.tasks.await
 
 /**
  * ViewModel encargado de gestionar el estado y la lógica de negocio del Dashboard.
@@ -34,8 +34,25 @@ open class DashboardViewModel : ViewModel() {
     private fun refreshUserName() {
         viewModelScope.launch {
             val result = authRepo.getCurrentUserNameFromFirestore()
+
             if (result.isSuccess) {
-                _userName.value = result.getOrNull() ?: "Usuario"
+                val firestoreName = result.getOrNull() ?: "Usuario"
+
+                _userName.value = firestoreName
+
+                val authUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+                if (authUser != null && authUser.displayName != firestoreName) {
+
+                    val profileUpdates = com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                        .setDisplayName(firestoreName)
+                        .build()
+
+                    try {
+                        authUser.updateProfile(profileUpdates).await()
+                    } catch (e: Exception) {
+                        println("Error al actualizar el nombre de usuario en Firebase Auth: $e")
+                    }
+                }
             }
         }
     }

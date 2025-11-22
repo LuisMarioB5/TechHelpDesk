@@ -6,6 +6,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
@@ -99,12 +100,16 @@ class AuthRepository {
      */
     suspend fun registerUser(name: String, email: String, password: String): Result<Unit> {
         return try {
-            // 1. Crear el usuario en Firebase Authentication
             val authResult = auth.createUserWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user
                 ?: throw IllegalStateException("Error al crear usuario, Firebase no devolvió un usuario.")
 
-            // 2. Crear el mapa de datos para guardar en Firestore
+            val profileUpdates = com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                .setDisplayName(name)
+                .build()
+
+            firebaseUser.updateProfile(profileUpdates).await()
+
             val userMap = hashMapOf(
                 "uid" to firebaseUser.uid,
                 "name" to name,
@@ -112,7 +117,6 @@ class AuthRepository {
                 "createdAt" to System.currentTimeMillis()
             )
 
-            // 3. Guardar los datos del usuario en la colección "users" en Firestore
             db.collection("users").document(firebaseUser.uid)
                 .set(userMap)
                 .await()
@@ -120,7 +124,6 @@ class AuthRepository {
             Result.success(Unit)
 
         } catch (e: Exception) {
-            // Si algo falla (ej. email ya existe, contraseña débil)
             println("Error en registerUser: ${e.message}")
             Result.failure(e)
         }
