@@ -150,7 +150,7 @@ fun LoginScreen(
                         sessionPrefs.setRememberMe(rememberMe)
                         navigateToDashboard()
                     } else {
-                        Toast.makeText(context, "Error al iniciar con Google", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Error al iniciar con Google $authResult", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

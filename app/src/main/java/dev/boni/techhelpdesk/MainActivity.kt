@@ -42,6 +42,7 @@ import dev.boni.techhelpdesk.ui.screens.viewmodels.DashboardViewModel
 import dev.boni.techhelpdesk.ui.screens.viewmodels.ProfileViewModel
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 import androidx.fragment.app.FragmentActivity
+import dev.boni.techhelpdesk.data.local.ThemePreferences
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,9 +51,11 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            var themeSetting by remember { mutableStateOf("system") }
+            // Cargar el tema guardado
+            val themePrefs = remember { ThemePreferences(this) }
+            var themeSetting by remember { mutableStateOf(themePrefs.getTheme()) }
 
-            TechHelpDeskTheme (themeSetting = themeSetting) {
+            TechHelpDeskTheme(themeSetting = themeSetting) {
                 val navController = rememberNavController()
 
                 Scaffold(
@@ -156,6 +159,7 @@ class MainActivity : FragmentActivity() {
                                 viewModel = ProfileViewModel(),
                                 onThemeChange = { newTheme ->
                                     themeSetting = newTheme
+                                    themePrefs.setTheme(newTheme)
                                 }
                             )
                         }

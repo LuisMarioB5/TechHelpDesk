@@ -1,6 +1,4 @@
-// CreateTicketScreen.kt
-
-package dev.boni.techhelpdesk.ui.screens // O el paquete correcto
+package dev.boni.techhelpdesk.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize

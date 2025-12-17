@@ -87,65 +87,73 @@ import dev.boni.techhelpdesk.ui.theme.CustomColors
 import dev.boni.techhelpdesk.ui.theme.LightCustomColors // Usado en Preview
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
+import dev.boni.techhelpdesk.data.model.Ticket
+import dev.boni.techhelpdesk.ui.screens.tickets.TicketCategoryUI
+import dev.boni.techhelpdesk.ui.screens.tickets.TicketStatusUI
+import dev.boni.techhelpdesk.ui.screens.tickets.TicketPriorityUI
+import dev.boni.techhelpdesk.ui.screens.tickets.statusFilterOptions
+import dev.boni.techhelpdesk.ui.screens.tickets.priorityFilterOptions
+import dev.boni.techhelpdesk.ui.screens.tickets.categoryFilterOptions
+
 import java.util.Locale
 
-enum class TicketCategory(val displayName: String, val icon: ImageVector) {
-    EMAIL("Email", Icons.Default.Email),
-    HARDWARE("Hardware", Icons.Default.SettingsSuggest),
-    SOFTWARE("Software", Icons.Default.Apps),
-    RED("Red", Icons.Default.Wifi),
-    PERMISOS("Permisos", Icons.Default.Lock),
-    OTRO("Otro", Icons.Default.MoreHoriz)
-}
-
-enum class TicketStatus(val displayName: String, val icon: ImageVector) {
-    ABIERTO("Abierto", Icons.Default.RadioButtonUnchecked),
-    EN_PROGRESO("En progreso", Icons.Default.Pending),
-    CERRADO("Cerrado", Icons.Default.CheckCircle);
-
-    companion object {
-        fun fromRouteString(routeString: String?): TicketStatus? {
-            return when (routeString?.lowercase(Locale.ROOT)?.replace("-","_")) {
-                "abierto" -> ABIERTO
-                "en_progreso" -> EN_PROGRESO // Ahora coincide
-                "cerrado" -> CERRADO
-                else -> null // Si no viene nada o no coincide
-            }
-        }
-    }
-}
-
-enum class TicketPriority(val displayName: String, val icon: ImageVector) {
-    ALTA("Alta", Icons.Default.PriorityHigh),
-    MEDIA("Media", Icons.Default.DragHandle), // Using simple line icon
-    BAJA("Baja", Icons.Default.ArrowDownward)
-}
-
-data class Ticket(
-    val id: String,
-    val title: String,
-    val category: TicketCategory, // Usando Enum
-    val status: TicketStatus,
-    val priority: TicketPriority,
-    val assignedTo: String,
-    val date: String
-)
-
-// --- Datos de Ejemplo Actualizados ---
-val sampleTickets = listOf(
-    Ticket("T-2025-001", "Correo no envía adjuntos", TicketCategory.EMAIL, TicketStatus.ABIERTO, TicketPriority.ALTA, "CM", "Hace 2h"),
-    Ticket("T-2025-002", "Impresora no responde", TicketCategory.HARDWARE, TicketStatus.EN_PROGRESO, TicketPriority.MEDIA, "AG", "Hace 5h"),
-    Ticket("T-2025-003", "Acceso a carpeta", TicketCategory.PERMISOS, TicketStatus.ABIERTO, TicketPriority.BAJA, "LT", "Hace 1d"),
-    Ticket("T-2025-004", "Actualización software", TicketCategory.SOFTWARE, TicketStatus.CERRADO, TicketPriority.MEDIA, "ML", "Hace 2d"),
-    Ticket("T-2025-005", "VPN no conecta", TicketCategory.RED, TicketStatus.EN_PROGRESO, TicketPriority.ALTA, "CM", "Hace 3h"),
-    Ticket("T-2025-006", "Configuración correo móvil", TicketCategory.EMAIL, TicketStatus.ABIERTO, TicketPriority.BAJA, "AG", "Hace 4h"),
-    Ticket("T-2025-007", "Teclado dañado", TicketCategory.HARDWARE, TicketStatus.ABIERTO, TicketPriority.MEDIA, "LT", "Hace 6h"),
-)
-
-// --- Opciones de Filtro ---
-val statusFilterOptions = listOf(null) + TicketStatus.entries // null es "Todos"
-val priorityFilterOptions = listOf(null) + TicketPriority.entries // null es "Todas"
-val categoryFilterOptions = listOf(null) + TicketCategory.entries // null es "Todas"
+//enum class TicketCategory(val displayName: String, val icon: ImageVector) {
+//    EMAIL("Email", Icons.Default.Email),
+//    HARDWARE("Hardware", Icons.Default.SettingsSuggest),
+//    SOFTWARE("Software", Icons.Default.Apps),
+//    RED("Red", Icons.Default.Wifi),
+//    PERMISOS("Permisos", Icons.Default.Lock),
+//    OTRO("Otro", Icons.Default.MoreHoriz)
+//}
+//
+//enum class TicketStatus(val displayName: String, val icon: ImageVector) {
+//    ABIERTO("Abierto", Icons.Default.RadioButtonUnchecked),
+//    EN_PROGRESO("En progreso", Icons.Default.Pending),
+//    CERRADO("Cerrado", Icons.Default.CheckCircle);
+//
+//    companion object {
+//        fun fromRouteString(routeString: String?): TicketStatus? {
+//            return when (routeString?.lowercase(Locale.ROOT)?.replace("-","_")) {
+//                "abierto" -> ABIERTO
+//                "en_progreso" -> EN_PROGRESO // Ahora coincide
+//                "cerrado" -> CERRADO
+//                else -> null // Si no viene nada o no coincide
+//            }
+//        }
+//    }
+//}
+//
+//enum class TicketPriority(val displayName: String, val icon: ImageVector) {
+//    ALTA("Alta", Icons.Default.PriorityHigh),
+//    MEDIA("Media", Icons.Default.DragHandle), // Using simple line icon
+//    BAJA("Baja", Icons.Default.ArrowDownward)
+//}
+//
+//data class Ticket(
+//    val id: String,
+//    val title: String,
+//    val category: TicketCategory, // Usando Enum
+//    val status: TicketStatus,
+//    val priority: TicketPriority,
+//    val assignedTo: String,
+//    val date: String
+//)
+//
+//// --- Datos de Ejemplo Actualizados ---
+//val sampleTickets = listOf(
+//    Ticket("T-2025-001", "Correo no envía adjuntos", TicketCategory.EMAIL, TicketStatus.ABIERTO, TicketPriority.ALTA, "CM", "Hace 2h"),
+//    Ticket("T-2025-002", "Impresora no responde", TicketCategory.HARDWARE, TicketStatus.EN_PROGRESO, TicketPriority.MEDIA, "AG", "Hace 5h"),
+//    Ticket("T-2025-003", "Acceso a carpeta", TicketCategory.PERMISOS, TicketStatus.ABIERTO, TicketPriority.BAJA, "LT", "Hace 1d"),
+//    Ticket("T-2025-004", "Actualización software", TicketCategory.SOFTWARE, TicketStatus.CERRADO, TicketPriority.MEDIA, "ML", "Hace 2d"),
+//    Ticket("T-2025-005", "VPN no conecta", TicketCategory.RED, TicketStatus.EN_PROGRESO, TicketPriority.ALTA, "CM", "Hace 3h"),
+//    Ticket("T-2025-006", "Configuración correo móvil", TicketCategory.EMAIL, TicketStatus.ABIERTO, TicketPriority.BAJA, "AG", "Hace 4h"),
+//    Ticket("T-2025-007", "Teclado dañado", TicketCategory.HARDWARE, TicketStatus.ABIERTO, TicketPriority.MEDIA, "LT", "Hace 6h"),
+//)
+//
+//// --- Opciones de Filtro ---
+//val statusFilterOptions = listOf(null) + TicketStatus.entries // null es "Todos"
+//val priorityFilterOptions = listOf(null) + TicketPriority.entries // null es "Todas"
+//val categoryFilterOptions = listOf(null) + TicketCategory.entries // null es "Todas"
 
 
 // --- Pantalla Principal de Tickets ---
@@ -156,22 +164,30 @@ fun TicketsScreen(
     initialFilterStatus: String? = null,
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    val initialStatusEnum = TicketStatus.fromRouteString(initialFilterStatus)
+    val initialStatusEnum = TicketStatusUI.fromString(initialFilterStatus)
     var selectedStatus by remember { mutableStateOf(initialStatusEnum) }
-    var selectedPriority by remember { mutableStateOf<TicketPriority?>(null) }
-    var selectedCategory by remember { mutableStateOf<TicketCategory?>(null) }
-    var showFilters by remember { mutableStateOf(false) } // Estado para mostrar/ocultar filtros
+    var selectedPriority by remember { mutableStateOf<TicketPriorityUI?>(null) }
+    var selectedCategory by remember { mutableStateOf<TicketCategoryUI?>(null) }
+    var showFilters by remember { mutableStateOf(false) }
+
+    val allTickets = remember { emptyList<Ticket>() }
 
     val filteredTickets by remember {
         derivedStateOf {
-            sampleTickets.filter { ticket ->
+            allTickets.filter { ticket ->
+                val ticketCategoryUI = TicketCategoryUI.fromString(ticket.category)
+                val ticketStatusUI = TicketStatusUI.fromString(ticket.status)
+                val ticketPriorityUI = TicketPriorityUI.fromString(ticket.priority)
+
                 val matchesSearch = searchQuery.isBlank() ||
                         ticket.title.contains(searchQuery, ignoreCase = true) ||
-                        ticket.category.displayName.contains(searchQuery, ignoreCase = true) || // Buscar por nombre de categoría
+                        ticketCategoryUI?.displayName?.contains(searchQuery, ignoreCase = true) == true ||
                         ticket.id.contains(searchQuery, ignoreCase = true)
-                val matchesStatus = selectedStatus == null || ticket.status == selectedStatus
-                val matchesPriority = selectedPriority == null || ticket.priority == selectedPriority
-                val matchesCategory = selectedCategory == null || ticket.category == selectedCategory
+
+                val matchesStatus = selectedStatus == null || ticketStatusUI == selectedStatus
+                val matchesPriority = selectedPriority == null || ticketPriorityUI == selectedPriority
+                val matchesCategory = selectedCategory == null || ticketCategoryUI == selectedCategory
+
                 matchesSearch && matchesStatus && matchesPriority && matchesCategory
             }
         }
@@ -200,7 +216,6 @@ fun TicketsScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 },
-                // --- CAMBIO: Botón de filtro añadido a las acciones ---
                 actions = {
                     BadgedBox(
                         badge = {
@@ -227,7 +242,6 @@ fun TicketsScreen(
                     }
                 },
                 bottomContent = {
-                    // Barra de Búsqueda
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
@@ -255,7 +269,6 @@ fun TicketsScreen(
     ) { innerPadding ->
         TicketsContent(
             innerPadding = innerPadding,
-            // searchQuery = searchQuery, // No es necesario pasarlo
             selectedStatus = selectedStatus,
             selectedPriority = selectedPriority,
             selectedCategory = selectedCategory,
@@ -264,30 +277,28 @@ fun TicketsScreen(
             onCategoryChange = { selectedCategory = it },
             tickets = filteredTickets,
             onTicketClick = { ticketId -> navController.navigate("/ticket/detail/$ticketId") },
-            showFilters = showFilters, // Pasar el estado de visibilidad
-            activeFiltersCount = activeFiltersCount, // Pasar contador
-            onClearFilters = clearAllFilters // Pasar función de limpiar
+            showFilters = showFilters,
+            activeFiltersCount = activeFiltersCount,
+            onClearFilters = clearAllFilters
         )
     }
 }
 
-// --- Contenido de la Pantalla (Scrollable) ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TicketsContent(
     innerPadding: PaddingValues,
-    // searchQuery: String,
-    selectedStatus: TicketStatus?,
-    selectedPriority: TicketPriority?,
-    selectedCategory: TicketCategory?,
-    onStatusChange: (TicketStatus?) -> Unit,
-    onPriorityChange: (TicketPriority?) -> Unit,
-    onCategoryChange: (TicketCategory?) -> Unit,
+    selectedStatus: TicketStatusUI?,
+    selectedPriority: TicketPriorityUI?,
+    selectedCategory: TicketCategoryUI?,
+    onStatusChange: (TicketStatusUI?) -> Unit,
+    onPriorityChange: (TicketPriorityUI?) -> Unit,
+    onCategoryChange: (TicketCategoryUI?) -> Unit,
     tickets: List<Ticket>,
     onTicketClick: (String) -> Unit,
-    showFilters: Boolean, // Recibe el estado
-    activeFiltersCount: Int, // Recibe contador
-    onClearFilters: () -> Unit // Recibe función
+    showFilters: Boolean,
+    activeFiltersCount: Int,
+    onClearFilters: () -> Unit
 ) {
     val topPadding = innerPadding.calculateTopPadding()
     val bottomPadding = innerPadding.calculateBottomPadding()
@@ -354,9 +365,9 @@ fun TicketsContent(
                             val isSelected = selectedPriority == priority
                             // --- CAMBIO: Icon color tinting ---
                             val iconColor = when (priority) {
-                                TicketPriority.ALTA -> MaterialTheme.colorScheme.error
-                                TicketPriority.MEDIA -> customColors.warning
-                                TicketPriority.BAJA -> customColors.success
+                                TicketPriorityUI.ALTA -> MaterialTheme.colorScheme.error
+                                TicketPriorityUI.MEDIA -> customColors.warning
+                                TicketPriorityUI.BAJA -> customColors.success
                                 null -> MaterialTheme.colorScheme.onSurfaceVariant
                             }
                             FilterChip(
@@ -524,7 +535,6 @@ fun getFilterChipBorder(isSelected: Boolean) = FilterChipDefaults.filterChipBord
 )
 
 
-// --- Componente para un Item de la Lista de Tickets (Sin cambios) ---
 @Composable
 fun TicketListItem(
     ticket: Ticket,
@@ -532,6 +542,8 @@ fun TicketListItem(
     modifier: Modifier = Modifier,
     customColors: CustomColors
 ) {
+    val categoryUI = TicketCategoryUI.fromString(ticket.category)
+
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
@@ -568,13 +580,13 @@ fun TicketListItem(
                 modifier = Modifier.padding(bottom = 12.dp)
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Label,
+                    imageVector = categoryUI?.icon ?: Icons.Default.MoreHoriz,
                     contentDescription = "Categoría",
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = ticket.category.displayName, // Usar displayName
+                    text = categoryUI?.displayName ?: ticket.category,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -597,14 +609,15 @@ fun TicketListItem(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = ticket.assignedTo.firstOrNull()?.uppercase() ?: "?",
+                            text = ticket.assignedToName.firstOrNull()?.uppercase() ?: "?",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
+                    // TODO: Formatear fecha desde Timestamp
                     Text(
-                        text = ticket.date,
+                        text = "Reciente",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -614,21 +627,22 @@ fun TicketListItem(
     }
 }
 
-// --- Componentes Helper StatusChip y PriorityBadge (Sin cambios) ---
 @Composable
-fun StatusChip(status: TicketStatus, customColors: CustomColors) {
-    val (bgColor, contentColor, icon) = when (status) {
-        TicketStatus.ABIERTO -> Triple(
+fun StatusChip(status: String, customColors: CustomColors) {
+    val statusUI = TicketStatusUI.fromString(status) ?: TicketStatusUI.ABIERTO
+
+    val (bgColor, contentColor, icon) = when (statusUI) {
+        TicketStatusUI.ABIERTO -> Triple(
             MaterialTheme.colorScheme.primaryContainer,
             MaterialTheme.colorScheme.primary,
             null
         )
-        TicketStatus.EN_PROGRESO -> Triple(
+        TicketStatusUI.EN_PROGRESO -> Triple(
             customColors.warningContainer,
             customColors.warning,
             Icons.Default.Schedule
         )
-        TicketStatus.CERRADO -> Triple(
+        TicketStatusUI.RESUELTO, TicketStatusUI.CERRADO -> Triple(
             customColors.successContainer,
             customColors.success,
             Icons.Default.CheckCircleOutline
@@ -652,7 +666,7 @@ fun StatusChip(status: TicketStatus, customColors: CustomColors) {
             )
         }
         Text(
-            text = status.displayName,
+            text = statusUI.displayName,
             color = contentColor,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Medium
@@ -661,19 +675,21 @@ fun StatusChip(status: TicketStatus, customColors: CustomColors) {
 }
 
 @Composable
-fun PriorityBadge(priority: TicketPriority, customColors: CustomColors) {
-    val (bgColor, contentColor, icon) = when (priority) {
-        TicketPriority.ALTA -> Triple(
+fun PriorityBadge(priority: String, customColors: CustomColors) {
+    val priorityUI = TicketPriorityUI.fromString(priority) ?: TicketPriorityUI.MEDIA
+
+    val (bgColor, contentColor, icon) = when (priorityUI) {
+        TicketPriorityUI.ALTA -> Triple(
             MaterialTheme.colorScheme.errorContainer,
             MaterialTheme.colorScheme.error,
             Icons.Default.ErrorOutline
         )
-        TicketPriority.MEDIA -> Triple(
+        TicketPriorityUI.MEDIA -> Triple(
             customColors.warningContainer,
             customColors.warning,
             Icons.Default.WarningAmber
         )
-        TicketPriority.BAJA -> Triple(
+        TicketPriorityUI.BAJA -> Triple(
             customColors.successContainer,
             customColors.success,
             Icons.Default.KeyboardArrowDown
@@ -697,7 +713,7 @@ fun PriorityBadge(priority: TicketPriority, customColors: CustomColors) {
             )
         }
         Text(
-            text = priority.displayName,
+            text = priorityUI.displayName,
             color = contentColor,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Medium

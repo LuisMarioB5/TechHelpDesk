@@ -1,6 +1,9 @@
 package dev.boni.techhelpdesk.data.repository
 
 import android.content.Context
+import dev.boni.techhelpdesk.data.model.User
+import dev.boni.techhelpdesk.data.model.UserRole
+import com.google.firebase.Timestamp
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.AuthCredential
@@ -102,27 +105,32 @@ class AuthRepository {
         return try {
             val authResult = auth.createUserWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user
-                ?: throw IllegalStateException("Error al crear usuario, Firebase no devolvió un usuario.")
+                ?: throw IllegalStateException("Error al crear usuario")
 
-            val profileUpdates = com.google.firebase.auth.UserProfileChangeRequest.Builder()
+            // Actualizar displayName en Firebase Auth
+            val profileUpdates = UserProfileChangeRequest.Builder()
                 .setDisplayName(name)
                 .build()
-
             firebaseUser.updateProfile(profileUpdates).await()
 
-            val userMap = hashMapOf(
-                "uid" to firebaseUser.uid,
-                "name" to name,
-                "email" to email,
-                "createdAt" to System.currentTimeMillis()
+            // Crear usuario en Firestore con el modelo User
+            val user = User(
+                id = firebaseUser.uid,
+                name = name,
+                email = email,
+                role = UserRole.CLIENT, // Por defecto es cliente
+                photoUrl = null,
+                createdAt = Timestamp.now(),
+                updatedAt = Timestamp.now(),
+                isActive = true
             )
 
-            db.collection("users").document(firebaseUser.uid)
-                .set(userMap)
+            db.collection("users")
+                .document(firebaseUser.uid)
+                .set(user)
                 .await()
 
             Result.success(Unit)
-
         } catch (e: Exception) {
             println("Error en registerUser: ${e.message}")
             Result.failure(e)
@@ -180,29 +188,39 @@ class AuthRepository {
     suspend fun signInWithCredential(credential: AuthCredential): Result<Unit> {
         return try {
             val authResult = auth.signInWithCredential(credential).await()
-            val firebaseUser = authResult.user ?: throw IllegalStateException("Usuario nulo")
+            val firebaseUser = authResult.user
+                ?: throw IllegalStateException("Usuario nulo después de autenticación")
 
             val userDocRef = db.collection("users").document(firebaseUser.uid)
             val documentSnapshot = userDocRef.get().await()
 
+            // Si el usuario no existe en Firestore, créalo
             if (!documentSnapshot.exists()) {
-                val userMap = hashMapOf(
-                    "uid" to firebaseUser.uid,
-                    "name" to (firebaseUser.displayName ?: "Usuario sin nombre"),
-                    "email" to (firebaseUser.email ?: ""),
-                    "photoUrl" to (firebaseUser.photoUrl?.toString() ?: ""),
-                    "createdAt" to System.currentTimeMillis(),
-                    "provider" to (firebaseUser.providerData.getOrNull(1)?.providerId ?: "unknown")
+                val newUser = User(
+                    id = firebaseUser.uid,
+                    name = firebaseUser.displayName ?: "Usuario sin nombre",
+                    email = firebaseUser.email ?: "",
+                    role = UserRole.CLIENT,
+                    photoUrl = firebaseUser.photoUrl?.toString(),
+                    createdAt = Timestamp.now(),
+                    updatedAt = Timestamp.now(),
+                    isActive = true
                 )
 
-                userDocRef.set(userMap).await()
+                userDocRef.set(newUser).await()
             } else {
-                 userDocRef.update("lastLogin", System.currentTimeMillis())
+                // Si ya existe, solo actualiza el último login
+                userDocRef.update(
+                    mapOf(
+                        "updatedAt" to Timestamp.now()
+                    )
+                ).await()
             }
 
             Result.success(Unit)
         } catch (e: Exception) {
             println("Error en signInWithCredential: ${e.message}")
+            e.printStackTrace() // Esto imprimirá el stack trace completo
             Result.failure(e)
         }
     }

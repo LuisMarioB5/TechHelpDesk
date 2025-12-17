@@ -1,0 +1,118 @@
+package dev.boni.techhelpdesk.data.repository
+
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.toObjects
+import com.google.firebase.ktx.Firebase
+import dev.boni.techhelpdesk.data.model.Ticket
+import kotlinx.coroutines.tasks.await
+
+class TicketRepository {
+    private val db = Firebase.firestore
+    private val auth = Firebase.auth
+
+    /**
+     * Crea un nuevo ticket en la colección 'tickets'.
+     */
+    suspend fun createTicket(
+        title: String,
+        description: String,
+        category: String,
+        priority: String,
+        location: String,
+        department: String,
+        contactMethod: String
+    ): Result<Unit> {
+        return try {
+            val user = auth.currentUser ?: throw IllegalStateException("No hay usuario logueado")
+
+            val userName = user.displayName ?: "Usuario"
+
+            val newTicketRef = db.collection("tickets").document()
+
+            val ticket = Ticket(
+                id = newTicketRef.id,
+                title = title,
+                description = description,
+                category = category,
+                priority = priority,
+                userId = user.uid,
+                createdBy = userName,
+                location = location,
+                department = department,
+                contactMethod = contactMethod,
+                status = "abierto"
+            )
+
+            newTicketRef.set(ticket).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Obtiene los tickets del usuario actual, ordenados por fecha.
+     */
+    suspend fun getUserTickets(statusFilter: String? = null): Result<List<Ticket>> {
+        return try {
+            val user = auth.currentUser ?: throw IllegalStateException("No hay usuario")
+
+            var query = db.collection("tickets")
+                .whereEqualTo("userId", user.uid)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+
+            if (statusFilter != null) {
+                query = query.whereEqualTo("status", statusFilter)
+            }
+
+            val snapshot = query.get().await()
+            val tickets = snapshot.toObjects<Ticket>()
+
+            Result.success(tickets)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Obtiene un ticket por ID
+     */
+    suspend fun getTicketById(ticketId: String): Result<Ticket> {
+        return try {
+            val doc = db.collection("tickets")
+                .document(ticketId)
+                .get()
+                .await()
+
+            if (doc.exists()) {
+                val ticket = doc.toObject(Ticket::class.java)
+                    ?: return Result.failure(Exception("Error al convertir ticket"))
+                Result.success(ticket)
+            } else {
+                Result.failure(Exception("Ticket no encontrado"))
+            }
+        } catch (e: Exception) {
+            println("Error en getTicketById: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Actualiza el estado de un ticket
+     */
+    suspend fun updateTicketStatus(ticketId: String, newStatus: String): Result<Unit> {
+        return try {
+            db.collection("tickets")
+                .document(ticketId)
+                .update("status", newStatus)
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            println("Error en updateTicketStatus: ${e.message}")
+            Result.failure(e)
+        }
+    }
+}
