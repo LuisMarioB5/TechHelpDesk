@@ -1,5 +1,6 @@
 package dev.boni.techhelpdesk.ui.screens.tickets
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -25,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apps // Category Software
 import androidx.compose.material.icons.filled.ArrowDownward // Priority Low
 import androidx.compose.material.icons.filled.Category // Category All
@@ -94,6 +96,11 @@ import dev.boni.techhelpdesk.ui.screens.tickets.TicketPriorityUI
 import dev.boni.techhelpdesk.ui.screens.tickets.statusFilterOptions
 import dev.boni.techhelpdesk.ui.screens.tickets.priorityFilterOptions
 import dev.boni.techhelpdesk.ui.screens.tickets.categoryFilterOptions
+import dev.boni.techhelpdesk.ui.screens.viewmodels.TicketViewModel
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.CircularProgressIndicator
+import dev.boni.techhelpdesk.ui.screens.viewmodels.TicketUiState
 
 import java.util.Locale
 
@@ -162,6 +169,7 @@ import java.util.Locale
 fun TicketsScreen(
     navController: NavController,
     initialFilterStatus: String? = null,
+    viewModel: TicketViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val initialStatusEnum = TicketStatusUI.fromString(initialFilterStatus)
@@ -170,9 +178,24 @@ fun TicketsScreen(
     var selectedCategory by remember { mutableStateOf<TicketCategoryUI?>(null) }
     var showFilters by remember { mutableStateOf(false) }
 
-    val allTickets = remember { emptyList<Ticket>() }
+    // 🔥 CAMBIO: Observar estado del ViewModel
+    val uiState by viewModel.uiState.collectAsState()
 
-    val filteredTickets by remember {
+    // 🔥 CAMBIO: Cargar tickets al montar pantalla
+    LaunchedEffect(Unit) {
+        viewModel.loadUserTickets()
+    }
+
+    // 🔥 CAMBIO: Obtener tickets del estado
+    val allTickets = when (val state = uiState) {
+        is TicketUiState.Success -> state.tickets
+        else -> emptyList()
+    }
+
+    Log.d("TicketsScreen", "All Tickets: $allTickets")
+
+
+    val filteredTickets by remember(allTickets, searchQuery, selectedStatus, selectedPriority, selectedCategory) {
         derivedStateOf {
             allTickets.filter { ticket ->
                 val ticketCategoryUI = TicketCategoryUI.fromString(ticket.category)
@@ -262,25 +285,49 @@ fun TicketsScreen(
                 }
             )
         },
+        floatingActionButton = {
+            androidx.compose.material3.FloatingActionButton(
+                onClick = { navController.navigate("/ticket/create") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Nuevo Ticket"
+                )
+            }
+        },
         containerColor = Color.Transparent,
         bottomBar = {
             BottomNavigation(navController = navController)
         },
     ) { innerPadding ->
-        TicketsContent(
-            innerPadding = innerPadding,
-            selectedStatus = selectedStatus,
-            selectedPriority = selectedPriority,
-            selectedCategory = selectedCategory,
-            onStatusChange = { selectedStatus = it },
-            onPriorityChange = { selectedPriority = it },
-            onCategoryChange = { selectedCategory = it },
-            tickets = filteredTickets,
-            onTicketClick = { ticketId -> navController.navigate("/ticket/detail/$ticketId") },
-            showFilters = showFilters,
-            activeFiltersCount = activeFiltersCount,
-            onClearFilters = clearAllFilters
-        )
+        // 🔥 CAMBIO: Mostrar loading
+        if (uiState is TicketUiState.Loading && allTickets.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            TicketsContent(
+                innerPadding = innerPadding,
+                selectedStatus = selectedStatus,
+                selectedPriority = selectedPriority,
+                selectedCategory = selectedCategory,
+                onStatusChange = { selectedStatus = it },
+                onPriorityChange = { selectedPriority = it },
+                onCategoryChange = { selectedCategory = it },
+                tickets = filteredTickets,
+                onTicketClick = { ticketId -> navController.navigate("/ticket/detail/$ticketId") },
+                showFilters = showFilters,
+                activeFiltersCount = activeFiltersCount,
+                onClearFilters = clearAllFilters
+            )
+        }
     }
 }
 

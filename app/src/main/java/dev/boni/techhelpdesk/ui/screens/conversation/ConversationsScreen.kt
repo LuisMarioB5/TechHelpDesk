@@ -54,7 +54,23 @@ data class Conversation(
 val sampleConversations = listOf(
     Conversation("1", "Carlos Méndez", "C", "Perfecto, verifica por favor...", "hace 1h", 1, true),
     Conversation("2", "Ana García", "A", "Recibido, lo revisaré de inmediato.", "hace 3h", 0, false),
-    Conversation("3", "Luis Torres", "L", "Tu ticket #1220 ha sido cerrado.", "hace 1 día", 0, true)
+    Conversation("3", "Luis Torres", "L", "Tu ticket #1220 ha sido cerrado.", "hace 1 día", 0, true),
+    Conversation("4", "Carlos Méndez", "C", "Perfecto, verifica por favor...", "hace 1h", 1, true),
+    Conversation("5", "Ana García", "A", "Recibido, lo revisaré de inmediato.", "hace 3h", 0, false),
+    Conversation("6", "Luis Torres", "L", "Tu ticket #1220 ha sido cerrado.", "hace 1 día", 0, true),
+    Conversation("7", "Carlos Méndez", "C", "Perfecto, verifica por favor...", "hace 1h", 1, true),
+    Conversation("8", "Ana García", "A", "Recibido, lo revisaré de inmediato.", "hace 3h", 0, false),
+    Conversation("9", "Luis Torres", "L", "Tu ticket #1220 ha sido cerrado.", "hace 1 día", 0, true),
+    Conversation("10", "Carlos Méndez", "C", "Perfecto, verifica por favor...", "hace 1h", 1, true),
+    Conversation("11", "Ana García", "A", "Recibido, lo revisaré de inmediato.", "hace 3h", 0, false),
+    Conversation("12", "Luis Torres", "L", "Tu ticket #1220 ha sido cerrado.", "hace 1 día", 0, true),
+    Conversation("13", "Carlos Méndez", "C", "Perfecto, verifica por favor...", "hace 1h", 1, true),
+    Conversation("14", "Ana García", "A", "Recibido, lo revisaré de inmediato.", "hace 3h", 0, false),
+    Conversation("15", "Luis Torres", "L", "Tu ticket #1220 ha sido cerrado.", "hace 1 día", 0, true),
+    Conversation("16", "Carlos Méndez", "C", "Perfecto, verifica por favor...", "hace 1h", 1, true),
+    Conversation("17", "Ana García", "A", "Recibido, lo revisaré de inmediato.", "hace 3h", 0, false),
+    Conversation("18", "Luis Torres", "L", "Tu ticket #1220 ha sido cerrado.", "hace 1 día", 0, true),
+
 )
 
 // --- Pantalla Principal de Conversaciones ---
@@ -102,24 +118,24 @@ fun ConversationsScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(
-                        onClick = { navController.navigate("/conversation/new") },
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.onPrimary),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Icon(
-                            Icons.Filled.Add,
-                            contentDescription = "Nuevo chat",
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                },
+//                actions = {
+//                    IconButton(
+//                        onClick = { navController.navigate("/conversation/new") },
+//                        modifier = Modifier
+//                            .size(48.dp)
+//                            .clip(CircleShape)
+//                            .background(MaterialTheme.colorScheme.onPrimary),
+//                        colors = IconButtonDefaults.iconButtonColors(
+//                            contentColor = MaterialTheme.colorScheme.primary
+//                        )
+//                    ) {
+//                        Icon(
+//                            Icons.Filled.Add,
+//                            contentDescription = "Nuevo chat",
+//                            modifier = Modifier.size(28.dp)
+//                        )
+//                    }
+//                },
                 bottomContent = {
                     // --- CAMBIO: Barra de búsqueda envuelta en Surface para sombra ---
                     Surface(
@@ -154,6 +170,18 @@ fun ConversationsScreen(
         },
         bottomBar = {
             BottomNavigation(navController = navController)
+        },
+        floatingActionButton = {
+            androidx.compose.material3.FloatingActionButton(
+                onClick = { navController.navigate("/conversation/new") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Nuevo Chat"
+                )
+            }
         },
         containerColor = Color.Transparent
     ) { innerPadding ->

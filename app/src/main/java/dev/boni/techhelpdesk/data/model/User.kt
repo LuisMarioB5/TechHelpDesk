@@ -12,6 +12,7 @@ data class User(
     val photoUrl: String? = null,
     val createdAt: Timestamp = Timestamp.now(),
     val updatedAt: Timestamp = Timestamp.now(),
+    val lastLogin: Timestamp? = null,
     val isActive: Boolean = true
 )
 

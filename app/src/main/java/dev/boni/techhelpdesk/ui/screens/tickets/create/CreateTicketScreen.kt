@@ -37,6 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import dev.boni.techhelpdesk.ui.components.AppHeader
 import dev.boni.techhelpdesk.ui.components.MobileButton // Reutilizamos MobileButton
 import dev.boni.techhelpdesk.ui.components.MobileButtonVariant // Enum de MobileButton
+import dev.boni.techhelpdesk.ui.screens.viewmodels.TicketViewModel
 import dev.boni.techhelpdesk.ui.theme.CustomColors
 import dev.boni.techhelpdesk.ui.theme.LightCustomColors
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
@@ -116,17 +117,30 @@ fun CreateTicketScreen(
         newErrors.isEmpty()
     }
 
-    // --- Lógica de Envío/Guardado (Simulada) ---
+    val viewModel = androidx.lifecycle.viewmodel.compose.viewModel<TicketViewModel>()
+
     val handleSubmit = {
         if (validateForm()) {
-            showSuccess = true
             coroutineScope.launch {
-                delay(2000)
-                navController.popBackStack() // Volver a la pantalla anterior (TicketsScreen)
-                // En una app real, aquí enviarías los datos
+                val result = viewModel.createTicket(
+                    title = title,
+                    description = description,
+                    category = selectedCategory ?: "",
+                    priority = selectedPriority ?: "",
+                    location = location,
+                    department = department,
+                    contactMethod = selectedContactMethod
+                )
+
+                if (result.isSuccess) {
+                    showSuccess = true
+                    delay(2000)
+                    navController.popBackStack()
+                } else {
+                    errors = errors + ("submit" to "Error al crear ticket: ${result.exceptionOrNull()?.message}")
+                }
             }
         }
-        // Scroll to first error? Needs ScrollState and calculation, omitido por simplicidad
     }
 
     val handleSaveDraft: () -> Unit = {

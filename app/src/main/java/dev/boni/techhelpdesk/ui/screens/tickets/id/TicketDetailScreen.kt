@@ -34,14 +34,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import dev.boni.techhelpdesk.ui.components.AppHeader // Reutilizamos AppHeader
+import dev.boni.techhelpdesk.ui.components.AppHeader
+import dev.boni.techhelpdesk.ui.screens.viewmodels.TicketViewModel
 import dev.boni.techhelpdesk.ui.theme.CustomColors
-import dev.boni.techhelpdesk.ui.theme.LightCustomColors // Usado en Preview
+import dev.boni.techhelpdesk.ui.theme.LightCustomColors
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.CircularProgressIndicator
 
 /**
  * Muestra los detalles de un ticket específico y la conversación asociada.
@@ -55,13 +59,13 @@ import java.util.Locale
 fun TicketDetailScreen(
     navController: NavController,
     ticketId: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: TicketViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     var newMessage by remember { mutableStateOf("") }
-    var hasConversation by remember { mutableStateOf(false) } // Cambia a true para ver la conversación
-    val sampleMessages = remember { // Mensajes de ejemplo si hasConversation es true
+    var hasConversation by remember { mutableStateOf(false) }
+    val sampleMessages = remember {
         listOf(
-            // Re-usamos la estructura de Message pero con tipos básicos si es necesario
             mapOf("sender" to "user", "senderName" to "Luis Rodríguez", "text" to "Hola, tengo problemas con mi impresora, no imprime.", "time" to "10:30 AM"),
             mapOf("sender" to "technician", "senderName" to "Carlos Méndez", "text" to "Entendido. ¿Podrías confirmar si está conectada vía Wi-Fi o cable USB?", "time" to "10:35 AM"),
             mapOf("sender" to "user", "senderName" to "Luis Rodríguez", "text" to "Está conectada por Wi-Fi.", "time" to "10:37 AM"),
@@ -70,8 +74,13 @@ fun TicketDetailScreen(
     }
     var messages by remember { mutableStateOf(if (hasConversation) sampleMessages else emptyList()) }
 
+    val ticket by viewModel.currentTicket.collectAsState()
 
-    // --- Funciones de Lógica (Simplificadas para la preview) ---
+    // 🔥 NUEVO: Cargar ticket al montar
+    LaunchedEffect(ticketId) {
+        viewModel.loadTicket(ticketId)
+    }
+
     val handleSendMessage = {
         if (newMessage.isNotBlank()) {
             val currentTime = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
@@ -82,27 +91,30 @@ fun TicketDetailScreen(
                 "time" to currentTime
             )
             messages = messages + msg
-            newMessage = "" // Limpia el input
+            newMessage = ""
             if (!hasConversation) hasConversation = true
         }
     }
+
     val handleStartConversation = { hasConversation = true }
 
-    // Obtenemos colores custom (Necesario para los componentes helper)
     val customColors = LocalCustomColors.current
 
-    // --- DATOS HARCODEADOS PARA LA PREVIEW ---
-    val ticketId = "T-2025-004" // ID del ticket de ejemplo
-    val ticketTitle = "Correo no envía archivos adjuntos"
-    val ticketStatus = "Abierto" // Usar String directamente
-    val ticketPriority = "Alta" // Usar String directamente
-    val ticketCategory = "Email" // Usar String directamente
-    val reportedBy = "Luis Rodríguez"
-    val assignedTo = "Carlos Méndez"
-    val createdDate = "15 Ene 2025, 10:30 AM"
-    val description = "Al intentar enviar correos con archivos adjuntos de más de 5MB, el sistema muestra un error y no permite completar el envío. He intentado con diferentes tipos de archivos (PDF, Excel, Word) y el problema persiste."
-    // --- FIN DATOS HARCODEADOS ---
+    if (ticket == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
+    val createdDate = remember(ticket) {
+        ticket?.createdAt?.toDate()?.let { date ->
+            SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(date)
+        } ?: "Fecha desconocida"
+    }
 
     Scaffold(
         topBar = {
@@ -128,18 +140,21 @@ fun TicketDetailScreen(
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
-                                text = "Ticket #$ticketId", // Usar String
+                                text = "Ticket #${ticket?.id?.takeLast(8) ?: ticketId}",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
-                            // Usamos el componente StatusChip, pasándole el String
-                            StatusChipPreviewHelper(status = ticketStatus, customColors = customColors, size = "large")
+                            StatusChipPreviewHelper(
+                                status = ticket?.status ?: "abierto",
+                                customColors = customColors,
+                                size = "large"
+                            )
                         }
                     },
                     bottomContent = {
                         Text(
-                            text = ticketTitle, // Usar String
+                            text = ticket?.title ?: "Cargando...",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
@@ -150,8 +165,7 @@ fun TicketDetailScreen(
         },
         containerColor = Color.Transparent
     ) { innerPadding ->
-
-        LazyColumn (
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
@@ -163,38 +177,35 @@ fun TicketDetailScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // --- Tarjeta de Detalles ---
             item {
                 TicketInfoCardPreviewHelper(
-                    category = ticketCategory, // String
-                    priority = ticketPriority, // String
-                    reportedBy = reportedBy, // String
-                    assignedTo = assignedTo, // String
-                    createdDate = createdDate, // String
-                    description = description, // String
+                    category = ticket?.category ?: "",
+                    priority = ticket?.priority ?: "",
+                    reportedBy = ticket?.createdBy ?: "Usuario desconocido",
+                    assignedTo = ticket?.assignedToName ?: "Sin asignar",
+                    createdDate = createdDate,
+                    description = ticket?.description ?: "",
                     customColors = customColors
                 )
             }
 
-            // --- Tarjeta de Conversación ---
             item {
                 ConversationCardPreviewHelper(
-                    messages = messages, // Usamos la lista de mapas
+                    messages = messages,
                     newMessage = newMessage,
-                    onNewMessageChange = { newMessage = it }, // Corregido
+                    onNewMessageChange = { newMessage = it },
                     onSendMessage = handleSendMessage,
                     hasConversation = hasConversation,
                     onStartConversation = handleStartConversation,
-                    assigneeName = assignedTo // String
+                    assigneeName = ticket?.assignedToName ?: "el técnico"
                 )
             }
 
-            // --- Botones de Acción ---
-            if (ticketStatus != "Cerrado") { // Comparar con String
+            if (ticket?.status != "cerrado") {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Button(
-                            onClick = { /* No hace nada en preview */ },
+                            onClick = { /* TODO: Marcar como resuelto */ },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -208,7 +219,7 @@ fun TicketDetailScreen(
                             Text("Marcar como resuelto", fontWeight = FontWeight.SemiBold)
                         }
                         OutlinedButton(
-                            onClick = { /* No hace nada en preview */ },
+                            onClick = { /* TODO: Editar ticket */ },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
                             shape = RoundedCornerShape(16.dp),
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
@@ -224,10 +235,9 @@ fun TicketDetailScreen(
                     }
                 }
             }
-        } // Fin LazyColumn
-    } // Fin Scaffold
+        }
+    }
 }
-
 
 // --- Componentes Helper para la PREVIEW (Usan Strings en lugar de Enums) ---
 
