@@ -314,4 +314,20 @@
     <string name="biometric_title">Inicio de sesión biométrico</string>
     <string name="biometric_subtitle">Verifica tu identidad</string>
     <string name="biometric_cancel">Cancelar</string>
+
+    <string name="edit_profile_title">Editar Perfil</string>
+    <string name="label_full_name">Nombre Completo</string>
+    <string name="placeholder_full_name">Ingresa tu nombre completo</string>
+    <string name="label_email_readonly">Correo Electrónico (No editable)</string>
+    <string name="helper_email_readonly">El correo no puede ser modificado</string>
+    <string name="label_phone">Teléfono (Opcional)</string>
+    <string name="placeholder_phone">8090000000</string>
+    <string name="btn_save_changes">Guardar Cambios</string>
+    <string name="btn_change_password">Cambiar Contraseña</string>
+    <string name="desc_change_password">Actualiza tu seguridad</string>
+    <string name="cd_change_photo">Cambiar foto de perfil</string>
+    <string name="text_tap_change_photo">Toca para cambiar tu foto</string>
+    <string name="msg_profile_updated">Perfil actualizado correctamente</string>
+    <string name="msg_password_email_send">Se ha enviado un correo para cambiar tu contraseña</string>
+
 </resources>

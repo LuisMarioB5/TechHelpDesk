@@ -187,13 +187,11 @@ class AuthRepository {
      */
     suspend fun recoverPassword(email: String): Result<Unit> {
         return try {
-            // 1. Enviar correo de recuperación
             auth.sendPasswordResetEmail(email).await()
 
             Result.success(Unit)
 
         } catch (e: Exception) {
-            // Si algo falla (ej. email no registrado)
             println("Error en recoverPassword: ${e.message}")
             Result.failure(e)
         }
@@ -214,7 +212,7 @@ class AuthRepository {
             val userDocRef = db.collection("users").document(firebaseUser.uid)
             val documentSnapshot = userDocRef.get().await()
 
-            val currentTime = Timestamp.now() // Capturamos la hora actual
+            val currentTime = Timestamp.now()
 
             if (!documentSnapshot.exists()) {
                 Log.i(tag, "📝 Creando usuario nuevo...")
@@ -243,7 +241,7 @@ class AuthRepository {
 
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e(tag, "❌ Error", e)
+            Log.e(tag, "Error", e)
             Result.failure(e)
         }
     }
@@ -259,14 +257,41 @@ class AuthRepository {
 
             val document = db.collection("users").document(uid).get().await()
 
-            // Firestore convierte automáticamente el JSON a tu objeto User
-            // gracias a que tu data class tiene valores por defecto.
             val user = document.toObject(User::class.java)
                 ?: throw IllegalStateException("El usuario existe en Auth pero no en Firestore")
 
             Result.success(user)
         } catch (e: Exception) {
             Log.e("AuthRepository", "Error obteniendo datos del usuario", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Actualiza el nombre y teléfono del usuario actual.
+     * Actualiza tanto Firestore como el perfil de Auth.
+     */
+    suspend fun updateUserProfile(name: String, phone: String): Result<Unit> {
+        return try {
+            val user = auth.currentUser ?: throw IllegalStateException("No hay usuario logueado")
+
+            val profileUpdates = UserProfileChangeRequest.Builder()
+                .setDisplayName(name)
+                .build()
+            user.updateProfile(profileUpdates).await()
+
+            val updates = mapOf(
+                "name" to name,
+                "phone" to phone,
+                "updatedAt" to Timestamp.now()
+            )
+
+            db.collection("users").document(user.uid)
+                .update(updates)
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }

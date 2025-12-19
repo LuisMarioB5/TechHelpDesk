@@ -14,7 +14,7 @@ googleServices = "4.4.2"
 kotlinxCoroutines = "1.8.1"
 firebase = "33.1.2"
 biometric = "1.1.0"
-appcompat = "1.4.1"
+appcompat = "1.7.0"
 googleAndroidGms = "21.0.0"
 ui = "1.10.0"
 

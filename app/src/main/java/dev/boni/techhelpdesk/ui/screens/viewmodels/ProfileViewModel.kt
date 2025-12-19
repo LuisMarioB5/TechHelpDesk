@@ -13,8 +13,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class ProfileUiState(
-    val name: String = "Cargando...",
+    val name: String = "",
     val email: String = "",
+    val phone: String = "",
     val roleResId: Int = R.string.role_client,
     val isLoading: Boolean = true
 )
@@ -35,26 +36,53 @@ class ProfileViewModel : ViewModel() {
         viewModelScope.launch {
             val result = authRepo.getCurrentUser()
 
-            result.onSuccess { user ->
-                _uiState.update { currentState ->
-                    currentState.copy(
+            if (result.isSuccess) {
+                val user = result.getOrNull()!!
+                _uiState.update {
+                    it.copy(
                         name = user.name,
                         email = user.email,
+                        phone = user.phone,
                         roleResId = getRoleResourceId(user.role),
                         isLoading = false
                     )
                 }
-            }.onFailure {
+            } else {
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
 
-    private fun getRoleResourceId(role: UserRole): Int {
-        return when (role) {
-            UserRole.ADMIN -> R.string.role_admin
-            UserRole.CLIENT -> R.string.role_client
-            UserRole.TECHNICIAN -> R.string.role_technician
+    /**
+     * Guarda los cambios del perfil (Nombre y Teléfono).
+     */
+    fun updateUserProfile(newName: String, newPhone: String, onSuccess: () -> Unit) {
+        _uiState.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch {
+            val result = authRepo.updateUserProfile(newName, newPhone)
+            if (result.isSuccess) {
+                _uiState.update {
+                    it.copy(name = newName, isLoading = false)
+                }
+                onSuccess()
+            } else {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    /**
+     * Envía un correo de cambio de contraseña al email actual.
+     * Es la forma más segura sin pedir la contraseña antigua.
+     */
+    fun triggerPasswordChange(onEmailSent: () -> Unit) {
+        val currentEmail = _uiState.value.email
+        if (currentEmail.isNotBlank()) {
+            viewModelScope.launch {
+                authRepo.recoverPassword(currentEmail)
+                onEmailSent()
+            }
         }
     }
 
@@ -65,6 +93,14 @@ class ProfileViewModel : ViewModel() {
         viewModelScope.launch {
             authRepo.signOut(context)
             onSuccess()
+        }
+    }
+
+    private fun getRoleResourceId(role: UserRole): Int {
+        return when (role) {
+            UserRole.ADMIN -> R.string.role_admin
+            UserRole.CLIENT -> R.string.role_client
+            UserRole.TECHNICIAN -> R.string.role_technician
         }
     }
 }

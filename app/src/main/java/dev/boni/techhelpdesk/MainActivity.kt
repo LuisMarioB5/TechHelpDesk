@@ -3,6 +3,8 @@ package dev.boni.techhelpdesk
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,8 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,7 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dev.boni.techhelpdesk.data.local.LanguagePreferences
 import dev.boni.techhelpdesk.data.local.ThemePreferences
-import dev.boni.techhelpdesk.utils.LocaleHelper
+// import dev.boni.techhelpdesk.utils.LocaleHelper <--- YA NO LO NECESITAS
 import dev.boni.techhelpdesk.ui.screens.ConversationsScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.create.CreateTicketScreen
 import dev.boni.techhelpdesk.ui.screens.DashboardScreen
@@ -45,15 +47,17 @@ import dev.boni.techhelpdesk.ui.screens.tickets.id.TicketDetailScreen
 import dev.boni.techhelpdesk.ui.screens.viewmodels.DashboardViewModel
 import dev.boni.techhelpdesk.ui.screens.viewmodels.ProfileViewModel
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
+import dev.boni.techhelpdesk.ui.screens.profile.edit.EditProfileScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 
-class MainActivity : FragmentActivity() {
+
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
         val languagePrefs = LanguagePreferences(this)
         val savedLanguage = languagePrefs.getLanguage()
-        LocaleHelper.setLocale(this, savedLanguage)
 
         enableEdgeToEdge()
         setContent {
@@ -143,10 +147,13 @@ class MainActivity : FragmentActivity() {
                             KnowledgeArticleScreen(navController = navController, articleId = articleId)
                         }
 
+                        // --- RUTAS DE PERFIL ---
                         composable(route = "/profile") {
+                            val profileViewModel: ProfileViewModel = viewModel()
+
                             ProfileScreen(
                                 navController = navController,
-                                viewModel = ProfileViewModel(),
+                                viewModel = profileViewModel,
                                 // TEMA
                                 currentTheme = themeSetting,
                                 onThemeChange = { newTheme ->
@@ -158,10 +165,18 @@ class MainActivity : FragmentActivity() {
                                 onLanguageChange = { newLang ->
                                     languageSetting = newLang
                                     languagePrefs.setLanguage(newLang)
-                                    LocaleHelper.setLocale(this@MainActivity, newLang)
-                                    recreate()
+
+                                    val localeList = if (newLang == "system") {
+                                        LocaleListCompat.getEmptyLocaleList()
+                                    } else {
+                                        LocaleListCompat.forLanguageTags(newLang)
+                                    }
+                                    AppCompatDelegate.setApplicationLocales(localeList)
                                 }
                             )
+                        }
+                        composable(route = "/profile/edit") {
+                            EditProfileScreen(navController = navController, viewModel = viewModel())
                         }
 
                         composable(route = "/notifications") {

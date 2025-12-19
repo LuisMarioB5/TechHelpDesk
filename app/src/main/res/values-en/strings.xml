@@ -315,4 +315,19 @@
     <string name="biometric_title">Biometric Login</string>
     <string name="biometric_subtitle">Verify your identity</string>
     <string name="biometric_cancel">Cancel</string>
+
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="label_full_name">Full Name</string>
+    <string name="placeholder_full_name">Enter your full name</string>
+    <string name="label_email_readonly">Email (Read-only)</string>
+    <string name="helper_email_readonly">Email cannot be changed</string>
+    <string name="label_phone">Phone (Optional)</string>
+    <string name="placeholder_phone">8090000000</string>
+    <string name="btn_save_changes">Save Changes</string>
+    <string name="btn_change_password">Change Password</string>
+    <string name="desc_change_password">Update your security</string>
+    <string name="cd_change_photo">Change profile photo</string>
+    <string name="text_tap_change_photo">Tap to change photo</string>
+    <string name="msg_profile_updated">Profile updated successfully</string>
+    <string name="msg_password_email_send">An email has been sent to change your password</string>
 </resources>
