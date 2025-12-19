@@ -17,6 +17,7 @@ biometric = "1.1.0"
 appcompat = "1.7.0"
 googleAndroidGms = "21.0.0"
 ui = "1.10.0"
+material3 = "1.4.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -49,6 +50,7 @@ google-android-gms = { group = "com.google.android.gms", name = "play-services-a
 
 kotlinx-coroutines-playservices = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutines" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 
 
 [plugins]

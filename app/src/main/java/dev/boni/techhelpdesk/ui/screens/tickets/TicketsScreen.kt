@@ -226,7 +226,7 @@ fun TicketsScreen(
             BottomNavigation(navController = navController)
         },
     ) { innerPadding ->
-        if (uiState is TicketUiState.Loading && allTickets.isEmpty()) {
+        if (uiState is TicketUiState.Loading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()

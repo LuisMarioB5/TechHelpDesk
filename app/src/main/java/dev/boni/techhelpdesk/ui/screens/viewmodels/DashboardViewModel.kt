@@ -2,58 +2,79 @@ package dev.boni.techhelpdesk.ui.screens.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.boni.techhelpdesk.data.model.TicketStatus
 import dev.boni.techhelpdesk.data.repository.AuthRepository
+import dev.boni.techhelpdesk.data.repository.TicketRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
-/**
- * ViewModel encargado de gestionar el estado y la lógica de negocio del Dashboard.
- */
-open class DashboardViewModel : ViewModel() {
+data class DashboardUiState(
+    val userName: String = "",
+    val openCount: Int = 0,
+    val inProgressCount: Int = 0,
+    val closedCount: Int = 0,
+    val isLoading: Boolean = true
+)
+
+class DashboardViewModel : ViewModel() {
 
     private val authRepo = AuthRepository()
+    private val ticketRepo = TicketRepository()
 
-    /**
-     * Estado del nombre de usuario.
-     * Inicializamos llamando al repositorio (caché) para que sea instantáneo.
-     */
-    private val _userName = MutableStateFlow(authRepo.getCachedDisplayName() ?: "Usuario")
-    open val userName: StateFlow<String> = _userName.asStateFlow()
+    private val _uiState = MutableStateFlow(DashboardUiState())
+    val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
     init {
-        refreshUserName()
+        loadDashboardData()
     }
 
-    /**
-     * Refresca el nombre de usuario desde el repositorio de manera asíncrona
-     * para asegurar consistencia en caso de cambios remotos.
-     */
-    private fun refreshUserName() {
+    private fun loadDashboardData() {
         viewModelScope.launch {
-            val result = authRepo.getCurrentUserNameFromFirestore()
+            _uiState.update { it.copy(isLoading = true) }
 
-            if (result.isSuccess) {
-                val firestoreName = result.getOrNull() ?: "Usuario"
+            val currentUser = authRepo.getCurrentUser().getOrNull()
+            val userId = currentUser?.id ?: ""
+            val name = currentUser?.name?.split(" ")?.firstOrNull() ?: "Usuario"
 
-                _userName.value = firestoreName
+            if (userId.isNotEmpty()) {
+                val result = ticketRepo.getTicketsByUserId(userId)
 
-                val authUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
-                if (authUser != null && authUser.displayName != firestoreName) {
-
-                    val profileUpdates = com.google.firebase.auth.UserProfileChangeRequest.Builder()
-                        .setDisplayName(firestoreName)
-                        .build()
-
-                    try {
-                        authUser.updateProfile(profileUpdates).await()
-                    } catch (e: Exception) {
-                        println("Error al actualizar el nombre de usuario en Firebase Auth: $e")
+                result.onSuccess { tickets ->
+                    val open = tickets.count {
+                        it.status.equals(TicketStatus.ABIERTO.name, ignoreCase = true)
                     }
+
+                    val inProgress = tickets.count {
+                        it.status.equals(TicketStatus.EN_PROGRESO.name, ignoreCase = true)
+                    }
+
+                    val closed = tickets.count {
+                        it.status.equals(TicketStatus.CERRADO.name, ignoreCase = true) ||
+                                it.status.equals(TicketStatus.RESUELTO.name, ignoreCase = true)
+                    }
+
+                    _uiState.update {
+                        it.copy(
+                            userName = name,
+                            openCount = open,
+                            inProgressCount = inProgress,
+                            closedCount = closed,
+                            isLoading = false
+                        )
+                    }
+                }.onFailure {
+                    _uiState.update { it.copy(isLoading = false, userName = name) }
                 }
+            } else {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
+    }
+
+    fun refresh() {
+        loadDashboardData()
     }
 }

@@ -86,7 +86,8 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         composable(route = "/dashboard") {
-                            DashboardScreen(navController = navController, viewModel = DashboardViewModel())
+                            val dashboardViewModel: DashboardViewModel = viewModel()
+                            DashboardScreen(navController = navController, viewModel = dashboardViewModel)
                         }
 
                         composable(route = "/login") {
@@ -176,7 +177,8 @@ class MainActivity : AppCompatActivity() {
                             )
                         }
                         composable(route = "/profile/edit") {
-                            EditProfileScreen(navController = navController, viewModel = viewModel())
+                            val profileViewModel: ProfileViewModel = viewModel()
+                            EditProfileScreen(navController = navController, viewModel = profileViewModel)
                         }
 
                         composable(route = "/notifications") {

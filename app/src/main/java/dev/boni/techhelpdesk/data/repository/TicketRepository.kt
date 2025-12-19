@@ -76,6 +76,21 @@ class TicketRepository {
         }
     }
 
+    suspend fun getTicketsByUserId(userId: String): Result<List<Ticket>> {
+        return try {
+            val snapshot = db.collection("tickets")
+                .whereEqualTo("userId", userId)
+                 .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .await()
+
+            val tickets = snapshot.toObjects(Ticket::class.java)
+            Result.success(tickets)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     /**
      * Obtiene un ticket por ID
      */

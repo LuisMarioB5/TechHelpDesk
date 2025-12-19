@@ -64,7 +64,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.ui)
 
-    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation(libs.androidx.material3)
 
     testImplementation(libs.junit)
 

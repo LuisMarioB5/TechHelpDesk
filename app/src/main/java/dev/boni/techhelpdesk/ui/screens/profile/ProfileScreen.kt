@@ -105,111 +105,122 @@ fun ProfileScreen(
         containerColor = Color.Transparent
     ) { innerPadding ->
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(innerPadding),
-            contentPadding = PaddingValues(
-                top = 24.dp,
-                bottom = 24.dp,
-                start = 16.dp,
-                end = 16.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                SettingsClickableItem(
-                    label = stringResource(R.string.profile_title_notifications),
-                    subtext = stringResource(R.string.profile_subtext_notifications),
-                    icon = Icons.Default.Notifications,
-                    badgeCount = 3,
-                    onClick = { navController.navigate("/notifications") }
-                )
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
-
-            item {
-                SettingsClickableItem(
-                    label = stringResource(R.string.profile_title_knowledge),
-                    subtext = stringResource(R.string.profile_subtext_knowledge),
-                    icon = Icons.AutoMirrored.Filled.LibraryBooks,
-                    onClick = { navController.navigate("/knowledge") }
-                )
-            }
-
-            item {
-                val languageOptions = mapOf(
-                    "system" to stringResource(R.string.option_lang_system),
-                    "es" to stringResource(R.string.option_lang_es),
-                    "en" to stringResource(R.string.option_lang_en)
-                )
-
-                SettingsDropdownItem(
-                    label = stringResource(R.string.profile_title_language),
-                    icon = Icons.Default.Language,
-                    options = languageOptions,
-                    selectedKey = currentLanguage,
-                    onSelectionChange = onLanguageChange
-                )
-            }
-
-            item {
-                SettingsToggleItem(
-                    label = stringResource(R.string.profile_title_biometric),
-                    subtext = stringResource(R.string.profile_subtext_biometric),
-                    icon = Icons.Default.Fingerprint,
-                    checked = biometricEnabled,
-                    onCheckedChange = { biometricEnabled = it }
-                )
-            }
-
-            item {
-                SettingsToggleItem(
-                    label = stringResource(R.string.profile_title_push),
-                    subtext = stringResource(R.string.profile_subtext_push),
-                    icon = Icons.Default.NotificationsActive,
-                    checked = notificationsEnabled,
-                    onCheckedChange = { notificationsEnabled = it }
-                )
-            }
-
-            item {
-                val themeOptions = mapOf(
-                    "system" to stringResource(R.string.option_theme_system),
-                    "light" to stringResource(R.string.option_theme_light),
-                    "dark" to stringResource(R.string.option_theme_dark)
-                )
-
-                val themeIcon = when(currentTheme) {
-                    "light" -> Icons.Default.LightMode
-                    "dark" -> Icons.Default.DarkMode
-                    else -> Icons.Default.SettingsBrightness
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(innerPadding),
+                contentPadding = PaddingValues(
+                    top = 24.dp,
+                    bottom = 24.dp,
+                    start = 16.dp,
+                    end = 16.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    SettingsClickableItem(
+                        label = stringResource(R.string.profile_title_notifications),
+                        subtext = stringResource(R.string.profile_subtext_notifications),
+                        icon = Icons.Default.Notifications,
+                        badgeCount = 3,
+                        onClick = { navController.navigate("/notifications") }
+                    )
                 }
 
-                SettingsDropdownItem(
-                    label = stringResource(R.string.profile_title_theme),
-                    icon = themeIcon,
-                    options = themeOptions,
-                    selectedKey = currentTheme,
-                    onSelectionChange = onThemeChange
-                )
-            }
+                item {
+                    SettingsClickableItem(
+                        label = stringResource(R.string.profile_title_knowledge),
+                        subtext = stringResource(R.string.profile_subtext_knowledge),
+                        icon = Icons.AutoMirrored.Filled.LibraryBooks,
+                        onClick = { navController.navigate("/knowledge") }
+                    )
+                }
 
-            item {
-                SettingsClickableItem(
-                    label = stringResource(R.string.profile_title_privacy),
-                    icon = Icons.Default.PrivacyTip,
-                    onClick = { /* Navegar a Política de Privacidad */ }
-                )
-            }
+                item {
+                    val languageOptions = mapOf(
+                        "system" to stringResource(R.string.option_lang_system),
+                        "es" to stringResource(R.string.option_lang_es),
+                        "en" to stringResource(R.string.option_lang_en)
+                    )
 
-            item {
-                SettingsClickableItem(
-                    label = stringResource(R.string.profile_title_logout),
-                    icon = Icons.AutoMirrored.Filled.ExitToApp,
-                    color = MaterialTheme.colorScheme.error,
-                    onClick = handleLogout
-                )
+                    SettingsDropdownItem(
+                        label = stringResource(R.string.profile_title_language),
+                        icon = Icons.Default.Language,
+                        options = languageOptions,
+                        selectedKey = currentLanguage,
+                        onSelectionChange = onLanguageChange
+                    )
+                }
+
+                item {
+                    SettingsToggleItem(
+                        label = stringResource(R.string.profile_title_biometric),
+                        subtext = stringResource(R.string.profile_subtext_biometric),
+                        icon = Icons.Default.Fingerprint,
+                        checked = biometricEnabled,
+                        onCheckedChange = { biometricEnabled = it }
+                    )
+                }
+
+                item {
+                    SettingsToggleItem(
+                        label = stringResource(R.string.profile_title_push),
+                        subtext = stringResource(R.string.profile_subtext_push),
+                        icon = Icons.Default.NotificationsActive,
+                        checked = notificationsEnabled,
+                        onCheckedChange = { notificationsEnabled = it }
+                    )
+                }
+
+                item {
+                    val themeOptions = mapOf(
+                        "system" to stringResource(R.string.option_theme_system),
+                        "light" to stringResource(R.string.option_theme_light),
+                        "dark" to stringResource(R.string.option_theme_dark)
+                    )
+
+                    val themeIcon = when (currentTheme) {
+                        "light" -> Icons.Default.LightMode
+                        "dark" -> Icons.Default.DarkMode
+                        else -> Icons.Default.SettingsBrightness
+                    }
+
+                    SettingsDropdownItem(
+                        label = stringResource(R.string.profile_title_theme),
+                        icon = themeIcon,
+                        options = themeOptions,
+                        selectedKey = currentTheme,
+                        onSelectionChange = onThemeChange
+                    )
+                }
+
+                item {
+                    SettingsClickableItem(
+                        label = stringResource(R.string.profile_title_privacy),
+                        icon = Icons.Default.PrivacyTip,
+                        onClick = { /* Navegar a Política de Privacidad */ }
+                    )
+                }
+
+                item {
+                    SettingsClickableItem(
+                        label = stringResource(R.string.profile_title_logout),
+                        icon = Icons.AutoMirrored.Filled.ExitToApp,
+                        color = MaterialTheme.colorScheme.error,
+                        onClick = handleLogout
+                    )
+                }
             }
         }
     }
@@ -447,7 +458,7 @@ fun SettingsDropdownItem(
                     readOnly = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable, true),
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
                     },

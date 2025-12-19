@@ -21,7 +21,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.CheckCircleOutline
 import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,11 +52,12 @@ import dev.boni.techhelpdesk.ui.screens.viewmodels.DashboardViewModel
 import dev.boni.techhelpdesk.ui.theme.LightCustomColors
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import androidx.compose.ui.res.stringResource
 import dev.boni.techhelpdesk.R
+import dev.boni.techhelpdesk.ui.screens.viewmodels.DashboardUiState
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.runtime.DisposableEffect
 
 /**
  * Pantalla principal del Dashboard.
@@ -64,13 +65,40 @@ import dev.boni.techhelpdesk.R
  * @param navController El controlador de navegación para manejar las acciones.
  * @param viewModel El ViewModel que gestiona el estado de esta pantalla.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     navController: NavController,
     viewModel: DashboardViewModel
 ) {
-    val userName by viewModel.userName.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    DashboardContent(
+        navController = navController,
+        uiState = uiState,
+        onRefresh = { viewModel.refresh() }
+    )
+}
+
+@Composable
+fun DashboardContent(
+    navController: NavController,
+    uiState: DashboardUiState,
+    modifier: Modifier = Modifier,
+    onRefresh: () -> Unit
+) {
 
     Scaffold(
         topBar = {
@@ -78,7 +106,7 @@ fun DashboardScreen(
                 title = {
                     Column {
                         Text(
-                            text = stringResource(R.string.dashboard_greeting, userName),
+                            text = stringResource(R.string.dashboard_greeting, uiState.userName),
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimary
@@ -120,144 +148,167 @@ fun DashboardScreen(
         },
         containerColor = Color.Transparent
     ) { innerPadding ->
-        DashboardContent(
-            navController = navController,
-            innerPadding = innerPadding,
-            viewModel = viewModel
-        )
-    }
-}
+        val customColors = LocalCustomColors.current
 
-@Composable
-fun DashboardContent(
-    modifier: Modifier = Modifier,
-    navController: NavController,
-    innerPadding: PaddingValues,
-    viewModel: DashboardViewModel
-) {
-    val customColors = LocalCustomColors.current
-
-    LazyColumn(
-        contentPadding = PaddingValues(
-            top = innerPadding.calculateTopPadding() + 24.dp,
-            bottom = innerPadding.calculateBottomPadding() + 24.dp
-        ),
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-    ) {
-
-        item {
-            SectionTitle(
-                text = stringResource(R.string.dashboard_section_summary),
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ){
-                TicketStatsCard(
-                    title = stringResource(R.string.card_open),
-                    count = 12, // TODO En el futuro esto vendra del viewModel de los tickets
-                    icon = Icons.Outlined.ConfirmationNumber,
-                    onClick = { navController.navigate("/tickets?status=abierto") { popUpTo("/tickets"){ inclusive = true }; launchSingleTop = true } },
-                    color = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    iconBackgroundColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
-                    modifier = Modifier.weight(1f)
-                )
-                TicketStatsCard(
-                    title = stringResource(R.string.card_in_progress),
-                    count = 5, // TODO En el futuro esto vendra del viewModel de los tickets
-                    icon = Icons.Outlined.Schedule,
-                    onClick = { navController.navigate("/tickets?status=en_progreso") { popUpTo("/tickets"){ inclusive = true }; launchSingleTop = true } },
-                    color = customColors.warning,
-                    contentColor = customColors.onWarning,
-                    iconBackgroundColor = customColors.onWarning.copy(alpha = 0.2f),
-                    modifier = Modifier.weight(1f)
-                )
-                TicketStatsCard(
-                    title = stringResource(R.string.card_closed),
-                    count = 28, // TODO En el futuro esto vendra del viewModel de los tickets
-                    icon = Icons.Outlined.CheckCircleOutline,
-                    onClick = { navController.navigate("/tickets?status=cerrado") { popUpTo("/tickets"){ inclusive = true }; launchSingleTop = true } },
-                    color = customColors.success,
-                    contentColor = customColors.onSuccess,
-                    iconBackgroundColor = customColors.onSuccess.copy(alpha = 0.2f),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-
-        item {
-            MobileButton(
-                onClick = { navController.navigate("/ticket/create") },
-                variant = MobileButtonVariant.FILLED,
-                fullWidth = true,
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.AddCircle,
-                    contentDescription = null,
-                    modifier = Modifier.padding(end = 8.dp)
-                )
-                Text(text = stringResource(R.string.btn_new_ticket), style = MaterialTheme.typography.labelLarge)
+                CircularProgressIndicator()
             }
-        }
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(
+                    top = innerPadding.calculateTopPadding() + 24.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 24.dp
+                ),
+                modifier = modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
 
-        item {
-            SectionTitle(
-                text = stringResource(R.string.dashboard_section_quick_access),
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-        }
-        item {
-            QuickActionGroup(modifier = Modifier.padding(bottom = 24.dp)) {
-                QuickActionItem(
-                    icon = Icons.AutoMirrored.Outlined.List,
-                    title = stringResource(R.string.action_view_all_title),
-                    description = stringResource(R.string.action_view_all_desc),
-                    onClick = { navController.navigate("/tickets") },
-                    iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                QuickActionItem(
-                    icon = Icons.AutoMirrored.Outlined.LibraryBooks,
-                    title = stringResource(R.string.action_knowledge_title),
-                    description = stringResource(R.string.action_knowledge_desc),
-                    onClick = { navController.navigate("/knowledge") },
-                    iconBackgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                QuickActionItem(
-                    icon = Icons.AutoMirrored.Outlined.Chat,
-                    title = stringResource(R.string.action_chat_title),
-                    description = stringResource(R.string.action_chat_desc),
-                    onClick = { navController.navigate("/support-chat") },
-                    iconBackgroundColor = customColors.successContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                item {
+                    SectionTitle(
+                        text = stringResource(R.string.dashboard_section_summary),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        TicketStatsCard(
+                            title = stringResource(R.string.card_open),
+                            count = uiState.openCount,
+                            icon = Icons.Outlined.ConfirmationNumber,
+                            onClick = {
+                                navController.navigate("/tickets?status=abierto") {
+                                    popUpTo(
+                                        "/tickets"
+                                    ) { inclusive = true }; launchSingleTop = true
+                                }
+                            },
+                            color = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            iconBackgroundColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
+                            modifier = Modifier.weight(1f)
+                        )
+                        TicketStatsCard(
+                            title = stringResource(R.string.card_in_progress),
+                            count = uiState.inProgressCount,
+                            icon = Icons.Outlined.Schedule,
+                            onClick = {
+                                navController.navigate("/tickets?status=en_progreso") {
+                                    popUpTo(
+                                        "/tickets"
+                                    ) { inclusive = true }; launchSingleTop = true
+                                }
+                            },
+                            color = customColors.warning,
+                            contentColor = customColors.onWarning,
+                            iconBackgroundColor = customColors.onWarning.copy(alpha = 0.2f),
+                            modifier = Modifier.weight(1f)
+                        )
+                        TicketStatsCard(
+                            title = stringResource(R.string.card_closed),
+                            count = uiState.closedCount,
+                            icon = Icons.Outlined.CheckCircleOutline,
+                            onClick = {
+                                navController.navigate("/tickets?status=cerrado") {
+                                    popUpTo(
+                                        "/tickets"
+                                    ) { inclusive = true }; launchSingleTop = true
+                                }
+                            },
+                            color = customColors.success,
+                            contentColor = customColors.onSuccess,
+                            iconBackgroundColor = customColors.onSuccess.copy(alpha = 0.2f),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+
+                item {
+                    MobileButton(
+                        onClick = { navController.navigate("/ticket/create") },
+                        variant = MobileButtonVariant.FILLED,
+                        fullWidth = true,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AddCircle,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.btn_new_ticket),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
+
+                item {
+                    SectionTitle(
+                        text = stringResource(R.string.dashboard_section_quick_access),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+                item {
+                    QuickActionGroup(modifier = Modifier.padding(bottom = 24.dp)) {
+                        QuickActionItem(
+                            icon = Icons.AutoMirrored.Outlined.List,
+                            title = stringResource(R.string.action_view_all_title),
+                            description = stringResource(R.string.action_view_all_desc),
+                            onClick = { navController.navigate("/tickets") },
+                            iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        QuickActionItem(
+                            icon = Icons.AutoMirrored.Outlined.LibraryBooks,
+                            title = stringResource(R.string.action_knowledge_title),
+                            description = stringResource(R.string.action_knowledge_desc),
+                            onClick = { navController.navigate("/knowledge") },
+                            iconBackgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        QuickActionItem(
+                            icon = Icons.AutoMirrored.Outlined.Chat,
+                            title = stringResource(R.string.action_chat_title),
+                            description = stringResource(R.string.action_chat_desc),
+                            onClick = { navController.navigate("/conversation") },
+                            iconBackgroundColor = customColors.successContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
             }
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
 fun DashboardScreenPreview() {
     TechHelpDeskTheme {
-        class PreviewDashboardViewModel : DashboardViewModel() {
-            override val userName: StateFlow<String> = MutableStateFlow("Luis (Preview)").asStateFlow()
-        }
-
         CompositionLocalProvider(LocalCustomColors provides LightCustomColors) {
             val navController = rememberNavController()
-            DashboardScreen(
+
+            DashboardContent(
                 navController = navController,
-                viewModel = PreviewDashboardViewModel()
+                uiState = DashboardUiState(
+                    userName = "Luis (Preview)",
+                    openCount = 5,
+                    inProgressCount = 2,
+                    closedCount = 10,
+                    isLoading = false
+                ),
+                onRefresh = {}
             )
         }
     }
