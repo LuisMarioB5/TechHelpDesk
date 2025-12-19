@@ -1,4 +1,4 @@
-package dev.boni.techhelpdesk.ui.screens
+package dev.boni.techhelpdesk.ui.screens.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -95,8 +95,8 @@ fun ProfileScreen(
             ProfileHeader(
                 name = uiState.name,
                 email = uiState.email,
-                role = uiState.role,
-                onEditClick = { /* Lógica para editar perfil */ }
+                role = stringResource(id = uiState.roleResId),
+                onEditClick = { navController.navigate("/profile/edit") }
             )
         },
         bottomBar = {

@@ -3,8 +3,9 @@ package dev.boni.techhelpdesk.ui.screens.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.boni.techhelpdesk.data.repository.AuthRepository
+import dev.boni.techhelpdesk.R
 import dev.boni.techhelpdesk.data.model.UserRole
+import dev.boni.techhelpdesk.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +15,7 @@ import kotlinx.coroutines.launch
 data class ProfileUiState(
     val name: String = "Cargando...",
     val email: String = "",
-    val role: String = "",
+    val roleResId: Int = R.string.role_client,
     val isLoading: Boolean = true
 )
 
@@ -22,6 +23,7 @@ class ProfileViewModel : ViewModel() {
 
     private val authRepo = AuthRepository()
 
+    // Estado observable (Backing property)
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
@@ -31,8 +33,6 @@ class ProfileViewModel : ViewModel() {
 
     private fun loadUserProfile() {
         viewModelScope.launch {
-            // Asumo que tu AuthRepository tiene una función para obtener el usuario actual de Firestore.
-            // Si no la tienes, avísame, pero generalmente devuelve tu data class 'User'.
             val result = authRepo.getCurrentUser()
 
             result.onSuccess { user ->
@@ -40,24 +40,21 @@ class ProfileViewModel : ViewModel() {
                     currentState.copy(
                         name = user.name,
                         email = user.email,
-                        // Convertimos el Enum a un String bonito (Ej: CLIENT -> Cliente)
-                        role = formatRoleName(user.role),
+                        roleResId = getRoleResourceId(user.role),
                         isLoading = false
                     )
                 }
             }.onFailure {
-                // Manejo de error si no se pudo cargar el usuario
-                _uiState.update { it.copy(name = "Usuario", role = "Invitado", isLoading = false) }
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
 
-    private fun formatRoleName(role: UserRole): String {
+    private fun getRoleResourceId(role: UserRole): Int {
         return when (role) {
-            UserRole.ADMIN -> "Administrador"
-            UserRole.TECHNICIAN -> "Técnico"
-            UserRole.CLIENT -> "Cliente"
-            else -> role.name
+            UserRole.ADMIN -> R.string.role_admin
+            UserRole.CLIENT -> R.string.role_client
+            UserRole.TECHNICIAN -> R.string.role_technician
         }
     }
 

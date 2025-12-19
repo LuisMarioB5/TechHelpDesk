@@ -34,7 +34,7 @@ import dev.boni.techhelpdesk.ui.screens.ForgotPasswordScreen
 import dev.boni.techhelpdesk.ui.screens.LoginScreen
 import dev.boni.techhelpdesk.ui.screens.NewConversationScreen
 import dev.boni.techhelpdesk.ui.screens.NotificationsScreen
-import dev.boni.techhelpdesk.ui.screens.ProfileScreen
+import dev.boni.techhelpdesk.ui.screens.profile.ProfileScreen
 import dev.boni.techhelpdesk.ui.screens.RegisterScreen
 import dev.boni.techhelpdesk.ui.screens.SplashScreen
 import dev.boni.techhelpdesk.ui.screens.conversation.ConversationDetailScreen

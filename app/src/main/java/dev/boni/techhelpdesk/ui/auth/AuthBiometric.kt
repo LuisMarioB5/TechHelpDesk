@@ -5,6 +5,7 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import dev.boni.techhelpdesk.R
 
 /**
  * Verifica si el dispositivo tiene hardware biométrico y si el usuario ha registrado una huella.
@@ -38,10 +39,10 @@ fun authenticateWithBiometric(
     val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
 
     val promptInfo = BiometricPrompt.PromptInfo.Builder()
-        .setTitle("Inicio de sesión biométrico")
-        .setSubtitle("Verifica tu identidad")
+        .setTitle(context.getString(R.string.biometric_title))
+        .setSubtitle(context.getString(R.string.biometric_subtitle))
         .setAllowedAuthenticators(authenticators)
-        .setNegativeButtonText("Cancelar")
+        .setNegativeButtonText(context.getString(R.string.biometric_cancel))
         .build()
 
     val biometricPrompt = BiometricPrompt(activity, executor,
@@ -52,7 +53,6 @@ fun authenticateWithBiometric(
             }
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                 super.onAuthenticationError(errorCode, errString)
-                // Filtramos "User Canceled" para no mostrar error si el usuario lo cierra a propósito
                 if (errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
                     errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
                     onError(errString.toString())

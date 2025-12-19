@@ -306,4 +306,12 @@
     <string name="btn_clear_filters">Limpiar filtros</string>
 
     <string name="text_recent">Reciente</string>
+
+    <string name="role_admin">Administrador</string>
+    <string name="role_client">Cliente</string>
+    <string name="role_technician">Técnico</string>
+
+    <string name="biometric_title">Inicio de sesión biométrico</string>
+    <string name="biometric_subtitle">Verifica tu identidad</string>
+    <string name="biometric_cancel">Cancelar</string>
 </resources>
