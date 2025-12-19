@@ -1,3 +1,309 @@
 <resources>
     <string name="app_name">TechHelpDesk</string>
+    <string name="app_version">1.0.0</string>
+
+    <string name="dashboard_greeting">Hola, %1$s</string>
+    <string name="dashboard_welcome_back">Bienvenido de vuelta</string>
+    <string name="dashboard_section_summary">Resumen de tickets</string>
+    <string name="dashboard_section_quick_access">Accesos rápidos</string>
+
+    <string name="card_open">Abiertos</string>
+    <string name="card_in_progress">En progreso</string>
+    <string name="card_closed">Cerrados</string>
+    <string name="btn_new_ticket">Nuevo ticket</string>
+
+    <string name="action_view_all_title">Ver todos los tickets</string>
+    <string name="action_view_all_desc">Gestiona tus solicitudes</string>
+    <string name="action_knowledge_title">Base de conocimiento</string>
+    <string name="action_knowledge_desc">Encuentra respuestas rápidas</string>
+    <string name="action_chat_title">Chat de soporte</string>
+    <string name="action_chat_desc">Habla con un técnico</string>
+
+    <string name="cd_profile_button">Ir al perfil</string>
+    <string name="cd_new_ticket_icon">Icono agregar ticket</string>
+    <string name="cd_return_icon">Icono de flecha hacia atras (volver)</string>
+    <string name="exclamation_icon">Icono de un signo de exclamacion</string>
+
+    <string name="alert_email_required">El correo es requerido</string>
+    <string name="alert_email_invalid">Formato de correo inválido</string>
+    <string name="alert_error_sending_email">Error al enviar el correo</string>
+
+    <string name="forgot_password_title">Recuperar contraseña</string>
+    <string name="forgot_password_desc">Te enviaremos un enlace de recuperación</string>
+
+    <string name="advice_forgot_password_title">¿Olvidaste tu contraseña?</string>
+    <string name="advice_forgot_password_desc">No te preocupes. Ingresa tu correo electrónico...</string>
+    <string name="advice_forgot_password_icon">Icono de un candado con una flecha rodeandolo</string>
+
+    <string name="label_email_input">Correo electrónico</string>
+    <string name="placeholder_email_input">tu@email.com</string>
+    <string name="icon_email_input">Icono de sobre de correo</string>
+    <string name="supporting_text_email_input">Ingresa el correo asociado a tu cuenta</string>
+
+    <string name="send_recovery_link_button">Enviar enlace de recuperación</string>
+
+    <string name="advice_security_recovery_title">Por tu seguridad, el enlace de recuperación expirará en 24 horas...</string>
+    <string name="advice_security_recovery_icon">Icono de escudo seguridad</string>
+
+    <string name="return_to_login_button">Volver al inicio de sesión</string>
+
+    <string name="forgot_password_success_title">Correo enviado con éxito</string>
+    <string name="email_success_send_title">¡Correo enviado con éxito!</string>
+
+    <string name="forgot_password_success_desc">Revisa tu bandeja de entrada</string>
+    <string name="forgot_password_success_icon">Icono de un sobre de correo con una flecha de leído</string>
+
+    <string name="email_success_send_desc1">Hemos enviado un enlace de recuperación a </string>
+    <string name="email_success_send_desc2">. Por favor, revisa tu bandeja de entrada y sigue las instrucciones.</string>
+
+    <string name="advice_didnt_received_email_title">¿No recibiste el correo?</string>
+    <string name="advice_didnt_received_email_opt1">• Revisa tu carpeta de spam</string>
+    <string name="advice_didnt_received_email_opt2">• Verifica que el correo sea correcto</string>
+    <string name="advice_didnt_received_email_opt3">• El enlace expira en 24 horas</string>
+
+    <string name="send_again_button">Enviar de nuevo</string>
+
+    <string name="login_subtitle">Inicia sesión para continuar</string>
+
+    <string name="label_password_input">Contraseña</string>
+    <string name="placeholder_password_input">••••••••</string>
+    <string name="icon_password_input">Icono de un candado cerrado</string>
+    <string name="cd_show_password">Mostrar contraseña</string>
+    <string name="cd_hide_password">Ocultar contraseña</string>
+
+    <string name="alert_password_required">La contraseña es requerida</string>
+    <string name="alert_invalid_credentials">Credenciales incorrectas</string>
+    <string name="error_google_sign_in">Error al iniciar con Google %1$s</string>
+    <string name="error_google_sign_in_failed">Google Sign In falló: %1$d</string>
+
+    <string name="checkbox_remember_me">Recordarme</string>
+    <string name="btn_login_action">Iniciar sesión</string>
+    <string name="text_no_account_question">¿No tienes una cuenta? </string>
+    <string name="btn_register_action">Regístrate</string>
+
+    <string name="divider_continue_with">O continúa con</string>
+    <string name="btn_continue_google">Continuar con Google</string>
+    <string name="btn_continue_microsoft">Continuar con Microsoft</string>
+    <string name="btn_continue_apple">Continuar con Apple</string>
+    <string name="btn_continue_biometric">Usar huella digital</string>
+
+    <string name="cd_google_logo">Logo de Google</string>
+    <string name="cd_microsoft_logo">Logo de Microsoft</string>
+    <string name="cd_apple_logo">Logo de Apple</string>
+    <string name="cd_biometric_icon">Icono de huella digital</string>
+
+    <string name="splash_slogan">Tu soporte técnico, siempre a mano</string>
+    <string name="splash_btn_login">Iniciar sesión</string>
+    <string name="splash_btn_register">Registrarse</string>
+
+    <string name="splash_version_template">Versión %1$s</string>
+
+    <string name="cd_app_logo">Logo de la aplicación</string>
+    <string name="cd_check_circle">Icono de validación</string>
+
+    <string name="register_title">Crear cuenta</string>
+    <string name="register_subtitle">Únete a TechHelpDesk hoy</string>
+
+    <string name="label_name_input">Nombre completo *</string>
+    <string name="placeholder_name_input">María López</string>
+    <string name="label_confirm_password_input">Confirmar contraseña *</string>
+    <string name="cd_person_icon">Icono con la silueta de una persona</string>
+
+    <string name="alert_name_required">El nombre es requerido</string>
+    <string name="alert_password_length">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="alert_confirm_password_required">Confirma la contraseña</string>
+    <string name="alert_passwords_match">Las contraseñas no coinciden</string>
+    <string name="alert_terms_required">Debes aceptar los términos</string>
+    <string name="helper_password_min_length">Mínimo 6 caracteres</string>
+
+    <string name="error_google_register">Error al registrar con Google</string>
+    <string name="error_google_register_failed">Google Register falló: %1$d</string>
+
+    <string name="btn_create_account">Crear cuenta</string>
+    <string name="divider_register_with">O regístrate con</string>
+    <string name="text_has_account_question">¿Ya tienes una cuenta? </string>
+    <string name="btn_login_link">Inicia sesión</string>
+
+    <string name="terms_text_accept">Acepto los </string>
+    <string name="terms_text_link_terms">términos y condiciones</string>
+    <string name="terms_text_and"> y la </string>
+    <string name="terms_text_link_privacy">política de privacidad</string>
+
+    <string name="profile_title_notifications">Notificaciones</string>
+    <string name="profile_subtext_notifications">Ver todas las notificaciones</string>
+
+    <string name="profile_title_knowledge">Conocimiento</string>
+    <string name="profile_subtext_knowledge">Ver preguntas frecuentes</string>
+
+    <string name="profile_title_language">Idioma</string>
+    <string name="profile_title_biometric">Inicio biométrico</string>
+    <string name="profile_subtext_biometric">Usar huella digital para acceder</string>
+
+    <string name="profile_title_push">Notificaciones push</string>
+    <string name="profile_subtext_push">Recibir alertas y actualizaciones</string>
+
+    <string name="profile_title_theme">Tema oscuro</string>
+    <string name="profile_title_privacy">Política de privacidad</string>
+
+    <string name="profile_title_logout">Cerrar sesión</string>
+
+    <string name="dialog_logout_message">¿Estás seguro de que deseas cerrar sesión?</string>
+    <string name="btn_cancel">Cancelar</string>
+
+    <string name="cd_avatar_image">Avatar de usuario</string>
+    <string name="cd_edit_profile">Editar perfil</string>
+    <string name="cd_arrow_right_icon">Icono de la punta de flecha apuntando a la derecha</string>
+
+    <string name="option_lang_system">Sistema</string>
+    <string name="option_lang_es">Español</string>
+    <string name="option_lang_en">English</string>
+
+    <string name="option_theme_system">Sistema</string>
+    <string name="option_theme_light">Claro</string>
+    <string name="option_theme_dark">Oscuro</string>
+
+
+    <string name="user_text">Usuario</string>
+    <string name="error_unknown">Error desconocido</string>
+    <string name="error_no_logged_user">No hay usuario logueado</string>
+    <string name="error_ticket_not_found">Ticket no encontrado</string>
+    <string name="error_converting_ticket">Error al convertir ticket</string>
+
+    <string name="create_ticket_title">Nuevo ticket</string>
+    <string name="create_ticket_subtitle">Describe tu problema y te ayudaremos lo antes posible</string>
+    <string name="btn_save_draft">Guardar</string>
+
+    <string name="tip_title">Consejo</string>
+    <string name="tip_description">Proporciona todos los detalles posibles para que podamos resolver tu problema más rápido</string>
+
+    <string name="step_indicator">Paso 1 de 1 • Campos obligatorios marcados con *</string>
+
+    <string name="label_ticket_title">Título del ticket</string>
+    <string name="placeholder_ticket_title">Ej: No puedo acceder a mi correo</string>
+
+    <string name="label_category">Categoría</string>
+
+    <string name="label_priority">Prioridad</string>
+    <string name="helper_priority">Selecciona según cómo afecta tu trabajo</string>
+
+    <string name="label_description">Descripción del problema</string>
+    <string name="helper_description_detail">Incluye: qué pasó, cuándo ocurrió, qué intentaste hacer y cualquier mensaje de error</string>
+    <string name="placeholder_description">Ejemplo: Desde esta mañana no puedo abrir mi correo...</string>
+
+    <string name="label_attachments">Adjuntar archivos (opcional)</string>
+    <string name="helper_attachments">Las capturas de pantalla ayudan a resolver el problema más rápido</string>
+    <string name="btn_camera">Cámara</string>
+    <string name="btn_gallery">Galería</string>
+
+    <string name="label_additional_info">Información adicional</string>
+    <string name="sublabel_additional_info">Opcional pero útil</string>
+    <string name="cd_expand_options">Expandir opciones</string>
+    <string name="cd_collapse_options">Ocultar opciones</string>
+
+    <string name="label_location">Ubicación</string>
+    <string name="placeholder_location">Ej: Edificio A, Piso 3...</string>
+    <string name="helper_location">Dónde te encuentras físicamente</string>
+
+    <string name="label_department">Departamento</string>
+    <string name="placeholder_department">Ej: Recursos Humanos</string>
+    <string name="helper_department">Tu área o departamento</string>
+
+    <string name="label_contact_method">Método de contacto preferido</string>
+
+    <string name="label_estimated_time">Tiempo de respuesta estimado</string>
+
+    <string name="btn_send_ticket">Enviar ticket</string>
+    <string name="btn_cancel_ticket">Cancelar</string>
+
+    <string name="success_ticket_title">¡Ticket creado!</string>
+    <string name="success_ticket_message">Tu solicitud ha sido enviada correctamente. Un técnico la revisará pronto.</string>
+
+    <string name="draft_ticket_title">Borrador guardado</string>
+    <string name="draft_ticket_message">Puedes continuar editando más tarde</string>
+
+    <string name="cat_email">Email</string>
+    <string name="cat_desc_email">Problemas con correo electrónico</string>
+    <string name="cat_hardware">Hardware</string>
+    <string name="cat_desc_hardware">Equipos y dispositivos</string>
+    <string name="cat_software">Software</string>
+    <string name="cat_desc_software">Aplicaciones y programas</string>
+    <string name="cat_network">Red</string>
+    <string name="cat_desc_network">Conectividad e internet</string>
+    <string name="cat_permissions">Permisos</string>
+    <string name="cat_desc_permissions">Accesos y autorizaciones</string>
+    <string name="cat_other">Otro</string>
+    <string name="cat_desc_other">Otros problemas</string>
+
+    <string name="prio_desc_low">No afecta mi trabajo</string>
+    <string name="prio_desc_medium">Puedo trabajar con limitaciones</string>
+    <string name="prio_desc_high">No puedo trabajar</string>
+
+    <string name="contact_email">Email</string>
+    <string name="contact_phone">Teléfono</string>
+    <string name="contact_chat">Chat</string>
+
+    <string name="val_title_required">El título es requerido</string>
+    <string name="val_title_min">Mínimo 5 caracteres</string>
+    <string name="val_title_max">Máximo 100 caracteres</string>
+    <string name="val_category_required">Selecciona una categoría</string>
+    <string name="val_priority_required">Selecciona una prioridad</string>
+    <string name="val_desc_required">La descripción es requerida</string>
+    <string name="val_desc_min">Mínimo 20 caracteres</string>
+
+    <string name="title_ticket_number">Ticket #%1$s</string>
+    <string name="loading_ticket">Cargando...</string>
+    <string name="date_unknown">Fecha desconocida</string>
+
+    <string name="label_reported_by">Reportado por</string>
+    <string name="label_assigned_to">Técnico asignado</string>
+    <string name="label_created_at">Fecha de creación</string>
+    <string name="label_description_issue">Descripción del problema</string>
+    <string name="text_unassigned">Sin asignar</string>
+    <string name="text_unknown_user">Usuario desconocido</string>
+
+    <string name="title_conversation">Conversación</string>
+    <string name="badge_messages_count">%1$d mensajes</string>
+
+    <string name="empty_conversation_title">Aún no hay conversación</string>
+    <string name="empty_conversation_desc">Inicia una conversación con el técnico asignado para resolver tu problema más rápido</string>
+    <string name="btn_start_conversation">Iniciar conversación con %1$s</string>
+
+    <string name="placeholder_chat_input">Escribe un mensaje...</string>
+    <string name="cd_send_message">Enviar mensaje</string>
+
+    <string name="btn_mark_resolved">Marcar como resuelto</string>
+    <string name="btn_edit_ticket">Editar ticket</string>
+
+    <string name="status_open">Abierto</string>
+    <string name="status_in_progress">En progreso</string>
+    <string name="status_resolved">Resuelto</string>
+    <string name="status_closed">Cerrado</string>
+
+    <string name="prio_high">Alta</string>
+    <string name="prio_medium">Media</string>
+    <string name="prio_low">Baja</string>
+
+    <string name="title_my_tickets">Mis Tickets</string>
+    <string name="placeholder_search_tickets">Buscar ticket o categoría</string>
+    <string name="cd_filters">Filtros</string>
+    <string name="cd_add_ticket">Nuevo Ticket</string>
+
+    <string name="title_filters_panel">Filtros</string>
+    <string name="btn_clear_all">Limpiar todo</string>
+    <string name="label_filter_status">Estado</string>
+    <string name="label_filter_priority">Prioridad</string>
+    <string name="label_filter_category">Categoría</string>
+    <string name="filter_all">Todos</string>
+
+    <string name="text_ticket_found">ticket encontrado</string>
+    <string name="text_tickets_found">tickets encontrados</string>
+
+    <string name="text_filter_active">filtro activo</string>
+    <string name="text_filters_active">filtros activos</string>
+
+    <string name="empty_tickets_title">No se encontraron tickets</string>
+    <string name="empty_tickets_desc">Intenta ajustar los filtros o la búsqueda</string>
+    <string name="btn_clear_filters">Limpiar filtros</string>
+
+    <string name="text_recent">Reciente</string>
 </resources>

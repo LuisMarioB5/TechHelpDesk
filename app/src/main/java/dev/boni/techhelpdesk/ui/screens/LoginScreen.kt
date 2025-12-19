@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import dev.boni.techhelpdesk.R
 import dev.boni.techhelpdesk.ui.components.MobileButton
 import dev.boni.techhelpdesk.ui.components.MobileButtonVariant
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
@@ -44,6 +43,9 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.GoogleAuthProvider
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.res.stringResource
+import dev.boni.techhelpdesk.R
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
@@ -53,14 +55,12 @@ fun LoginScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // Dependencias
     val authRepo = remember { AuthRepository() }
     val sessionPrefs = remember { SessionPreferences(context) }
 
     val hasActiveSession = authRepo.isSessionActive()
     val wantsToRemember = sessionPrefs.shouldRememberMe()
 
-    // --- Estado del Formulario ---
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
@@ -68,21 +68,17 @@ fun LoginScreen(
 
     var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
-    // --- Flag para mostrar/ocultar los botones extra (Microsoft y Apple) ---
     val showExtraProviders = false
 
-    // Estado para saber si el botón biométrico debe mostrarse
     var isBiometricHardwareAvailable by remember { mutableStateOf(false) }
 
-    // --- LÓGICA DE NAVEGACIÓN EXITOSA ---
     val navigateToDashboard = {
         navController.navigate("/dashboard") {
-            popUpTo("/login") { inclusive = true } // Limpiamos el login del historial
+            popUpTo("/login") { inclusive = true }
             launchSingleTop = true
         }
     }
 
-    // --- LÓGICA DE LOGIN BIOMÉTRICO ---
     val triggerBiometricLogin = {
         authenticateWithBiometric(
             context = context,
@@ -95,7 +91,6 @@ fun LoginScreen(
         )
     }
 
-    // --- EFECTO DE INICIO (Auto-Login y Chequeo de Hardware) ---
     LaunchedEffect(Unit) {
         isBiometricHardwareAvailable = checkBiometricAvailability(context)
 
@@ -112,15 +107,19 @@ fun LoginScreen(
         }
     }
 
+    val emailRequired = stringResource(R.string.alert_email_required)
+    val emailInvalid = stringResource(R.string.alert_email_invalid)
+    val passwordRequired = stringResource(R.string.alert_password_required)
+
     val validateLogin: () -> Boolean = {
         val newErrors = mutableMapOf<String, String>()
         if (email.isBlank()) {
-            newErrors["email"] = "El correo es requerido"
+            newErrors["email"] = emailRequired
         } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            newErrors["email"] = "Formato de correo inválido"
+            newErrors["email"] = emailInvalid
         }
         if (password.isBlank()) {
-            newErrors["password"] = "La contraseña es requerida"
+            newErrors["password"] = passwordRequired
         }
         errors = newErrors
         newErrors.isEmpty()
@@ -150,16 +149,18 @@ fun LoginScreen(
                         sessionPrefs.setRememberMe(rememberMe)
                         navigateToDashboard()
                     } else {
-                        Toast.makeText(context, "Error al iniciar con Google $authResult", Toast.LENGTH_SHORT).show()
+                        val errorMsg = context.getString(R.string.error_google_sign_in, authResult.toString())
+                        Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
         } catch (e: ApiException) {
-            Toast.makeText(context, "Google Sign In falló: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+            val errorMsg = context.getString(R.string.error_google_sign_in_failed, e.statusCode)
+            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
         }
     }
 
-    // --- MANEJADORES DE BOTONES ---
+    val passwordInvalid = stringResource(R.string.alert_invalid_credentials)
      val handleLogin = {
         if (validateLogin()) {
             sessionPrefs.setRememberMe(rememberMe)
@@ -169,7 +170,7 @@ fun LoginScreen(
                 if (result.isSuccess) {
                     navigateToDashboard()
                 } else {
-                    errors = errors + ("password" to "Credenciales incorrectas")
+                    errors = errors + ("password" to passwordInvalid)
                 }
             }
         }
@@ -182,15 +183,12 @@ fun LoginScreen(
             "Google" -> {
                 googleLauncher.launch(googleSignInClient.signInIntent)
             }
-//            "Microsoft" -> {
-//            }
-//            "Apple" -> {
-//            }
+//            "Microsoft" -> { }
+//            "Apple" -> { }
             "Biometric" -> triggerBiometricLogin()
         }
     }
 
-    // --- UI ---
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background
@@ -202,7 +200,6 @@ fun LoginScreen(
                 .padding(bottom = innerPadding.calculateBottomPadding())
                 .verticalScroll(rememberScrollState())
         ) {
-            // --- Header ---
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -213,43 +210,39 @@ fun LoginScreen(
                     .statusBarsPadding()
                     .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp)
             ) {
-                // Botón Atrás
                 IconButton(
                     onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(bottom = 16.dp).offset(x = (-8).dp) // mb-6 -ml-2 p-2
+                    modifier = Modifier.padding(bottom = 16.dp).offset(x = (-8).dp)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_return_icon), tint = Color.White)
                 }
 
-                // Títulos
                 Text(
-                    "Bienvenido de nuevo",
+                    stringResource(R.string.dashboard_welcome_back),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 Text(
-                    "Inicia sesión para continuar",
+                    stringResource(R.string.login_subtitle),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.White.copy(alpha = 0.8f)
                 )
             }
 
-            // --- Formulario y Contenido ---
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // Email
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it; errors = errors - "email" },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Correo electrónico") },
-                    placeholder = { Text("tu@email.com") },
+                    label = { Text(stringResource(R.string.label_email_input)) },
+                    placeholder = { Text(stringResource(R.string.placeholder_email_input)) },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     singleLine = true,
@@ -257,21 +250,20 @@ fun LoginScreen(
                     supportingText = { FormFieldErrorText(error = errors["email"]) }
                 )
 
-                // Password
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it; errors = errors - "password" },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Contraseña") },
-                    placeholder = { Text("••••••••") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                    label = { Text(stringResource(R.string.label_password_input)) },
+                    placeholder = { Text(stringResource(R.string.placeholder_password_input)) },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = stringResource(R.string.icon_password_input)) },
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     trailingIcon = {
                         IconButton(onClick = { showPassword = !showPassword }) {
                             Icon(
                                 imageVector = if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                contentDescription = if (showPassword) "Ocultar contraseña" else "Mostrar contraseña"
+                                contentDescription = if (showPassword) stringResource(R.string.cd_hide_password) else stringResource(R.string.cd_show_password)
                             )
                         }
                     },
@@ -280,7 +272,6 @@ fun LoginScreen(
                     supportingText = { FormFieldErrorText(error = errors["password"]) }
                 )
 
-                // Remember Me & Forgot Password
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -291,24 +282,22 @@ fun LoginScreen(
                             checked = rememberMe,
                             onCheckedChange = { rememberMe = it }
                         )
-                        Text("Recordarme", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.checkbox_remember_me), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     TextButton(onClick = { navController.navigate("/forgot-password") }) {
-                        Text("¿Olvidaste tu contraseña?", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.advice_forgot_password_title), style = MaterialTheme.typography.bodySmall)
                     }
                 }
 
-                // Login Button
                 MobileButton(
                     onClick = handleLogin,
                     variant = MobileButtonVariant.FILLED,
                     fullWidth = true,
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
-                    Text("Iniciar sesión")
+                    Text(stringResource(R.string.btn_login_action))
                 }
 
-                // Divider
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -320,7 +309,7 @@ fun LoginScreen(
                         color = MaterialTheme.colorScheme.outline
                     )
                     Text(
-                        "O continúa con",
+                        stringResource(R.string.divider_continue_with),
                         modifier = Modifier.padding(horizontal = 16.dp),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -332,9 +321,7 @@ fun LoginScreen(
                     )
                 }
 
-                // Social Login Buttons
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // --- GOOGLE ---
                     Button(
                         onClick = { handleSocialLogin("Google") },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -343,17 +330,16 @@ fun LoginScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_logo_google),
-                            contentDescription = "Google Logo",
+                            contentDescription = stringResource(R.string.cd_google_logo),
                             tint = Color.Unspecified,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.width(12.dp))
-                        Text("Continuar con Google", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                        Text(stringResource(R.string.btn_continue_google), fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }
 
                     if(showExtraProviders) {
 
-                        // --- MICROSOFT ---
                         Button(
                             onClick = { handleSocialLogin("Microsoft") },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -362,14 +348,14 @@ fun LoginScreen(
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_logo_windows),
-                                contentDescription = "Microsoft Logo",
+                                contentDescription = stringResource(R.string.cd_microsoft_logo),
                                 tint = Color.Unspecified,
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(Modifier.width(12.dp))
-                            Text("Continuar con Microsoft", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                            Text(stringResource(R.string.btn_continue_microsoft), fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                         }
-                        // --- APPLE ---
+
                         Button(
                             onClick = { handleSocialLogin("Apple") },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -378,15 +364,15 @@ fun LoginScreen(
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_logo_apple),
-                                contentDescription = "Apple Logo",
+                                contentDescription = stringResource(R.string.cd_apple_logo),
                                 tint = Color.Unspecified,
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(Modifier.width(12.dp))
-                            Text("Continuar con Apple", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                            Text(stringResource(R.string.btn_continue_apple), fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
-                    // --- BOTÓN BIOMÉTRICO CONDICIONAL ---
+
                     if (isBiometricHardwareAvailable && hasActiveSession && wantsToRemember) {
                         Button(
                             onClick = { handleSocialLogin("Biometric") },
@@ -396,25 +382,24 @@ fun LoginScreen(
                         ) {
                             Icon(
                                 Icons.Filled.Fingerprint,
-                                contentDescription = "Biometric",
+                                contentDescription = stringResource(R.string.cd_biometric_icon),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(28.dp)
                             )
                             Spacer(Modifier.width(12.dp))
-                            Text("Usar huella digital", color = MaterialTheme.colorScheme.onSurface)
+                            Text(stringResource(R.string.btn_continue_biometric), color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
 
-                // Sign Up Link
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 32.dp), // mt-8
+                    modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ){
-                    Text("¿No tienes una cuenta? ", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.text_no_account_question), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     TextButton(onClick = { navController.navigate("/register") }) {
-                        Text("Regístrate")
+                        Text(stringResource(R.string.btn_register_action))
                     }
                 }
             }
@@ -425,7 +410,6 @@ fun LoginScreen(
 @Composable
 fun FormFieldErrorText(error: String?, modifier: Modifier = Modifier) {
     val errorColor = MaterialTheme.colorScheme.error
-    // Usamos un Box con altura mínima para reservar espacio y evitar saltos
     Box(modifier = modifier.heightIn(min = 16.dp)) {
         if (error != null) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -437,7 +421,6 @@ fun FormFieldErrorText(error: String?, modifier: Modifier = Modifier) {
     }
 }
 
-// --- Preview ---
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {

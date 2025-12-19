@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TechHelpDesk</string>
+    <string name="app_version">1.0.0</string>
+
+    <string name="dashboard_greeting">Hello, %1$s</string>
+    <string name="dashboard_welcome_back">Welcome back</string>
+    <string name="dashboard_section_summary">Ticket Summary</string>
+    <string name="dashboard_section_quick_access">Quick Access</string>
+
+    <string name="card_open">Open</string>
+    <string name="card_in_progress">In Progress</string>
+    <string name="card_closed">Closed</string>
+    <string name="btn_new_ticket">New Ticket</string>
+
+    <string name="action_view_all_title">View All Tickets</string>
+    <string name="action_view_all_desc">Manage your requests</string>
+    <string name="action_knowledge_title">Knowledge Base</string>
+    <string name="action_knowledge_desc">Find quick answers</string>
+    <string name="action_chat_title">Support Chat</string>
+    <string name="action_chat_desc">Talk to a technician</string>
+
+    <string name="cd_profile_button">Go to profile</string>
+    <string name="cd_new_ticket_icon">Add ticket icon</string>
+    <string name="cd_return_icon">Back arrow icon</string>
+    <string name="exclamation_icon">Exclamation mark icon</string>
+
+    <string name="alert_email_required">Email is required</string>
+    <string name="alert_email_invalid">Invalid email format</string>
+    <string name="alert_error_sending_email">Error sending email</string>
+
+    <string name="forgot_password_title">Reset Password</string>
+    <string name="forgot_password_desc">We will send you a recovery link</string>
+
+    <string name="advice_forgot_password_title">Forgot your password?</string>
+    <string name="advice_forgot_password_desc">Don\'t worry. Enter your email address below...</string>
+    <string name="advice_forgot_password_icon">Lock icon with arrow</string>
+
+    <string name="label_email_input">Email</string>
+    <string name="placeholder_email_input">you@email.com</string>
+    <string name="icon_email_input">Email envelope icon</string>
+    <string name="supporting_text_email_input">Enter the email associated with your account</string>
+
+    <string name="send_recovery_link_button">Send Recovery Link</string>
+
+    <string name="advice_security_recovery_title">For your security, the recovery link will expire in 24 hours...</string>
+    <string name="advice_security_recovery_icon">Security shield icon</string>
+
+    <string name="return_to_login_button">Return to Login</string>
+
+    <string name="forgot_password_success_title">Email Sent Successfully</string>
+    <string name="email_success_send_title">Email Sent Successfully!</string>
+
+    <string name="forgot_password_success_desc">Check your inbox</string>
+    <string name="forgot_password_success_icon">Envelope icon with checkmark</string>
+
+    <string name="email_success_send_desc1">We have sent a recovery link to </string>
+    <string name="email_success_send_desc2">. Please check your inbox and follow the instructions.</string>
+
+    <string name="advice_didnt_received_email_title">Didn\'t receive the email?</string>
+    <string name="advice_didnt_received_email_opt1">• Check your spam folder</string>
+    <string name="advice_didnt_received_email_opt2">• Verify the email is correct</string>
+    <string name="advice_didnt_received_email_opt3">• The link expires in 24 hours</string>
+
+    <string name="send_again_button">Send Again</string>
+
+    <string name="login_subtitle">Sign in to continue</string>
+
+    <string name="label_password_input">Password</string>
+    <string name="placeholder_password_input">••••••••</string>
+    <string name="icon_password_input">Closed lock icon</string>
+    <string name="cd_show_password">Show password</string>
+    <string name="cd_hide_password">Hide password</string>
+
+    <string name="alert_password_required">Password is required</string>
+    <string name="alert_invalid_credentials">Invalid credentials</string>
+    <string name="error_google_sign_in">Error signing in with Google %1$s</string>
+    <string name="error_google_sign_in_failed">Google Sign In failed: %1$d</string>
+
+    <string name="checkbox_remember_me">Remember me</string>
+    <string name="btn_login_action">Log In</string>
+    <string name="text_no_account_question">Don\'t have an account? </string>
+    <string name="btn_register_action">Sign Up</string>
+
+    <string name="divider_continue_with">Or continue with</string>
+    <string name="btn_continue_google">Continue with Google</string>
+    <string name="btn_continue_microsoft">Continue with Microsoft</string>
+    <string name="btn_continue_apple">Continue with Apple</string>
+    <string name="btn_continue_biometric">Use Fingerprint</string>
+
+    <string name="cd_google_logo">Google Logo</string>
+    <string name="cd_microsoft_logo">Microsoft Logo</string>
+    <string name="cd_apple_logo">Apple Logo</string>
+    <string name="cd_biometric_icon">Fingerprint icon</string>
+
+    <string name="splash_slogan">Your tech support, always at hand</string>
+    <string name="splash_btn_login">Log In</string>
+    <string name="splash_btn_register">Sign Up</string>
+
+    <string name="splash_version_template">Version %1$s</string>
+
+    <string name="cd_app_logo">App Logo</string>
+    <string name="cd_check_circle">Validation icon</string>
+
+    <string name="register_title">Create Account</string>
+    <string name="register_subtitle">Join TechHelpDesk today</string>
+
+    <string name="label_name_input">Full Name *</string>
+    <string name="placeholder_name_input">John Doe</string>
+    <string name="label_confirm_password_input">Confirm Password *</string>
+    <string name="cd_person_icon">Person silhouette icon</string>
+
+    <string name="alert_name_required">Name is required</string>
+    <string name="alert_password_length">Password must be at least 6 characters</string>
+    <string name="alert_confirm_password_required">Confirm your password</string>
+    <string name="alert_passwords_match">Passwords do not match</string>
+    <string name="alert_terms_required">You must accept the terms</string>
+    <string name="helper_password_min_length">Minimum 6 characters</string>
+
+    <string name="error_google_register">Error registering with Google</string>
+    <string name="error_google_register_failed">Google Register failed: %1$d</string>
+
+    <string name="btn_create_account">Create Account</string>
+    <string name="divider_register_with">Or sign up with</string>
+    <string name="text_has_account_question">Already have an account? </string>
+    <string name="btn_login_link">Log In</string>
+
+    <string name="terms_text_accept">I accept the </string>
+    <string name="terms_text_link_terms">terms and conditions</string>
+    <string name="terms_text_and"> and the </string>
+    <string name="terms_text_link_privacy">privacy policy</string>
+
+    <string name="profile_title_notifications">Notifications</string>
+    <string name="profile_subtext_notifications">View all notifications</string>
+
+    <string name="profile_title_knowledge">Knowledge</string>
+    <string name="profile_subtext_knowledge">View FAQs</string>
+
+    <string name="profile_title_language">Language</string>
+    <string name="profile_title_biometric">Biometric Login</string>
+    <string name="profile_subtext_biometric">Use fingerprint to access</string>
+
+    <string name="profile_title_push">Push Notifications</string>
+    <string name="profile_subtext_push">Receive alerts and updates</string>
+
+    <string name="profile_title_theme">Dark Theme</string>
+    <string name="profile_title_privacy">Privacy Policy</string>
+
+    <string name="profile_title_logout">Log Out</string>
+
+    <string name="dialog_logout_message">Are you sure you want to log out?</string>
+    <string name="btn_cancel">Cancel</string>
+
+    <string name="cd_avatar_image">User Avatar</string>
+    <string name="cd_edit_profile">Edit Profile</string>
+    <string name="cd_arrow_right_icon">Arrow pointing right icon</string>
+
+    <string name="option_lang_system">System</string>
+    <string name="option_lang_es">Spanish</string>
+    <string name="option_lang_en">English</string>
+
+    <string name="option_theme_system">System</string>
+    <string name="option_theme_light">Light</string>
+    <string name="option_theme_dark">Dark</string>
+
+
+    <string name="user_text">User</string>
+    <string name="error_unknown">Unknown error</string>
+    <string name="error_no_logged_user">No user logged in</string>
+    <string name="error_ticket_not_found">Ticket not found</string>
+    <string name="error_converting_ticket">Error converting ticket</string>
+
+    <string name="create_ticket_title">New Ticket</string>
+    <string name="create_ticket_subtitle">Describe your issue and we will help you ASAP</string>
+    <string name="btn_save_draft">Save</string>
+
+    <string name="tip_title">Tip</string>
+    <string name="tip_description">Provide as many details as possible so we can solve your issue faster</string>
+
+    <string name="step_indicator">Step 1 of 1 • Required fields marked with *</string>
+
+    <string name="label_ticket_title">Ticket Title</string>
+    <string name="placeholder_ticket_title">Ex: Cannot access my email</string>
+
+    <string name="label_category">Category</string>
+
+    <string name="label_priority">Priority</string>
+    <string name="helper_priority">Select based on how it affects your work</string>
+
+    <string name="label_description">Issue Description</string>
+    <string name="helper_description_detail">Include: what happened, when it occurred, what you tried, and any error messages</string>
+    <string name="placeholder_description">Example: Since this morning I cannot open my email...</string>
+
+    <string name="label_attachments">Attach files (optional)</string>
+    <string name="helper_attachments">Screenshots help solve the issue faster</string>
+    <string name="btn_camera">Camera</string>
+    <string name="btn_gallery">Gallery</string>
+
+    <string name="label_additional_info">Additional Information</string>
+    <string name="sublabel_additional_info">Optional but useful</string>
+    <string name="cd_expand_options">Expand options</string>
+    <string name="cd_collapse_options">Collapse options</string>
+
+    <string name="label_location">Location</string>
+    <string name="placeholder_location">Ex: Building A, 3rd Floor...</string>
+    <string name="helper_location">Where you are physically located</string>
+
+    <string name="label_department">Department</string>
+    <string name="placeholder_department">Ex: Human Resources</string>
+    <string name="helper_department">Your area or department</string>
+
+    <string name="label_contact_method">Preferred Contact Method</string>
+
+    <string name="label_estimated_time">Estimated Response Time</string>
+
+    <string name="btn_send_ticket">Submit Ticket</string>
+    <string name="btn_cancel_ticket">Cancel</string>
+
+    <string name="success_ticket_title">Ticket Created!</string>
+    <string name="success_ticket_message">Your request has been sent successfully. A technician will review it soon.</string>
+
+    <string name="draft_ticket_title">Draft Saved</string>
+    <string name="draft_ticket_message">You can continue editing later</string>
+
+    <string name="cat_email">Email</string>
+    <string name="cat_desc_email">Email issues</string>
+    <string name="cat_hardware">Hardware</string>
+    <string name="cat_desc_hardware">Equipment and devices</string>
+    <string name="cat_software">Software</string>
+    <string name="cat_desc_software">Apps and programs</string>
+    <string name="cat_network">Network</string>
+    <string name="cat_desc_network">Connectivity and internet</string>
+    <string name="cat_permissions">Permissions</string>
+    <string name="cat_desc_permissions">Access and authorizations</string>
+    <string name="cat_other">Other</string>
+    <string name="cat_desc_other">Other issues</string>
+
+    <string name="prio_desc_low">Doesn\'t affect my work</string>
+    <string name="prio_desc_medium">Can work with limitations</string>
+    <string name="prio_desc_high">Cannot work</string>
+
+    <string name="contact_email">Email</string>
+    <string name="contact_phone">Phone</string>
+    <string name="contact_chat">Chat</string>
+
+    <string name="val_title_required">Title is required</string>
+    <string name="val_title_min">Minimum 5 characters</string>
+    <string name="val_title_max">Maximum 100 characters</string>
+    <string name="val_category_required">Select a category</string>
+    <string name="val_priority_required">Select a priority</string>
+    <string name="val_desc_required">Description is required</string>
+    <string name="val_desc_min">Minimum 20 characters</string>
+
+    <string name="title_ticket_number">Ticket #%1$s</string>
+    <string name="loading_ticket">Loading...</string>
+    <string name="date_unknown">Unknown date</string>
+
+    <string name="label_reported_by">Reported by</string>
+    <string name="label_assigned_to">Assigned Technician</string>
+    <string name="label_created_at">Date Created</string>
+    <string name="label_description_issue">Issue Description</string>
+    <string name="text_unassigned">Unassigned</string>
+    <string name="text_unknown_user">Unknown User</string>
+
+    <string name="title_conversation">Conversation</string>
+    <string name="badge_messages_count">%1$d messages</string>
+
+    <string name="empty_conversation_title">No conversation yet</string>
+    <string name="empty_conversation_desc">Start a conversation with the assigned technician to resolve your issue faster</string>
+    <string name="btn_start_conversation">Start conversation with %1$s</string>
+
+    <string name="placeholder_chat_input">Type a message...</string>
+    <string name="cd_send_message">Send message</string>
+
+    <string name="btn_mark_resolved">Mark as Resolved</string>
+    <string name="btn_edit_ticket">Edit Ticket</string>
+
+    <string name="status_open">Open</string>
+    <string name="status_in_progress">In Progress</string>
+    <string name="status_resolved">Resolved</string>
+    <string name="status_closed">Closed</string>
+
+    <string name="prio_high">High</string>
+    <string name="prio_medium">Medium</string>
+    <string name="prio_low">Low</string>
+
+    <string name="title_my_tickets">My Tickets</string>
+    <string name="placeholder_search_tickets">Search ticket or category</string>
+    <string name="cd_filters">Filters</string>
+    <string name="cd_add_ticket">New Ticket</string>
+
+    <string name="title_filters_panel">Filters</string>
+    <string name="btn_clear_all">Clear All</string>
+    <string name="label_filter_status">Status</string>
+    <string name="label_filter_priority">Priority</string>
+    <string name="label_filter_category">Category</string>
+    <string name="filter_all">All</string>
+
+    <string name="text_ticket_found">ticket found</string>
+    <string name="text_tickets_found">tickets found</string>
+
+    <string name="text_filter_active">active filter</string>
+    <string name="text_filters_active">active filters</string>
+
+    <string name="empty_tickets_title">No tickets found</string>
+    <string name="empty_tickets_desc">Try adjusting filters or search</string>
+    <string name="btn_clear_filters">Clear Filters</string>
+
+    <string name="text_recent">Recent</string>
+</resources>

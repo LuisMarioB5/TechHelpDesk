@@ -24,36 +24,26 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Apps // Category Software
-import androidx.compose.material.icons.filled.ArrowDownward // Priority Low
-import androidx.compose.material.icons.filled.Category // Category All
-import androidx.compose.material.icons.filled.CheckCircle // Status Closed
-import androidx.compose.material.icons.filled.CheckCircleOutline // Usado en StatusChip
-import androidx.compose.material.icons.filled.DragHandle // Priority Medium (simple line)
-import androidx.compose.material.icons.filled.Email // Category Email
-import androidx.compose.material.icons.filled.ErrorOutline // Para Alta prioridad
-import androidx.compose.material.icons.filled.Inbox // Para "No tickets"
-import androidx.compose.material.icons.filled.KeyboardArrowDown // Para Baja prioridad
-import androidx.compose.material.icons.filled.Lock // Category Permissions
-import androidx.compose.material.icons.filled.MoreHoriz // Category Other
-import androidx.compose.material.icons.filled.Pending // Status In Progress
-import androidx.compose.material.icons.filled.PriorityHigh // Priority High
-import androidx.compose.material.icons.filled.RadioButtonUnchecked // Status Open
-import androidx.compose.material.icons.filled.Schedule // Usado en StatusChip
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.CheckCircleOutline
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SettingsSuggest // Category Hardware (alternative)
-import androidx.compose.material.icons.filled.Tune // Filter button icon
-import androidx.compose.material.icons.filled.WarningAmber // Para Media prioridad (sustituto)
-import androidx.compose.material.icons.filled.Wifi // Category Network
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button // For Clear Filters button
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -67,6 +57,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,92 +68,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import dev.boni.techhelpdesk.R
+import dev.boni.techhelpdesk.data.model.Ticket
 import dev.boni.techhelpdesk.ui.components.AppHeader
 import dev.boni.techhelpdesk.ui.components.BottomNavigation
+import dev.boni.techhelpdesk.ui.screens.viewmodels.TicketUiState
+import dev.boni.techhelpdesk.ui.screens.viewmodels.TicketViewModel
 import dev.boni.techhelpdesk.ui.theme.CustomColors
-import dev.boni.techhelpdesk.ui.theme.LightCustomColors // Usado en Preview
+import dev.boni.techhelpdesk.ui.theme.LightCustomColors
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
-import dev.boni.techhelpdesk.data.model.Ticket
-import dev.boni.techhelpdesk.ui.screens.tickets.TicketCategoryUI
-import dev.boni.techhelpdesk.ui.screens.tickets.TicketStatusUI
-import dev.boni.techhelpdesk.ui.screens.tickets.TicketPriorityUI
-import dev.boni.techhelpdesk.ui.screens.tickets.statusFilterOptions
-import dev.boni.techhelpdesk.ui.screens.tickets.priorityFilterOptions
-import dev.boni.techhelpdesk.ui.screens.tickets.categoryFilterOptions
-import dev.boni.techhelpdesk.ui.screens.viewmodels.TicketViewModel
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.material3.CircularProgressIndicator
-import dev.boni.techhelpdesk.ui.screens.viewmodels.TicketUiState
-
-import java.util.Locale
-
-//enum class TicketCategory(val displayName: String, val icon: ImageVector) {
-//    EMAIL("Email", Icons.Default.Email),
-//    HARDWARE("Hardware", Icons.Default.SettingsSuggest),
-//    SOFTWARE("Software", Icons.Default.Apps),
-//    RED("Red", Icons.Default.Wifi),
-//    PERMISOS("Permisos", Icons.Default.Lock),
-//    OTRO("Otro", Icons.Default.MoreHoriz)
-//}
-//
-//enum class TicketStatus(val displayName: String, val icon: ImageVector) {
-//    ABIERTO("Abierto", Icons.Default.RadioButtonUnchecked),
-//    EN_PROGRESO("En progreso", Icons.Default.Pending),
-//    CERRADO("Cerrado", Icons.Default.CheckCircle);
-//
-//    companion object {
-//        fun fromRouteString(routeString: String?): TicketStatus? {
-//            return when (routeString?.lowercase(Locale.ROOT)?.replace("-","_")) {
-//                "abierto" -> ABIERTO
-//                "en_progreso" -> EN_PROGRESO // Ahora coincide
-//                "cerrado" -> CERRADO
-//                else -> null // Si no viene nada o no coincide
-//            }
-//        }
-//    }
-//}
-//
-//enum class TicketPriority(val displayName: String, val icon: ImageVector) {
-//    ALTA("Alta", Icons.Default.PriorityHigh),
-//    MEDIA("Media", Icons.Default.DragHandle), // Using simple line icon
-//    BAJA("Baja", Icons.Default.ArrowDownward)
-//}
-//
-//data class Ticket(
-//    val id: String,
-//    val title: String,
-//    val category: TicketCategory, // Usando Enum
-//    val status: TicketStatus,
-//    val priority: TicketPriority,
-//    val assignedTo: String,
-//    val date: String
-//)
-//
-//// --- Datos de Ejemplo Actualizados ---
-//val sampleTickets = listOf(
-//    Ticket("T-2025-001", "Correo no envía adjuntos", TicketCategory.EMAIL, TicketStatus.ABIERTO, TicketPriority.ALTA, "CM", "Hace 2h"),
-//    Ticket("T-2025-002", "Impresora no responde", TicketCategory.HARDWARE, TicketStatus.EN_PROGRESO, TicketPriority.MEDIA, "AG", "Hace 5h"),
-//    Ticket("T-2025-003", "Acceso a carpeta", TicketCategory.PERMISOS, TicketStatus.ABIERTO, TicketPriority.BAJA, "LT", "Hace 1d"),
-//    Ticket("T-2025-004", "Actualización software", TicketCategory.SOFTWARE, TicketStatus.CERRADO, TicketPriority.MEDIA, "ML", "Hace 2d"),
-//    Ticket("T-2025-005", "VPN no conecta", TicketCategory.RED, TicketStatus.EN_PROGRESO, TicketPriority.ALTA, "CM", "Hace 3h"),
-//    Ticket("T-2025-006", "Configuración correo móvil", TicketCategory.EMAIL, TicketStatus.ABIERTO, TicketPriority.BAJA, "AG", "Hace 4h"),
-//    Ticket("T-2025-007", "Teclado dañado", TicketCategory.HARDWARE, TicketStatus.ABIERTO, TicketPriority.MEDIA, "LT", "Hace 6h"),
-//)
-//
-//// --- Opciones de Filtro ---
-//val statusFilterOptions = listOf(null) + TicketStatus.entries // null es "Todos"
-//val priorityFilterOptions = listOf(null) + TicketPriority.entries // null es "Todas"
-//val categoryFilterOptions = listOf(null) + TicketCategory.entries // null es "Todas"
-
 
 // --- Pantalla Principal de Tickets ---
 @OptIn(ExperimentalMaterial3Api::class)
@@ -171,6 +95,8 @@ fun TicketsScreen(
     initialFilterStatus: String? = null,
     viewModel: TicketViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
+    val context = LocalContext.current
+
     var searchQuery by remember { mutableStateOf("") }
     val initialStatusEnum = TicketStatusUI.fromString(initialFilterStatus)
     var selectedStatus by remember { mutableStateOf(initialStatusEnum) }
@@ -178,22 +104,18 @@ fun TicketsScreen(
     var selectedCategory by remember { mutableStateOf<TicketCategoryUI?>(null) }
     var showFilters by remember { mutableStateOf(false) }
 
-    // 🔥 CAMBIO: Observar estado del ViewModel
     val uiState by viewModel.uiState.collectAsState()
 
-    // 🔥 CAMBIO: Cargar tickets al montar pantalla
     LaunchedEffect(Unit) {
         viewModel.loadUserTickets()
     }
 
-    // 🔥 CAMBIO: Obtener tickets del estado
     val allTickets = when (val state = uiState) {
         is TicketUiState.Success -> state.tickets
         else -> emptyList()
     }
 
     Log.d("TicketsScreen", "All Tickets: $allTickets")
-
 
     val filteredTickets by remember(allTickets, searchQuery, selectedStatus, selectedPriority, selectedCategory) {
         derivedStateOf {
@@ -202,9 +124,11 @@ fun TicketsScreen(
                 val ticketStatusUI = TicketStatusUI.fromString(ticket.status)
                 val ticketPriorityUI = TicketPriorityUI.fromString(ticket.priority)
 
+                val categoryLabel = ticketCategoryUI?.let { context.getString(it.labelResId) } ?: ""
+
                 val matchesSearch = searchQuery.isBlank() ||
                         ticket.title.contains(searchQuery, ignoreCase = true) ||
-                        ticketCategoryUI?.displayName?.contains(searchQuery, ignoreCase = true) == true ||
+                        categoryLabel.contains(searchQuery, ignoreCase = true) ||
                         ticket.id.contains(searchQuery, ignoreCase = true)
 
                 val matchesStatus = selectedStatus == null || ticketStatusUI == selectedStatus
@@ -233,7 +157,7 @@ fun TicketsScreen(
             AppHeader(
                 title = {
                     Text(
-                        text = "Mis Tickets",
+                        text = stringResource(R.string.title_my_tickets),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary
@@ -259,7 +183,7 @@ fun TicketsScreen(
                         ) {
                             Icon(
                                 Icons.Default.Tune,
-                                contentDescription = "Filtros"
+                                contentDescription = stringResource(R.string.cd_filters)
                             )
                         }
                     }
@@ -269,7 +193,7 @@ fun TicketsScreen(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Buscar ticket o categoría") },
+                        placeholder = { Text(stringResource(R.string.placeholder_search_tickets)) },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -286,14 +210,14 @@ fun TicketsScreen(
             )
         },
         floatingActionButton = {
-            androidx.compose.material3.FloatingActionButton(
+            FloatingActionButton(
                 onClick = { navController.navigate("/ticket/create") },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
-                    contentDescription = "Nuevo Ticket"
+                    contentDescription = stringResource(R.string.cd_add_ticket)
                 )
             }
         },
@@ -302,7 +226,6 @@ fun TicketsScreen(
             BottomNavigation(navController = navController)
         },
     ) { innerPadding ->
-        // 🔥 CAMBIO: Mostrar loading
         if (uiState is TicketUiState.Loading && allTickets.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -351,27 +274,25 @@ fun TicketsContent(
     val bottomPadding = innerPadding.calculateBottomPadding()
     val customColors = LocalCustomColors.current
 
-    Column( // Usamos Column para poder poner el panel de filtros arriba
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .animateContentSize(),
     ){
-        // --- CAMBIO: Panel de Filtros Desplegable ---
         AnimatedVisibility(
             visible = showFilters,
             enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(animationSpec = tween(200)),
         ) {
-            Surface( // Fondo blanco para el panel
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface, // bg-white
-                shadowElevation = 2.dp, // Sombra sutil
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) // border-b
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 2.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp), // px-6 py-4
-                    verticalArrangement = Arrangement.spacedBy(16.dp) // space-y-4
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Header del Panel
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -380,25 +301,26 @@ fun TicketsContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Filtros",
-                            style = MaterialTheme.typography.titleMedium, // text-base font-semibold
+                            text = stringResource(R.string.title_filters_panel),
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
                         )
                         if (activeFiltersCount > 0) {
                             TextButton(onClick = onClearFilters) {
-                                Text("Limpiar todo")
+                                Text(stringResource(R.string.btn_clear_all))
                             }
                         }
                     }
 
-                    // Filtro de Estado
-                    FilterSection(label = "Estado") {
+                    FilterSection(label = stringResource(R.string.label_filter_status)) {
                         items(statusFilterOptions) { status ->
                             val isSelected = selectedStatus == status
+                            val label = status?.let { stringResource(it.labelResId) } ?: stringResource(R.string.filter_all)
+
                             FilterChip(
                                 selected = isSelected,
                                 onClick = { onStatusChange(status) },
-                                label = { Text(status?.displayName ?: "Todos") },
+                                label = { Text(label) },
                                 leadingIcon = { Icon(status?.icon ?: Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
                                 colors = getFilterChipColors(isSelected),
                                 border = getFilterChipBorder(isSelected),
@@ -406,11 +328,11 @@ fun TicketsContent(
                         }
                     }
 
-                    // Filtro de Prioridad
-                    FilterSection(label = "Prioridad") {
+                    FilterSection(label = stringResource(R.string.label_filter_priority)) {
                         items(priorityFilterOptions) { priority ->
                             val isSelected = selectedPriority == priority
-                            // --- CAMBIO: Icon color tinting ---
+                            val label = priority?.let { stringResource(it.labelResId) } ?: stringResource(R.string.filter_all)
+
                             val iconColor = when (priority) {
                                 TicketPriorityUI.ALTA -> MaterialTheme.colorScheme.error
                                 TicketPriorityUI.MEDIA -> customColors.warning
@@ -420,13 +342,13 @@ fun TicketsContent(
                             FilterChip(
                                 selected = isSelected,
                                 onClick = { onPriorityChange(priority) },
-                                label = { Text(priority?.displayName ?: "Todas") },
+                                label = { Text(label) },
                                 leadingIcon = {
                                     Icon(
                                         priority?.icon ?: Icons.AutoMirrored.Filled.List,
                                         contentDescription = null,
                                         modifier = Modifier.size(FilterChipDefaults.IconSize),
-                                        tint = if(isSelected) LocalContentColor.current else iconColor // Tint icon when not selected
+                                        tint = if(isSelected) LocalContentColor.current else iconColor
                                     )
                                 },
                                 colors = getFilterChipColors(isSelected),
@@ -435,14 +357,15 @@ fun TicketsContent(
                         }
                     }
 
-                    // Filtro de Categoría
-                    FilterSection(label = "Categoría") {
+                    FilterSection(label = stringResource(R.string.label_filter_category)) {
                         items(categoryFilterOptions) { category ->
                             val isSelected = selectedCategory == category
+                            val label = category?.let { stringResource(it.labelResId) } ?: stringResource(R.string.filter_all)
+
                             FilterChip(
                                 selected = isSelected,
                                 onClick = { onCategoryChange(category) },
-                                label = { Text(category?.displayName ?: "Todas") },
+                                label = { Text(label) },
                                 leadingIcon = { Icon(category?.icon ?: Icons.Default.Category, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
                                 colors = getFilterChipColors(isSelected),
                                 border = getFilterChipBorder(isSelected)
@@ -453,23 +376,24 @@ fun TicketsContent(
             }
         }
 
-        // --- CAMBIO: Fila de Información de Filtros/Resultados ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = if (!showFilters) topPadding + 16.dp else 16.dp) // Ajusta padding si filtros están ocultos
-                .padding(horizontal = 16.dp, vertical = 8.dp), // px-6 py-3
+                .padding(top = if (!showFilters) topPadding + 16.dp else 16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val countText = if (tickets.size == 1) stringResource(R.string.text_ticket_found) else stringResource(R.string.text_tickets_found)
             Text(
-                text = "${tickets.size} ${if (tickets.size == 1) "ticket encontrado" else "tickets encontrados"}",
+                text = "${tickets.size} $countText",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             if (activeFiltersCount > 0) {
+                val filterText = if (activeFiltersCount == 1) stringResource(R.string.text_filter_active) else stringResource(R.string.text_filters_active)
                 Text(
-                    text = "$activeFiltersCount ${if (activeFiltersCount == 1) "filtro activo" else "filtros activos"}",
+                    text = "$activeFiltersCount $filterText",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -477,21 +401,19 @@ fun TicketsContent(
         }
 
 
-        // --- Lista de Tickets (en LazyColumn) ---
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .weight(1f), // Ocupa el espacio restante
-            // Quitamos padding superior, ya se maneja fuera
+                .weight(1f),
             contentPadding = PaddingValues(bottom = bottomPadding + 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp) // Espacio entre items
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (tickets.isEmpty()) {
                 item {
                     Column(
                         modifier = Modifier
-                            .fillParentMaxWidth() // Ocupa ancho completo del LazyColumn
-                            .padding(vertical = 64.dp, horizontal = 16.dp), // Padding
+                            .fillParentMaxWidth()
+                            .padding(vertical = 64.dp, horizontal = 16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
@@ -502,21 +424,20 @@ fun TicketsContent(
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "No se encontraron tickets",
+                            text = stringResource(R.string.empty_tickets_title),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium,
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
-                            text = "Intenta ajustar los filtros o la búsqueda",
+                            text = stringResource(R.string.empty_tickets_desc),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
-                        // --- CAMBIO: Botón Limpiar Filtros en Empty State ---
                         if (activeFiltersCount > 0) {
                             Button(onClick = onClearFilters) {
-                                Text("Limpiar filtros")
+                                Text(stringResource(R.string.btn_clear_filters))
                             }
                         }
                     }
@@ -527,7 +448,7 @@ fun TicketsContent(
                         ticket = ticket,
                         onClick = { onTicketClick(ticket.id) },
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        customColors = customColors // Pasamos los colores
+                        customColors = customColors
                     )
                 }
             }
@@ -535,7 +456,6 @@ fun TicketsContent(
     }
 }
 
-// --- CAMBIO: Helper Composable para secciones de filtro ---
 @Composable
 fun FilterSection(
     label: String,
@@ -544,27 +464,26 @@ fun FilterSection(
     Column {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall, // text-xs font-medium
+            style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp) // mb-2
+            modifier = Modifier.padding(bottom = 8.dp)
         )
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp), // gap-2
-            contentPadding = PaddingValues(bottom = 4.dp), // pb-2 for scrollbar room
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = 4.dp),
             content = content
         )
     }
 }
 
-// --- CAMBIO: Helpers para estilo de FilterChip ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun getFilterChipColors(isSelected: Boolean) = FilterChipDefaults.filterChipColors(
     selectedContainerColor = MaterialTheme.colorScheme.primary,
     selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
     selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
-    containerColor = MaterialTheme.colorScheme.surfaceVariant, // bg-[var(--color-surface-variant)]
+    containerColor = MaterialTheme.colorScheme.surfaceVariant,
     labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
     iconColor = MaterialTheme.colorScheme.onSurfaceVariant
 )
@@ -572,7 +491,7 @@ fun getFilterChipColors(isSelected: Boolean) = FilterChipDefaults.filterChipColo
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun getFilterChipBorder(isSelected: Boolean) = FilterChipDefaults.filterChipBorder(
-    borderColor = Color.Transparent, // No border by default
+    borderColor = Color.Transparent,
     borderWidth = 0.dp,
     selectedBorderWidth = 0.dp,
     disabledBorderColor = Color.Transparent,
@@ -580,7 +499,6 @@ fun getFilterChipBorder(isSelected: Boolean) = FilterChipDefaults.filterChipBord
     enabled = true,
     selected = isSelected
 )
-
 
 @Composable
 fun TicketListItem(
@@ -633,7 +551,7 @@ fun TicketListItem(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = categoryUI?.displayName ?: ticket.category,
+                    text = categoryUI?.let { stringResource(it.labelResId) } ?: ticket.category,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -662,9 +580,8 @@ fun TicketListItem(
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
-                    // TODO: Formatear fecha desde Timestamp
                     Text(
-                        text = "Reciente",
+                        text = stringResource(R.string.text_recent),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -713,7 +630,7 @@ fun StatusChip(status: String, customColors: CustomColors) {
             )
         }
         Text(
-            text = statusUI.displayName,
+            text = stringResource(statusUI.labelResId),
             color = contentColor,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Medium
@@ -760,7 +677,7 @@ fun PriorityBadge(priority: String, customColors: CustomColors) {
             )
         }
         Text(
-            text = priorityUI.displayName,
+            text = stringResource(priorityUI.labelResId),
             color = contentColor,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Medium
@@ -768,7 +685,7 @@ fun PriorityBadge(priority: String, customColors: CustomColors) {
     }
 }
 
-// --- Preview (Sin cambios) ---
+// --- Preview  ---
 @Preview(showBackground = true)
 @Composable
 fun TicketsScreenPreview() {

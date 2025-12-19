@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,9 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 import dev.boni.techhelpdesk.R
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.delay
 
-// --- Pantalla Splash ---
 /**
  * Pantalla de bienvenida con animación de entrada.
  *
@@ -42,18 +43,15 @@ fun SplashScreen(
     onNavigateToLogin: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
-    // Estado para controlar la animación
     var isAnimating by remember { mutableStateOf(true) }
 
     val density = LocalDensity.current
 
-    // Efecto para cambiar el estado después de un retraso (como el setTimeout)
     LaunchedEffect(Unit) {
-        delay(1500) // Espera 1.5 segundos
+        delay(1500)
         isAnimating = false
     }
 
-    // Valores animados
     val logoScale by animateFloatAsState(
         targetValue = if (isAnimating) 0f else 1f,
         animationSpec = tween(durationMillis = 1000), label = "logoScale"
@@ -63,7 +61,7 @@ fun SplashScreen(
         animationSpec = tween(durationMillis = 1000), label = "logoAlpha"
     )
     val buttonsOffsetY by animateDpAsState(
-        targetValue = if (isAnimating) 32.dp else 0.dp, // 8 * 4dp = 32dp approx translate-y-8
+        targetValue = if (isAnimating) 32.dp else 0.dp,
         animationSpec = tween(durationMillis = 1000, delayMillis = 300), label = "buttonsOffsetY"
     )
     val buttonsAlpha by animateFloatAsState(
@@ -86,21 +84,19 @@ fun SplashScreen(
                     )
                 )
             )
-            // Padding general y para barras del sistema si usas edge-to-edge
-            .padding(24.dp) // p-6
+            .padding(24.dp)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween // Empuja botones abajo
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Sección del Logo (ocupa el espacio central)
             Column(
                 modifier = Modifier
-                    .weight(1f) // Ocupa el espacio disponible (flex-1)
-                    .graphicsLayer { // Aplicar animación de escala y opacidad
+                    .weight(1f)
+                    .graphicsLayer {
                         scaleX = logoScale
                         scaleY = logoScale
                         alpha = logoAlpha
@@ -108,113 +104,105 @@ fun SplashScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // Logo
                 Box(contentAlignment = Alignment.Center) {
-                    // Cuadrado blanco principal
                     Box(
                         modifier = Modifier
-                            .size(96.dp) // w-24 h-24
-                            .shadow(16.dp, RoundedCornerShape(24.dp)) // shadow-2xl, rounded-3xl approx
+                            .size(96.dp)
+                            .shadow(16.dp, RoundedCornerShape(24.dp))
                             .clip(RoundedCornerShape(24.dp))
                             .background(Color.White),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_logo_techhelpdesk),
-                            contentDescription = "Logo TechHelpDesk",
+                            contentDescription = stringResource(R.string.cd_app_logo),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(56.dp)
                         )
                     }
-                    // Círculo pequeño con check
                     Box(
                         modifier = Modifier
-                            .align(Alignment.BottomEnd) // absolute -bottom-2 -right-2
-                            .offset(x = 8.dp, y = 8.dp) // Ajuste fino para la posición
-                            .size(40.dp) // w-10 h-10
-                            .shadow(4.dp, CircleShape) // shadow-lg
+                            .align(Alignment.BottomEnd)
+                            .offset(x = 8.dp, y = 8.dp)
+                            .size(40.dp)
+                            .shadow(4.dp, CircleShape)
                             .clip(CircleShape)
-                            // Usamos secondary como color de acento, ajústalo si tienes otro
                             .background(MaterialTheme.colorScheme.secondary),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Filled.CheckCircle,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.cd_check_circle),
                             tint = Color.White,
-                            modifier = Modifier.size(24.dp) // text-2xl
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp)) // mb-6
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "TechHelpDesk",
-                    fontSize = 36.sp, // text-4xl
+                    text = stringResource(R.string.app_name),
+                    fontSize = 36.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
-                    modifier = Modifier.padding(bottom = 12.dp) // mb-3
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
                 Text(
-                    text = "Tu soporte técnico, siempre a mano",
-                    fontSize = 18.sp, // text-lg
-                    color = Color.White.copy(alpha = 0.9f), // text-white/90
+                    text = stringResource(R.string.splash_slogan),
+                    fontSize = 18.sp,
+                    color = Color.White.copy(alpha = 0.9f),
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.widthIn(max = 280.dp) // max-w-xs approx
+                    modifier = Modifier.widthIn(max = 280.dp)
                 )
             }
 
-            // Sección de Botones y Versión (abajo)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .graphicsLayer { // Aplicar animación de traslación y opacidad
+                    .graphicsLayer {
                         translationY = with(density) { buttonsOffsetY.toPx() }
                         alpha = buttonsAlpha
                     },
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp) // space-y-3
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Botón Iniciar Sesión (Usando MobileButton si existe, si no, Button normal)
                 Button(
                     onClick = onNavigateToLogin,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp), // h-14
-                    shape = RoundedCornerShape(12.dp), // rounded-xl
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White, // bg-white
-                        contentColor = MaterialTheme.colorScheme.primary // text-[var(--color-primary)]
+                        containerColor = Color.White,
+                        contentColor = MaterialTheme.colorScheme.primary
                     ),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp, pressedElevation = 8.dp) // shadow-lg hover:shadow-xl
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp, pressedElevation = 8.dp)
                 ) {
-                    Text("Iniciar sesión", fontSize = 18.sp, fontWeight = FontWeight.Medium) // text-lg font-medium
+                    Text(stringResource(R.string.splash_btn_login), fontSize = 18.sp, fontWeight = FontWeight.Medium)
                 }
 
-                // Botón Registrarse (Usando MobileButton si existe, si no, OutlinedButton normal)
-                OutlinedButton( // O usa MobileButton(variant = MobileButtonVariant.OUTLINED, ...)
+                OutlinedButton(
                     onClick = onNavigateToRegister,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp), // h-14
-                    shape = RoundedCornerShape(12.dp), // rounded-xl
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.White // text-white
+                        contentColor = Color.White
                     ),
-                    border = BorderStroke(2.dp, Color.White) // border-2 border-white
+                    border = BorderStroke(2.dp, Color.White)
                 ) {
-                    Text("Registrarse", fontSize = 18.sp, fontWeight = FontWeight.Medium) // text-lg font-medium
+                    Text(stringResource(R.string.splash_btn_register), fontSize = 18.sp, fontWeight = FontWeight.Medium)
                 }
 
-                Spacer(modifier = Modifier.height(12.dp)) // mt-6 (approx between button and version)
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // Versión
                 Text(
-                    text = "Versión 1.0.0",
-                    fontSize = 12.sp, // text-sm
-                    color = Color.White.copy(alpha = 0.7f), // text-white/70
-                    modifier = Modifier.graphicsLayer { alpha = versionAlpha } // Animación de opacidad
+                    text = stringResource(R.string.splash_version_template, stringResource(R.string.app_version)),
+                    fontSize = 12.sp,
+                    color = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.graphicsLayer { alpha = versionAlpha }
                 )
             }
         }
@@ -222,8 +210,7 @@ fun SplashScreen(
 }
 
 
-// --- Preview ---
-@Preview(showBackground = true, backgroundColor = 0xFF1E40AF) // Fondo azul para ver el blanco
+@Preview(showBackground = true, backgroundColor = 0xFF1E40AF)
 @Composable
 fun SplashScreenPreview() {
     TechHelpDeskTheme {

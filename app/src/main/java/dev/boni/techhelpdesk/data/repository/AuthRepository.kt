@@ -247,4 +247,27 @@ class AuthRepository {
             Result.failure(e)
         }
     }
+
+    /**
+     * Obtiene el objeto User completo desde Firestore.
+     * Necesario para saber el ROL, la foto, etc.
+     */
+    suspend fun getCurrentUser(): Result<User> {
+        return try {
+            val uid = auth.currentUser?.uid
+                ?: throw IllegalStateException("No hay sesión activa")
+
+            val document = db.collection("users").document(uid).get().await()
+
+            // Firestore convierte automáticamente el JSON a tu objeto User
+            // gracias a que tu data class tiene valores por defecto.
+            val user = document.toObject(User::class.java)
+                ?: throw IllegalStateException("El usuario existe en Auth pero no en Firestore")
+
+            Result.success(user)
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error obteniendo datos del usuario", e)
+            Result.failure(e)
+        }
+    }
 }

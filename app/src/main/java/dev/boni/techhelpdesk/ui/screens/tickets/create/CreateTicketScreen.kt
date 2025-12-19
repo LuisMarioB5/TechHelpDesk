@@ -1,11 +1,9 @@
-package dev.boni.techhelpdesk.ui.screens
+package dev.boni.techhelpdesk.ui.screens.tickets.create
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -14,10 +12,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
-import androidx.compose.material.icons.automirrored.filled.Label // Icono para Category Option
-import androidx.compose.material.icons.automirrored.filled.Send // Icono Enviar
-import androidx.compose.material.icons.filled.* // Importar todos
-import androidx.compose.material.icons.outlined.* // Importar todos outlined
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
@@ -26,17 +23,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue // Usaremos TextFieldValue para descripción
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import dev.boni.techhelpdesk.R
 import dev.boni.techhelpdesk.ui.components.AppHeader
-import dev.boni.techhelpdesk.ui.components.MobileButton // Reutilizamos MobileButton
-import dev.boni.techhelpdesk.ui.components.MobileButtonVariant // Enum de MobileButton
+import dev.boni.techhelpdesk.ui.components.MobileButton
+import dev.boni.techhelpdesk.ui.components.MobileButtonSize
+import dev.boni.techhelpdesk.ui.components.MobileButtonVariant
 import dev.boni.techhelpdesk.ui.screens.viewmodels.TicketViewModel
 import dev.boni.techhelpdesk.ui.theme.CustomColors
 import dev.boni.techhelpdesk.ui.theme.LightCustomColors
@@ -45,34 +46,9 @@ import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// --- Datos para el Formulario (Simplificado con Strings) ---
-// En una app real, usarías Enums o Data Classes aquí
-
 data class CategoryOption(val value: String, val label: String, val icon: ImageVector, val description: String)
 data class PriorityOption(val value: String, val label: String, val icon: ImageVector, val colorKey: String, val description: String) // colorKey para mapear a colores del tema
 data class ContactMethodOption(val value: String, val label: String, val icon: ImageVector)
-
-val categories = listOf(
-    CategoryOption("email", "Email", Icons.Default.Mail, "Problemas con correo electrónico"),
-    CategoryOption("hardware", "Hardware", Icons.Default.Computer, "Equipos y dispositivos"),
-    CategoryOption("software", "Software", Icons.Default.Apps, "Aplicaciones y programas"),
-    CategoryOption("network", "Red", Icons.Default.Wifi, "Conectividad e internet"),
-    CategoryOption("permissions", "Permisos", Icons.Default.Lock, "Accesos y autorizaciones"),
-    CategoryOption("other", "Otro", Icons.AutoMirrored.Filled.HelpOutline, "Otros problemas"),
-)
-
-val priorities = listOf(
-    PriorityOption("baja", "Baja", Icons.Filled.ArrowDownward, "success", "No afecta mi trabajo"),
-    PriorityOption("media", "Media", Icons.Filled.Remove, "warning", "Puedo trabajar con limitaciones"), // Remove icon como sustituto de drag_handle
-    PriorityOption("alta", "Alta", Icons.Filled.ArrowUpward, "error", "No puedo trabajar"), // ArrowUpward como sustituto
-)
-
-val contactMethods = listOf(
-    ContactMethodOption("email", "Email", Icons.Default.Mail),
-    ContactMethodOption("phone", "Teléfono", Icons.Default.Phone),
-    ContactMethodOption("chat", "Chat", Icons.AutoMirrored.Filled.Chat),
-)
-
 
 // --- Pantalla Principal: Crear Ticket ---
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,14 +57,40 @@ fun CreateTicketScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
+    // --- Colores ---
+    val customColors = LocalCustomColors.current
+
+    val categories = listOf(
+        CategoryOption("email", stringResource(R.string.cat_email), Icons.Default.Mail, stringResource(R.string.cat_desc_email)),
+        CategoryOption("hardware", stringResource(R.string.cat_hardware), Icons.Default.Computer, stringResource(R.string.cat_desc_hardware)),
+        CategoryOption("software", stringResource(R.string.cat_software), Icons.Default.Apps, stringResource(R.string.cat_desc_software)),
+        CategoryOption("network", stringResource(R.string.cat_network), Icons.Default.Wifi, stringResource(R.string.cat_desc_network)),
+        CategoryOption("permissions", stringResource(R.string.cat_permissions), Icons.Default.Lock, stringResource(R.string.cat_desc_permissions)),
+        CategoryOption("other", stringResource(R.string.cat_other), Icons.AutoMirrored.Filled.HelpOutline, stringResource(R.string.cat_desc_other)),
+    )
+
+    val priorities = listOf(
+        PriorityOption("baja", stringResource(R.string.prio_low), Icons.Filled.ArrowDownward, "success", stringResource(R.string.prio_desc_low)),
+        PriorityOption("media", stringResource(R.string.prio_medium), Icons.Filled.Remove, "warning", stringResource(R.string.prio_desc_medium)),
+        PriorityOption("alta", stringResource(R.string.prio_high), Icons.Filled.ArrowUpward, "error", stringResource(R.string.prio_desc_high)),
+    )
+
+    val contactMethods = listOf(
+        ContactMethodOption("email", stringResource(R.string.contact_email), Icons.Default.Mail),
+        ContactMethodOption("phone", stringResource(R.string.contact_phone), Icons.Default.Phone),
+        ContactMethodOption("chat", stringResource(R.string.contact_chat), Icons.AutoMirrored.Filled.Chat),
+    )
+
     // --- Estado del Formulario ---
     var title by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var selectedPriority by remember { mutableStateOf<String?>(null) }
-    var description by remember { mutableStateOf("") } // Usamos String simple
+    var description by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
     var department by remember { mutableStateOf("") }
-    var selectedContactMethod by remember { mutableStateOf("email") } // Valor inicial
+    var selectedContactMethod by remember { mutableStateOf("email") }
     // var attachments by remember { mutableStateOf<List<File>>(emptyList()) } // Manejo de archivos omitido
 
     // --- Estado de UI y Errores ---
@@ -96,28 +98,25 @@ fun CreateTicketScreen(
     var showSuccess by remember { mutableStateOf(false) }
     var showDraft by remember { mutableStateOf(false) }
     var showOptionalFields by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope() // Para las demoras
+    val coroutineScope = rememberCoroutineScope()
 
-    // --- Colores ---
-    val customColors = LocalCustomColors.current // Necesario para los colores de prioridad
-
-    // --- Lógica de Validación (Simplificada) ---
+    // --- Lógica de Validación ---
     val validateForm: () -> Boolean = {
         val newErrors = mutableMapOf<String, String>()
-        if (title.isBlank()) newErrors["title"] = "El título es requerido"
-        else if (title.length < 5) newErrors["title"] = "Mínimo 5 caracteres"
-        else if (title.length > 100) newErrors["title"] = "Máximo 100 caracteres"
+        if (title.isBlank()) newErrors["title"] = context.getString(R.string.val_title_required)
+        else if (title.length < 5) newErrors["title"] = context.getString(R.string.val_title_min)
+        else if (title.length > 100) newErrors["title"] = context.getString(R.string.val_title_max)
 
-        if (selectedCategory == null) newErrors["category"] = "Selecciona una categoría"
-        if (selectedPriority == null) newErrors["priority"] = "Selecciona una prioridad"
-        if (description.isBlank()) newErrors["description"] = "La descripción es requerida"
-        else if (description.length < 20) newErrors["description"] = "Mínimo 20 caracteres"
+        if (selectedCategory == null) newErrors["category"] = context.getString(R.string.val_category_required)
+        if (selectedPriority == null) newErrors["priority"] = context.getString(R.string.val_priority_required)
+        if (description.isBlank()) newErrors["description"] = context.getString(R.string.val_desc_required)
+        else if (description.length < 20) newErrors["description"] = context.getString(R.string.val_desc_min)
 
         errors = newErrors
         newErrors.isEmpty()
     }
 
-    val viewModel = androidx.lifecycle.viewmodel.compose.viewModel<TicketViewModel>()
+    val viewModel = viewModel<TicketViewModel>()
 
     val handleSubmit = {
         if (validateForm()) {
@@ -137,7 +136,7 @@ fun CreateTicketScreen(
                     delay(2000)
                     navController.popBackStack()
                 } else {
-                    errors = errors + ("submit" to "Error al crear ticket: ${result.exceptionOrNull()?.message}")
+                    errors = errors + ("submit" to "Error: ${result.exceptionOrNull()?.message}")
                 }
             }
         }
@@ -147,32 +146,31 @@ fun CreateTicketScreen(
         showDraft = true
         coroutineScope.launch {
             delay(1500)
-            navController.popBackStack() // Volver a la pantalla anterior
-            // En una app real, aquí guardarías el borrador
+            navController.popBackStack()
+            // aquí debería guardarse el borrador
         }
     }
 
     // --- Lógica para mostrar tiempo estimado ---
     val estimatedTime = remember(selectedPriority) {
         when (selectedPriority) {
-            "alta" -> "1-2 horas"
-            "media" -> "4-8 horas"
-            "baja" -> "24-48 horas"
-            else -> "Depende de la prioridad"
+            "alta" -> "1-2 h"
+            "media" -> "4-8 h"
+            "baja" -> "24-48 h"
+            else -> "-"
         }
     }
 
 
     // --- UI Principal ---
 
-    // Mostrar pantallas de Éxito o Borrador si están activas
     if (showSuccess) {
-        SuccessScreen(message = "Tu solicitud ha sido enviada correctamente. Un técnico la revisará pronto.")
-        return // Detiene la composición aquí
+        SuccessScreen(message = stringResource(R.string.success_ticket_message))
+        return
     }
     if (showDraft) {
-        DraftScreen(message = "Puedes continuar editando más tarde")
-        return // Detiene la composición aquí
+        DraftScreen(message = stringResource(R.string.draft_ticket_message))
+        return
     }
 
     Scaffold(
@@ -180,79 +178,77 @@ fun CreateTicketScreen(
             AppHeader(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = MaterialTheme.colorScheme.onPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_return_icon), tint = MaterialTheme.colorScheme.onPrimary)
                     }
                 },
                 title = {
                     Text(
-                        "Nuevo ticket",
-                        style = MaterialTheme.typography.titleLarge, // text-2xl
+                        stringResource(R.string.create_ticket_title),
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 },
                 actions = {
-                    // Botón Guardar Borrador
                     TextButton(
                         onClick = handleSaveDraft,
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                         colors = ButtonDefaults.textButtonColors(
-                            containerColor = Color.White.copy(alpha = 0.1f), // bg-white/10
+                            containerColor = Color.White.copy(alpha = 0.1f),
                             contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
-                        shape = CircleShape // rounded-full
+                        shape = CircleShape
                     ) {
                         Icon(Icons.Filled.Save, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Guardar", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.btn_save_draft), fontSize = 12.sp, fontWeight = FontWeight.Medium)
                     }
                 },
                 bottomContent = {
                     Text(
-                        "Describe tu problema y te ayudaremos lo antes posible",
-                        style = MaterialTheme.typography.bodySmall, // text-sm
+                        stringResource(R.string.create_ticket_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
-                        lineHeight = 18.sp // leading-relaxed approx
+                        lineHeight = 18.sp
                     )
                 }
             )
         },
-        containerColor = Color.Transparent // Mantenemos el fondo transparente
+        containerColor = Color.Transparent
     ) { innerPadding ->
 
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background) // Fondo de la lista
-                .padding(bottom = innerPadding.calculateBottomPadding()), // Solo padding inferior
+                .background(MaterialTheme.colorScheme.background)
+                .padding(bottom = innerPadding.calculateBottomPadding()),
             contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding(), // Padding superior del Scaffold
-                // No añadimos padding extra arriba porque el header ya tiene
-                bottom = 24.dp // Espacio extra al final
+                top = innerPadding.calculateTopPadding(),
+                bottom = 24.dp
             ),
-            verticalArrangement = Arrangement.spacedBy(24.dp) // Espacio entre secciones (space-y-6)
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // --- Consejo Info Box ---
             item {
-                Surface( // Simula el div con fondo y padding
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
-                        .offset(y = 10.dp), // -mt-4 approx
-                    shape = RoundedCornerShape(16.dp), // rounded-2xl
-                    color = MaterialTheme.colorScheme.tertiaryContainer, // Usamos un color del tema
-                    shadowElevation = 2.dp // shadow-sm
+                        .offset(y = 10.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shadowElevation = 2.dp
                 ) {
-                    Row(modifier = Modifier.padding(16.dp)) { // p-4
+                    Row(modifier = Modifier.padding(16.dp)) {
                         Icon(
                             Icons.Filled.Lightbulb,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                            modifier = Modifier.padding(end = 12.dp) // gap-3
+                            modifier = Modifier.padding(end = 12.dp)
                         )
                         Column {
-                            Text("Consejo", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.padding(bottom = 4.dp))
-                            Text("Proporciona todos los detalles posibles para que podamos resolver tu problema más rápido", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha=0.8f), lineHeight = 16.sp)
+                            Text(stringResource(R.string.tip_title), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.padding(bottom = 4.dp))
+                            Text(stringResource(R.string.tip_description), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha=0.8f), lineHeight = 16.sp)
                         }
                     }
                 }
@@ -266,29 +262,29 @@ fun CreateTicketScreen(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(Icons.Outlined.Info, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Paso 1 de 1 • Campos obligatorios marcados con *", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.step_indicator), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
             // --- Title Field ---
             item {
-                FormField(label = "Título del ticket", isRequired = true, error = errors["title"], modifier = Modifier.padding(horizontal = 16.dp)) {
+                FormField(label = stringResource(R.string.label_ticket_title), isRequired = true, error = errors["title"], modifier = Modifier.padding(horizontal = 16.dp)) {
                     OutlinedTextField(
                         value = title,
                         onValueChange = {
-                            if (it.length <= 100) { // Limitar caracteres
+                            if (it.length <= 100) {
                                 title = it
-                                errors = errors - "title" // Limpiar error al escribir
+                                errors = errors - "title"
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Ej: No puedo acceder a mi correo") },
+                        placeholder = { Text(stringResource(R.string.placeholder_ticket_title)) },
                         leadingIcon = { Icon(Icons.Filled.Title, contentDescription = null) },
                         isError = errors.containsKey("title"),
                         supportingText = {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(errors["title"] ?: "") // Muestra error si existe
-                                Text("${title.length}/100") // Contador
+                                Text(errors["title"] ?: "")
+                                Text("${title.length}/100")
                             }
                         },
                         singleLine = true
@@ -298,11 +294,10 @@ fun CreateTicketScreen(
 
             // --- Category Selection ---
             item {
-                FormField(label = "Categoría", isRequired = true, error = errors["category"], modifier = Modifier.padding(horizontal = 16.dp)) {
-                    // Usamos FlowRow para que se ajuste si no caben 3
-                    FlowRow( // Reemplaza grid grid-cols-3
+                FormField(label = stringResource(R.string.label_category), isRequired = true, error = errors["category"], modifier = Modifier.padding(horizontal = 16.dp)) {
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally), // Centrado y gap
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         categories.forEach { cat ->
@@ -316,12 +311,10 @@ fun CreateTicketScreen(
                                     errors = errors - "category"
                                 },
                                 description = cat.description,
-                                // Aproximamos el tamaño basado en grid-cols-3
-                                modifier = Modifier.widthIn(min = 90.dp) //.weight(1f / 3f) no funciona bien con FlowRow
+                                modifier = Modifier.widthIn(min = 90.dp)
                             )
                         }
                     }
-                    // Mostrar descripción seleccionada
                     val selectedDesc = categories.find { it.value == selectedCategory }?.description
                     if (!selectedDesc.isNullOrBlank()) {
                         Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -335,8 +328,8 @@ fun CreateTicketScreen(
 
             // --- Priority Selection ---
             item {
-                FormField(label = "Prioridad", isRequired = true, error = errors["priority"], helperText = "Selecciona según cómo afecta tu trabajo", modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { // space-y-3
+                FormField(label = stringResource(R.string.label_priority), isRequired = true, error = errors["priority"], helperText = stringResource(R.string.helper_priority), modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         priorities.forEach { priority ->
                             val isSelected = selectedPriority == priority.value
                             SelectablePriorityRow(
@@ -355,10 +348,10 @@ fun CreateTicketScreen(
 
             // --- Description ---
             item {
-                FormField(label = "Descripción del problema", isRequired = true, error = errors["description"], modifier = Modifier.padding(horizontal = 16.dp)) {
+                FormField(label = stringResource(R.string.label_description), isRequired = true, error = errors["description"], modifier = Modifier.padding(horizontal = 16.dp)) {
                     Column {
                         Text(
-                            "Incluye: qué pasó, cuándo ocurrió, qué intentaste hacer y cualquier mensaje de error",
+                            stringResource(R.string.helper_description_detail),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = 8.dp),
@@ -367,21 +360,21 @@ fun CreateTicketScreen(
                         OutlinedTextField(
                             value = description,
                             onValueChange = {
-                                if (it.length <= 500) { // Limitar caracteres
+                                if (it.length <= 500) {
                                     description = it
                                     errors = errors - "description"
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth().height(150.dp), // rows = 6 approx
-                            placeholder = { Text("Ejemplo: Desde esta mañana no puedo abrir mi correo...") },
+                            modifier = Modifier.fillMaxWidth().height(150.dp),
+                            placeholder = { Text(stringResource(R.string.placeholder_description)) },
                             isError = errors.containsKey("description"),
                             supportingText = {
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(errors["description"] ?: "") // Muestra error
-                                    Text("${description.length}/500") // Contador
+                                    Text(errors["description"] ?: "")
+                                    Text("${description.length}/500")
                                 }
                             },
-                            shape = RoundedCornerShape(12.dp) // rounded-xl
+                            shape = RoundedCornerShape(12.dp)
                         )
                     }
                 }
@@ -389,16 +382,16 @@ fun CreateTicketScreen(
 
             // --- Attachments ---
             item {
-                FormField(label = "Adjuntar archivos (opcional)", helperText = "Las capturas de pantalla ayudan a resolver el problema más rápido", modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) { // gap-3
+                FormField(label = stringResource(R.string.label_attachments), helperText = stringResource(R.string.helper_attachments), modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         AttachmentButton(
-                            text = "Cámara",
+                            text = stringResource(R.string.btn_camera),
                             icon = Icons.Filled.PhotoCamera,
                             onClick = { /* Lógica cámara */ },
                             modifier = Modifier.weight(1f)
                         )
                         AttachmentButton(
-                            text = "Galería",
+                            text = stringResource(R.string.btn_gallery),
                             icon = Icons.Filled.Image,
                             onClick = { /* Lógica galería */ },
                             modifier = Modifier.weight(1f)
@@ -415,8 +408,7 @@ fun CreateTicketScreen(
                         DividerDefaults.Thickness,
                         DividerDefaults.color
                     )
-                    // Separador
-                    Surface( // Botón para expandir
+                    Surface(
                         onClick = { showOptionalFields = !showOptionalFields },
                         shape = RoundedCornerShape(12.dp),
                         color = MaterialTheme.colorScheme.surface,
@@ -431,19 +423,18 @@ fun CreateTicketScreen(
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Icon(Icons.Filled.Tune, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                 Column {
-                                    Text("Información adicional", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium)
-                                    Text("Opcional pero útil", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(stringResource(R.string.label_additional_info), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium)
+                                    Text(stringResource(R.string.sublabel_additional_info), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                             Icon(
                                 if (showOptionalFields) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                                contentDescription = if (showOptionalFields) "Ocultar" else "Mostrar",
+                                contentDescription = if (showOptionalFields) stringResource(R.string.cd_collapse_options) else stringResource(R.string.cd_expand_options),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
 
-                    // Campos opcionales (animados)
                     AnimatedVisibility(visible = showOptionalFields) {
                         Column(
                             modifier = Modifier.padding(top = 16.dp),
@@ -453,23 +444,23 @@ fun CreateTicketScreen(
                                 value = location,
                                 onValueChange = { location = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Ubicación") },
-                                placeholder = { Text("Ej: Edificio A, Piso 3...") },
+                                label = { Text(stringResource(R.string.label_location)) },
+                                placeholder = { Text(stringResource(R.string.placeholder_location)) },
                                 leadingIcon = { Icon(Icons.Filled.LocationOn, contentDescription = null)},
-                                supportingText = { Text("Dónde te encuentras físicamente")},
+                                supportingText = { Text(stringResource(R.string.helper_location))},
                                 singleLine = true
                             )
                             OutlinedTextField(
                                 value = department,
                                 onValueChange = { department = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Departamento") },
-                                placeholder = { Text("Ej: Recursos Humanos") },
+                                label = { Text(stringResource(R.string.label_department)) },
+                                placeholder = { Text(stringResource(R.string.placeholder_department)) },
                                 leadingIcon = { Icon(Icons.Filled.Business, contentDescription = null)},
-                                supportingText = { Text("Tu área o departamento")},
+                                supportingText = { Text(stringResource(R.string.helper_department))},
                                 singleLine = true
                             )
-                            FormField(label = "Método de contacto preferido") {
+                            FormField(label = stringResource(R.string.label_contact_method)) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     contactMethods.forEach { method ->
                                         val isSelected = selectedContactMethod == method.value
@@ -490,16 +481,16 @@ fun CreateTicketScreen(
 
             // --- Estimated Time ---
             item {
-                Surface( // Tarjeta de info
+                Surface(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(16.dp), // rounded-2xl
+                    shape = RoundedCornerShape(16.dp),
                     color = MaterialTheme.colorScheme.surface,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                 ){
                     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
                         Icon(Icons.Filled.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(end=12.dp))
                         Column {
-                            Text("Tiempo de respuesta estimado", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom=4.dp))
+                            Text(stringResource(R.string.label_estimated_time), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom=4.dp))
                             Text(estimatedTime, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 16.sp)
                         }
                     }
@@ -509,36 +500,33 @@ fun CreateTicketScreen(
             // --- Submit/Cancel Buttons ---
             item {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp), // pt-4 y padding h
-                    verticalArrangement = Arrangement.spacedBy(12.dp) // space-y-3
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     MobileButton(
                         onClick = handleSubmit,
                         variant = MobileButtonVariant.FILLED,
                         fullWidth = true,
-                        // El botón se deshabilita si faltan campos requeridos
                         enabled = title.isNotBlank() && selectedCategory != null && selectedPriority != null && description.isNotBlank()
                     ) {
                         Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Enviar ticket", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.btn_send_ticket), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
                     }
                     MobileButton(
-                        onClick = { navController.popBackStack() }, // Botón cancelar vuelve atrás
+                        onClick = { navController.popBackStack() },
                         variant = MobileButtonVariant.OUTLINED,
                         fullWidth = true,
-                        size = dev.boni.techhelpdesk.ui.components.MobileButtonSize.SMALL // h-12 text-sm approx
+                        size = dev.boni.techhelpdesk.ui.components.MobileButtonSize.SMALL
                     ) {
-                        Text("Cancelar")
+                        Text(stringResource(R.string.btn_cancel_ticket))
                     }
                 }
             }
-        } // Fin LazyColumn
-    } // Fin Scaffold
+        }
+    }
 }
 
-
-// --- Componentes Helper para la UI del Formulario ---
 
 // Wrapper para Label, HelperText y ErrorText
 @Composable
@@ -735,13 +723,13 @@ fun SuccessScreen(message: String) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
-                modifier = Modifier.size(80.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer), // Usamos primary container como sustituto de success container
+                modifier = Modifier.size(80.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp)) // Usamos primary como sustituto de success
+                Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp))
             }
             Spacer(Modifier.height(16.dp))
-            Text("¡Ticket creado!", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.success_ticket_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
             Text(message, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -762,7 +750,7 @@ fun DraftScreen(message: String) {
                 Icon(Icons.Filled.Save, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp))
             }
             Spacer(Modifier.height(16.dp))
-            Text("Borrador guardado", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.draft_ticket_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
             Text(message, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

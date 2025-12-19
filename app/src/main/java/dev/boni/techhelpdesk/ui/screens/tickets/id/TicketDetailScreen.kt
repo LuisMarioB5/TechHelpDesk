@@ -27,6 +27,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import dev.boni.techhelpdesk.R
 import dev.boni.techhelpdesk.ui.components.AppHeader
 import dev.boni.techhelpdesk.ui.screens.viewmodels.TicketViewModel
 import dev.boni.techhelpdesk.ui.theme.CustomColors
@@ -62,6 +65,7 @@ fun TicketDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: TicketViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
+    // Datos de ejemplo para chat (Simulación)
     var newMessage by remember { mutableStateOf("") }
     var hasConversation by remember { mutableStateOf(false) }
     val sampleMessages = remember {
@@ -76,7 +80,7 @@ fun TicketDetailScreen(
 
     val ticket by viewModel.currentTicket.collectAsState()
 
-    // 🔥 NUEVO: Cargar ticket al montar
+    // Cargar ticket al montar
     LaunchedEffect(ticketId) {
         viewModel.loadTicket(ticketId)
     }
@@ -86,7 +90,7 @@ fun TicketDetailScreen(
             val currentTime = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
             val msg = mapOf(
                 "sender" to "user",
-                "senderName" to "Luis Rodríguez",
+                "senderName" to "Luis Rodríguez", // Idealmente vendría del AuthRepository
                 "text" to newMessage,
                 "time" to currentTime
             )
@@ -110,10 +114,11 @@ fun TicketDetailScreen(
         return
     }
 
+    // Formateo de fecha
     val createdDate = remember(ticket) {
         ticket?.createdAt?.toDate()?.let { date ->
             SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(date)
-        } ?: "Fecha desconocida"
+        } ?: "" // Se manejará el string resource en el componente si está vacío
     }
 
     Scaffold(
@@ -134,13 +139,14 @@ fun TicketDetailScreen(
                 AppHeader(
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = MaterialTheme.colorScheme.onPrimary)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_return_icon), tint = MaterialTheme.colorScheme.onPrimary)
                         }
                     },
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // Ticket #1234
                             Text(
-                                text = "Ticket #${ticket?.id?.takeLast(8) ?: ticketId}",
+                                text = stringResource(R.string.title_ticket_number, ticket?.id?.takeLast(8) ?: ticketId),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimary
@@ -154,7 +160,7 @@ fun TicketDetailScreen(
                     },
                     bottomContent = {
                         Text(
-                            text = ticket?.title ?: "Cargando...",
+                            text = ticket?.title ?: stringResource(R.string.loading_ticket),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
@@ -181,9 +187,9 @@ fun TicketDetailScreen(
                 TicketInfoCardPreviewHelper(
                     category = ticket?.category ?: "",
                     priority = ticket?.priority ?: "",
-                    reportedBy = ticket?.createdBy ?: "Usuario desconocido",
-                    assignedTo = ticket?.assignedToName ?: "Sin asignar",
-                    createdDate = createdDate,
+                    reportedBy = ticket?.createdBy ?: stringResource(R.string.text_unknown_user),
+                    assignedTo = ticket?.assignedToName ?: stringResource(R.string.text_unassigned),
+                    createdDate = createdDate.ifEmpty { stringResource(R.string.date_unknown) },
                     description = ticket?.description ?: "",
                     customColors = customColors
                 )
@@ -216,7 +222,7 @@ fun TicketDetailScreen(
                         ) {
                             Icon(Icons.Filled.CheckCircle, contentDescription = null, modifier = Modifier.size(24.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text("Marcar como resuelto", fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.btn_mark_resolved), fontWeight = FontWeight.SemiBold)
                         }
                         OutlinedButton(
                             onClick = { /* TODO: Editar ticket */ },
@@ -230,7 +236,7 @@ fun TicketDetailScreen(
                         ) {
                             Icon(Icons.Filled.Edit, contentDescription = null, modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text("Editar ticket", fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.btn_edit_ticket), fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
@@ -238,8 +244,6 @@ fun TicketDetailScreen(
         }
     }
 }
-
-// --- Componentes Helper para la PREVIEW (Usan Strings en lugar de Enums) ---
 
 @Composable
 fun TicketInfoCardPreviewHelper(
@@ -251,6 +255,18 @@ fun TicketInfoCardPreviewHelper(
     description: String,
     customColors: CustomColors
 ) {
+    // Mapeo manual para la categoría (esto es visual, para traducir lo que viene de BD)
+    // Asumimos que la BD guarda "email", "hardware", etc.
+    val displayCategory = when(category.lowercase()) {
+        "email" -> stringResource(R.string.cat_email)
+        "hardware" -> stringResource(R.string.cat_hardware)
+        "software" -> stringResource(R.string.cat_software)
+        "network" -> stringResource(R.string.cat_network)
+        "permissions" -> stringResource(R.string.cat_permissions)
+        "other" -> stringResource(R.string.cat_other)
+        else -> category // Fallback si no coincide
+    }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -264,14 +280,14 @@ fun TicketInfoCardPreviewHelper(
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 InfoItem(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.AutoMirrored.Filled.Label, // Usar AutoMirrored si aplica
-                    label = "Categoría",
-                    value = { Text(category, fontWeight = FontWeight.SemiBold) }
+                    icon = Icons.AutoMirrored.Filled.Label,
+                    label = stringResource(R.string.label_category),
+                    value = { Text(displayCategory, fontWeight = FontWeight.SemiBold) }
                 )
                 InfoItem(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Filled.Flag,
-                    label = "Prioridad",
+                    label = stringResource(R.string.label_priority),
                     value = { PriorityBadgePreviewHelper(priority = priority, customColors = customColors, size = "large") }
                 )
             }
@@ -279,12 +295,12 @@ fun TicketInfoCardPreviewHelper(
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 InfoItem(
                     icon = Icons.Filled.Person,
-                    label = "Reportado por",
+                    label = stringResource(R.string.label_reported_by),
                     value = { Text(reportedBy, fontWeight = FontWeight.SemiBold) }
                 )
                 InfoItem(
                     icon = Icons.Filled.SupportAgent,
-                    label = "Técnico asignado",
+                    label = stringResource(R.string.label_assigned_to),
                     value = {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Box(
@@ -317,13 +333,13 @@ fun TicketInfoCardPreviewHelper(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             InfoItem(
                 icon = Icons.Filled.Schedule,
-                label = "Fecha de creación",
+                label = stringResource(R.string.label_created_at),
                 value = { Text(createdDate, fontWeight = FontWeight.SemiBold) }
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             InfoItem(
                 icon = Icons.Filled.Description,
-                label = "Descripción del problema",
+                label = stringResource(R.string.label_description_issue),
                 value = { Text(description, lineHeight = 24.sp, style = MaterialTheme.typography.bodyMedium) }
             )
         }
@@ -335,37 +351,34 @@ fun InfoItem(
     icon: ImageVector,
     label: String,
     modifier: Modifier = Modifier,
-    value: @Composable () -> Unit // El contenido principal (ej. Text, Badge)
+    value: @Composable () -> Unit
 ) {
     Column(modifier = modifier) {
-        // Fila para Icono y Etiqueta
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp), // gap-2
-            modifier = Modifier.padding(bottom = 8.dp) // mb-2
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = null, // Descripción viene de la etiqueta
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp) // text-lg
+                modifier = Modifier.size(20.dp)
             )
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelSmall, // text-xs
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        // Contenedor para el Valor principal, alineado con el texto de la etiqueta
-        Box(modifier = Modifier.padding(start = 28.dp)) { // ml-7 approx (20dp icon + 8dp space)
-            // Provee un estilo base para el valor, pero puede ser sobreescrito
+        Box(modifier = Modifier.padding(start = 28.dp)) {
             ProvideTextStyle(
-                value = MaterialTheme.typography.bodyLarge.copy( // text-base
+                value = MaterialTheme.typography.bodyLarge.copy(
                     color = MaterialTheme.colorScheme.onSurface
                 )
             ) {
-                value() // Dibuja el contenido que se pasó (ej. Text, Badge)
+                value()
             }
         }
     }
@@ -374,7 +387,7 @@ fun InfoItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationCardPreviewHelper(
-    messages: List<Map<String, String>>, // Usar Map
+    messages: List<Map<String, String>>,
     newMessage: String,
     onNewMessageChange: (String) -> Unit,
     onSendMessage: () -> Unit,
@@ -407,14 +420,15 @@ fun ConversationCardPreviewHelper(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(Icons.Filled.Forum, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
-                    Text("Conversación", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(stringResource(R.string.title_conversation), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
                 if (hasConversation && messages.isNotEmpty()) {
                     Badge(
                         containerColor = Color.White.copy(alpha = 0.2f),
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     ){
-                        Text("${messages.size} mensajes", style = MaterialTheme.typography.labelSmall)
+                        // Usamos stringResource con formato para el contador
+                        Text(stringResource(R.string.badge_messages_count, messages.size), style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
@@ -435,9 +449,9 @@ fun ConversationCardPreviewHelper(
                         Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)){
-                        Text("Aún no hay conversación", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.empty_conversation_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         Text(
-                            text = "Inicia una conversación con el técnico asignado para resolver tu problema más rápido",
+                            text = stringResource(R.string.empty_conversation_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
@@ -452,7 +466,7 @@ fun ConversationCardPreviewHelper(
                     ) {
                         Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Iniciar conversación con $assigneeName", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.btn_start_conversation, assigneeName), fontWeight = FontWeight.SemiBold)
                     }
                 }
             } else {
@@ -466,7 +480,7 @@ fun ConversationCardPreviewHelper(
                             .padding(24.dp)
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            messages.forEachIndexed { index, msg -> // Usar forEachIndexed para key
+                            messages.forEachIndexed { index, msg ->
                                 MessageBubblePreviewHelper(message = msg, key = index)
                             }
                         }
@@ -484,7 +498,7 @@ fun ConversationCardPreviewHelper(
                             value = newMessage,
                             onValueChange = onNewMessageChange,
                             modifier = Modifier.weight(1f),
-                            placeholder = { Text("Escribe un mensaje...") },
+                            placeholder = { Text(stringResource(R.string.placeholder_chat_input)) },
                             shape = RoundedCornerShape(24.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -508,7 +522,7 @@ fun ConversationCardPreviewHelper(
                                 disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                             )
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enviar")
+                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.cd_send_message))
                         }
                     }
                 }
@@ -519,7 +533,7 @@ fun ConversationCardPreviewHelper(
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
-fun MessageBubblePreviewHelper(message: Map<String, String>, key: Any) { // Recibe Map y key
+fun MessageBubblePreviewHelper(message: Map<String, String>, key: Any) {
     val isUser = message["sender"] == "user"
     val senderName = message["senderName"] ?: ""
     val text = message["text"] ?: ""
@@ -563,18 +577,26 @@ fun MessageBubblePreviewHelper(message: Map<String, String>, key: Any) { // Reci
     }
 }
 
-// --- Componentes Helper StatusChip y PriorityBadge (Usan Strings) ---
 @Composable
 fun StatusChipPreviewHelper(status: String, customColors: CustomColors, size: String = "small") {
     val textStyle = if (size == "large") MaterialTheme.typography.bodySmall else MaterialTheme.typography.labelSmall
     val paddingValues = if (size == "large") PaddingValues(horizontal = 10.dp, vertical = 5.dp) else PaddingValues(horizontal = 8.dp, vertical = 4.dp)
     val iconSize = if (size == "large") 16.dp else 14.dp
 
+    // Mapeo para visualización (traducción)
+    val displayStatus = when (status.lowercase()) {
+        "abierto" -> stringResource(R.string.card_open)
+        "en progreso", "en_progreso" -> stringResource(R.string.card_in_progress)
+        "cerrado" -> stringResource(R.string.card_closed)
+        "resuelto" -> "Resuelto"
+        else -> status
+    }
+
     val (bgColor, contentColor, icon) = when (status.lowercase()) {
         "abierto" -> Triple(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.primary, null)
-        "en progreso", "en-progreso" -> Triple(customColors.warningContainer, customColors.warning, Icons.Default.Schedule)
+        "en progreso", "en_progreso" -> Triple(customColors.warningContainer, customColors.warning, Icons.Default.Schedule)
         "cerrado" -> Triple(customColors.successContainer, customColors.success, Icons.Default.CheckCircleOutline)
-        else -> Triple(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant, null) // Default
+        else -> Triple(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant, null)
     }
 
     Row(
@@ -588,7 +610,7 @@ fun StatusChipPreviewHelper(status: String, customColors: CustomColors, size: St
         icon?.let {
             Icon(imageVector = it, contentDescription = null, tint = contentColor, modifier = Modifier.size(iconSize))
         }
-        Text(text = status, color = contentColor, style = textStyle, fontWeight = FontWeight.Medium)
+        Text(text = displayStatus, color = contentColor, style = textStyle, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -598,11 +620,19 @@ fun PriorityBadgePreviewHelper(priority: String, customColors: CustomColors, siz
     val paddingValues = if (size == "large") PaddingValues(horizontal = 8.dp, vertical = 4.dp) else PaddingValues(horizontal = 6.dp, vertical = 3.dp)
     val iconSize = if (size == "large") 16.dp else 14.dp
 
+    // Mapeo para visualización (traducción)
+    val displayPriority = when (priority.lowercase()) {
+        "alta" -> stringResource(R.string.prio_high)
+        "media" -> stringResource(R.string.prio_medium)
+        "baja" -> stringResource(R.string.prio_low)
+        else -> priority
+    }
+
     val (bgColor, contentColor, icon) = when (priority.lowercase()) {
         "alta" -> Triple(MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.error, Icons.Default.ErrorOutline)
         "media" -> Triple(customColors.warningContainer, customColors.warning, Icons.Default.WarningAmber)
         "baja" -> Triple(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.secondary, Icons.Default.KeyboardArrowDown)
-        else -> Triple(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant, null) // Default
+        else -> Triple(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant, null)
     }
 
     Row(
@@ -616,7 +646,7 @@ fun PriorityBadgePreviewHelper(priority: String, customColors: CustomColors, siz
         icon?.let {
             Icon(imageVector = it, contentDescription = null, tint = contentColor, modifier = Modifier.size(iconSize))
         }
-        Text(text = priority, color = contentColor, style = textStyle, fontWeight = FontWeight.Medium)
+        Text(text = displayPriority, color = contentColor, style = textStyle, fontWeight = FontWeight.Medium)
     }
 }
 

@@ -26,11 +26,9 @@ class TicketViewModel : ViewModel() {
 
     private val repository = TicketRepository()
 
-    // Estado de la UI
     private val _uiState = MutableStateFlow<TicketUiState>(TicketUiState.Initial)
     val uiState: StateFlow<TicketUiState> = _uiState.asStateFlow()
 
-    // Ticket individual (para detalle)
     private val _currentTicket = MutableStateFlow<Ticket?>(null)
     val currentTicket: StateFlow<Ticket?> = _currentTicket.asStateFlow()
 

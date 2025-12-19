@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -55,11 +56,9 @@ fun RegisterScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-
     val scope = rememberCoroutineScope()
     val authRepo = remember { AuthRepository() }
 
-    // --- Estado del Formulario ---
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -67,54 +66,44 @@ fun RegisterScreen(
     var showPassword by remember { mutableStateOf(false) }
     var acceptTerms by remember { mutableStateOf(false) }
 
-    // --- Flag para mostrar/ocultar los botones extra (Microsoft y Apple) ---
     val showExtraProviders = false
 
-    // Estado para Errores ---
     var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
-    // Validación en tiempo real ---
     val isEmailValid by remember {
         derivedStateOf {
-            // El email es válido si está vacío O si cumple el patrón
             email.isBlank() || Patterns.EMAIL_ADDRESS.matcher(email).matches()
         }
     }
     val doPasswordsMatch by remember {
         derivedStateOf {
-            // Las contraseñas coinciden si la confirmación está vacía O si son iguales
             confirmPassword.isBlank() || password == confirmPassword
         }
     }
 
-    // Función de Validación Completa ---
     val validateRegisterForm: () -> Boolean = {
         val newErrors = mutableMapOf<String, String>()
-        // Nombre
+
         if (name.isBlank()) {
-            newErrors["name"] = "El nombre es requerido"
+            newErrors["name"] = context.getString(R.string.alert_name_required)
         }
-        // Email
         if (email.isBlank()) {
-            newErrors["email"] = "El correo es requerido"
+            newErrors["email"] = context.getString(R.string.alert_email_required)
         } else if (!isEmailValid) {
-            newErrors["email"] = "Formato de correo inválido"
+            newErrors["email"] = context.getString(R.string.alert_email_invalid)
         }
-        // Contraseña
         if (password.isBlank()) {
-            newErrors["password"] = "La contraseña es requerida"
+            newErrors["password"] = context.getString(R.string.alert_password_required)
         } else if (password.length < 6) {
-            newErrors["password"] = "La contraseña debe tener al menos 6 caracteres"
+            newErrors["password"] = context.getString(R.string.alert_password_length)
         }
-        // Confirmar Contraseña
         if (confirmPassword.isBlank()) {
-            newErrors["confirmPassword"] = "Confirma la contraseña"
+            newErrors["confirmPassword"] = context.getString(R.string.alert_confirm_password_required)
         } else if (!doPasswordsMatch) {
-            newErrors["confirmPassword"] = "Las contraseñas no coinciden"
+            newErrors["confirmPassword"] = context.getString(R.string.alert_passwords_match)
         }
-        // Términos
         if (!acceptTerms) {
-            newErrors["acceptTerms"] = "Debes aceptar los términos"
+            newErrors["acceptTerms"] = context.getString(R.string.alert_terms_required)
         }
 
         errors = newErrors
@@ -129,7 +118,6 @@ fun RegisterScreen(
         GoogleSignIn.getClient(context, gso)
     }
 
-    // Lanzador de Google
     val googleLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -141,7 +129,6 @@ fun RegisterScreen(
                 val credential = GoogleAuthProvider.getCredential(idToken, null)
 
                 scope.launch {
-                    // Esto crea el usuario en Firestore si no existe
                     val authResult = authRepo.signInWithCredential(credential)
                     if (authResult.isSuccess) {
                         navController.navigate("/dashboard") {
@@ -149,29 +136,29 @@ fun RegisterScreen(
                             launchSingleTop = true
                         }
                     } else {
-                        Toast.makeText(context, "Error al registrar con Google", Toast.LENGTH_SHORT).show()
+                        val errorMsg = context.getString(R.string.error_google_register)
+                        Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
         } catch (e: ApiException) {
-            Toast.makeText(context, "Google Register falló: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+            val errorMsg = context.getString(R.string.error_google_register_failed, e.statusCode)
+            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
         }
     }
 
-    // Lógica de Registro con Validación ---
     val handleRegister = {
-        if (validateRegisterForm()) { // Llama a la validación
+        if (validateRegisterForm()) {
             scope.launch {
                 val result = authRepo.registerUser(name, email, password)
-                // ¡Éxito! Navega al Dashboard
                 if (result.isSuccess) {
                     navController.navigate("/dashboard") {
                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
                         launchSingleTop = true
                     }
                 } else {
-                    // Muestra el error de Firebase (ej. "email ya en uso")
-                    errors = errors + ("email" to (result.exceptionOrNull()?.message ?: "Error desconocido"))
+                    val errorMsg = context.getString(R.string.error_unknown)
+                    errors = errors + ("email" to (result.exceptionOrNull()?.message ?: errorMsg))
                 }
             }
         }
@@ -184,10 +171,8 @@ fun RegisterScreen(
                     googleLauncher.launch(googleSignInClient.signInIntent)
                 }
             }
-//            "Microsoft" -> {
-//            }
-//            "Apple" -> {
-//            }
+//            "Microsoft" -> { }
+//            "Apple" -> { }
         }
     }
 
@@ -202,13 +187,12 @@ fun RegisterScreen(
                 .padding(bottom = innerPadding.calculateBottomPadding())
                 .verticalScroll(rememberScrollState())
         ) {
-            // --- Header Simple ---
             Column(
             modifier = Modifier
             .fillMaxWidth()
             .background(
-            color = MaterialTheme.colorScheme.primary,
-            shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
             )
             .statusBarsPadding()
             .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp)
@@ -219,96 +203,105 @@ fun RegisterScreen(
                         .padding(bottom = 16.dp)
                         .offset(x = (-8).dp)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.cd_return_icon),
+                        tint = Color.White
+                    )
                 }
-                Text("Crear cuenta", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(bottom = 8.dp))
-                Text("Únete a TechHelpDesk hoy", style = MaterialTheme.typography.bodyLarge, color = Color.White.copy(alpha = 0.8f))
+                Text(
+                    stringResource(R.string.register_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    stringResource(R.string.register_subtitle),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White.copy(alpha = 0.8f)
+                )
             }
 
-            // --- Formulario y Contenido ---
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // Name
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it; errors = errors - "name" }, // Limpia error
+                    onValueChange = { name = it; errors = errors - "name" },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Nombre completo *") },
-                    placeholder = { Text("María López") },
-                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                    label = { Text(stringResource(R.string.label_name_input)) },
+                    placeholder = { Text(stringResource(R.string.placeholder_name_input)) },
+                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = stringResource(R.string.cd_person_icon)) },
                     singleLine = true,
-                    isError = errors.containsKey("name"), // Muestra error
-                    supportingText = { FormFieldErrorText(error = errors["name"]) } // Muestra mensaje
+                    isError = errors.containsKey("name"),
+                    supportingText = { FormFieldErrorText(error = errors["name"]) }
                 )
 
-                // Email
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it; errors = errors - "email" }, // Limpia error
+                    onValueChange = { email = it; errors = errors - "email" },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Correo electrónico *") },
-                    placeholder = { Text("tu@email.com") },
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                    label = { Text(stringResource(R.string.label_email_input)) },
+                    placeholder = { Text(stringResource(R.string.placeholder_email_input)) },
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = stringResource(R.string.icon_email_input)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     singleLine = true,
-                    // Error si está en el map O si el formato en tiempo real es inválido
                     isError = errors.containsKey("email") || !isEmailValid,
                     supportingText = {
-                        val realTimeError = if (!isEmailValid) "Formato de correo inválido" else null
+                        val realTimeError = if (!isEmailValid) stringResource(R.string.alert_email_invalid) else null
                         FormFieldErrorText(error = errors["email"] ?: realTimeError)
                     }
                 )
 
-                // Password
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it; errors = errors - "password" }, // Limpia error
+                    onValueChange = { password = it; errors = errors - "password" },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Contraseña *") },
-                    placeholder = { Text("••••••••") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                    label = { Text(stringResource(R.string.label_password_input)) },
+                    placeholder = { Text(stringResource(R.string.placeholder_password_input)) },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = stringResource(R.string.icon_password_input)) },
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     trailingIcon = {
                         IconButton(onClick = { showPassword = !showPassword }) {
                             Icon(
                                 imageVector = if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                contentDescription = if (showPassword) "Ocultar" else "Mostrar"
+                                contentDescription = if (showPassword) stringResource(R.string.cd_hide_password) else stringResource(R.string.cd_show_password)
                             )
                         }
                     },
                     singleLine = true,
                     isError = errors.containsKey("password"),
                     supportingText = {
-                        FormFieldErrorText(error = errors["password"], defaultText = "Mínimo 6 caracteres")
+                        FormFieldErrorText(
+                            error = errors["password"],
+                            defaultText = stringResource(R.string.helper_password_min_length)
+                        )
                     }
                 )
 
-                // Confirm Password
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it; errors = errors - "confirmPassword" },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Confirmar contraseña *") },
-                    placeholder = { Text("••••••••") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                    label = { Text(stringResource(R.string.label_confirm_password_input)) },
+                    placeholder = { Text(stringResource(R.string.placeholder_password_input)) },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription =  stringResource(R.string.icon_password_input)) },
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true,
-                    // Error si está en el map O si no coincide en tiempo real
                     isError = errors.containsKey("confirmPassword") || !doPasswordsMatch,
                     supportingText = {
-                        val realTimeError = if (!doPasswordsMatch) "Las contraseñas no coinciden" else null
+                        val realTimeError = if (!doPasswordsMatch) stringResource(R.string.alert_passwords_match) else null
                         FormFieldErrorText(error = errors["confirmPassword"] ?: realTimeError)
                     }
                 )
 
-                // Accept Terms
-                Column { // Envolvemos en Column para poner el error debajo
+                Column {
                     Row(
                         verticalAlignment = Alignment.Top,
                         modifier = Modifier.fillMaxWidth()
@@ -321,22 +314,19 @@ fun RegisterScreen(
                         Spacer(Modifier.width(8.dp))
                         AcceptTermsText()
                     }
-                    // Mostrar error de términos
                     FormFieldErrorText(error = errors["acceptTerms"], modifier = Modifier.padding(start = 16.dp))
                 }
 
-                // Register Button
                 MobileButton(
-                    onClick = handleRegister, // Llama a la función con validación
+                    onClick = handleRegister,
                     variant = MobileButtonVariant.FILLED,
                     fullWidth = true,
-                    enabled = true, // El botón siempre está habilitado, la validación se encarga
+                    enabled = true,
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
-                    Text("Crear cuenta")
+                    Text(stringResource(R.string.btn_create_account))
                 }
 
-                // Divider
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -349,7 +339,12 @@ fun RegisterScreen(
                         thickness = DividerDefaults.Thickness,
                         color = MaterialTheme.colorScheme.outline
                     )
-                    Text("O regístrate con", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        stringResource(R.string.divider_register_with),
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     HorizontalDivider(
                         modifier = Modifier.weight(1f),
                         thickness = DividerDefaults.Thickness,
@@ -357,27 +352,28 @@ fun RegisterScreen(
                     )
                 }
 
-                // Social Register Buttons
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // Google
                     Button(
                         onClick = { handleSocialRegister("Google") },
-                        modifier = Modifier.fillMaxWidth().height(56.dp), // h-14
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface) // bg-white
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_logo_google),
-                            contentDescription = "Google Logo",
+                            contentDescription = stringResource(R.string.cd_google_logo),
                             tint = Color.Unspecified,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.width(12.dp))
-                        Text("Continuar con Google", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            stringResource(R.string.btn_continue_google),
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     if(showExtraProviders) {
-                        // Microsoft
                         Button(
                             onClick = { handleSocialRegister("Microsoft") },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -386,14 +382,14 @@ fun RegisterScreen(
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_logo_windows),
-                                contentDescription = "Microsoft Logo",
+                                contentDescription = stringResource(R.string.cd_microsoft_logo),
                                 tint = Color.Unspecified,
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(Modifier.width(12.dp))
-                            Text("Continuar con Microsoft", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                            Text(stringResource(R.string.btn_continue_microsoft), fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                         }
-                        // Apple
+
                         Button(
                             onClick = { handleSocialRegister("Apple") },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -402,17 +398,16 @@ fun RegisterScreen(
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_logo_apple),
-                                contentDescription = "Apple Logo",
+                                contentDescription = stringResource(R.string.cd_apple_logo),
                                 tint = Color.Unspecified,
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(Modifier.width(12.dp))
-                            Text("Continuar con Apple", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                            Text(stringResource(R.string.btn_continue_apple), fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
 
-                // Login Link
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -420,25 +415,23 @@ fun RegisterScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ){
-                    Text("¿Ya tienes una cuenta? ", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.text_has_account_question), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     TextButton(onClick = { navController.navigate("/login") }) {
-                        Text("Inicia sesión")
+                        Text(stringResource(R.string.btn_login_link))
                     }
                 }
-            } // Fin Column principal del formulario
-        } // Fin Column scrollable
-    } // Fin Scaffold
+            }
+        }
+    }
 }
 
 @Composable
 fun FormFieldErrorText(error: String?, modifier: Modifier = Modifier, defaultText: String? = null) {
     val errorColor = MaterialTheme.colorScheme.error
-    // Usamos un Box con altura mínima para reservar espacio y evitar saltos
     Box(modifier = modifier.heightIn(min = 16.dp)) {
         val textToShow = error ?: defaultText
         if (textToShow != null) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Muestra el icono solo si es un error real
                 if (error != null) {
                     Icon(
                         Icons.Filled.Error,
@@ -450,7 +443,6 @@ fun FormFieldErrorText(error: String?, modifier: Modifier = Modifier, defaultTex
                 }
                 Text(
                     text = textToShow,
-                    // Color de error si hay error, si no, color de texto de ayuda normal
                     color = if (error != null) errorColor else MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -459,44 +451,44 @@ fun FormFieldErrorText(error: String?, modifier: Modifier = Modifier, defaultTex
     }
 }
 
-// Helper Composable para el texto de Términos y Condiciones (CORREGIDO)
 @OptIn(ExperimentalTextApi::class)
 @Composable
 fun AcceptTermsText(modifier: Modifier = Modifier) {
     val uriHandler = LocalUriHandler.current
+
+    val part1 = stringResource(R.string.terms_text_accept)
+    val part2Link = stringResource(R.string.terms_text_link_terms)
+    val part3 = stringResource(R.string.terms_text_and)
+    val part4Link = stringResource(R.string.terms_text_link_privacy)
+
     val annotatedString = buildAnnotatedString {
-        append("Acepto los ")
+        append(part1)
 
         pushLink(LinkAnnotation.Clickable(
             tag = "terms",
-            linkInteractionListener = {
-                println("Clicked Terms")
-            }
+            linkInteractionListener = { println("Clicked Terms") }
         ))
         withStyle(style = SpanStyle(
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Medium,
             textDecoration = TextDecoration.Underline)
         ) {
-            append("términos y condiciones")
+            append(part2Link)
         }
         pop()
 
-        append(" y la ")
+        append(part3)
 
         pushLink(LinkAnnotation.Clickable(
             tag = "privacy",
-            linkInteractionListener = {
-                println("Clicked Privacy")
-                // uriHandler.openUri("https://example.com/privacy") // URL real
-            }
+            linkInteractionListener = { println("Clicked Privacy") }
         ))
         withStyle(style = SpanStyle(
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Medium,
             textDecoration = TextDecoration.Underline)
         ) {
-            append("política de privacidad")
+            append(part4Link)
         }
         pop()
     }
@@ -510,7 +502,7 @@ fun AcceptTermsText(modifier: Modifier = Modifier) {
         )
     )
 }
-// --- Preview ---
+
 @Preview(showBackground = true)
 @Composable
 fun RegisterScreenPreview() {

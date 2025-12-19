@@ -18,42 +18,49 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import dev.boni.techhelpdesk.data.local.LanguagePreferences
+import dev.boni.techhelpdesk.data.local.ThemePreferences
+import dev.boni.techhelpdesk.utils.LocaleHelper
 import dev.boni.techhelpdesk.ui.screens.ConversationsScreen
-import dev.boni.techhelpdesk.ui.screens.CreateTicketScreen
+import dev.boni.techhelpdesk.ui.screens.tickets.create.CreateTicketScreen
 import dev.boni.techhelpdesk.ui.screens.DashboardScreen
-import dev.boni.techhelpdesk.ui.screens.LoginScreen
-import dev.boni.techhelpdesk.ui.screens.RegisterScreen
 import dev.boni.techhelpdesk.ui.screens.ForgotPasswordScreen
+import dev.boni.techhelpdesk.ui.screens.LoginScreen
 import dev.boni.techhelpdesk.ui.screens.NewConversationScreen
 import dev.boni.techhelpdesk.ui.screens.NotificationsScreen
 import dev.boni.techhelpdesk.ui.screens.ProfileScreen
+import dev.boni.techhelpdesk.ui.screens.RegisterScreen
 import dev.boni.techhelpdesk.ui.screens.SplashScreen
+import dev.boni.techhelpdesk.ui.screens.conversation.ConversationDetailScreen
 import dev.boni.techhelpdesk.ui.screens.knowledge.KnowledgeBaseScreen
 import dev.boni.techhelpdesk.ui.screens.knowledge.id.KnowledgeArticleScreen
-import dev.boni.techhelpdesk.ui.screens.conversation.ConversationDetailScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.TicketsScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.id.TicketDetailScreen
 import dev.boni.techhelpdesk.ui.screens.viewmodels.DashboardViewModel
 import dev.boni.techhelpdesk.ui.screens.viewmodels.ProfileViewModel
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
-import androidx.fragment.app.FragmentActivity
-import dev.boni.techhelpdesk.data.local.ThemePreferences
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-
         super.onCreate(savedInstanceState)
+
+        val languagePrefs = LanguagePreferences(this)
+        val savedLanguage = languagePrefs.getLanguage()
+        LocaleHelper.setLocale(this, savedLanguage)
+
         enableEdgeToEdge()
         setContent {
-            // Cargar el tema guardado
             val themePrefs = remember { ThemePreferences(this) }
             var themeSetting by remember { mutableStateOf(themePrefs.getTheme()) }
+
+            var languageSetting by remember { mutableStateOf(savedLanguage) }
 
             TechHelpDeskTheme(themeSetting = themeSetting) {
                 val navController = rememberNavController()
@@ -75,7 +82,6 @@ class MainActivity : FragmentActivity() {
                         }
 
                         composable(route = "/dashboard") {
-                            // DashboardScreen maneja su propio padding superior
                             DashboardScreen(navController = navController, viewModel = DashboardViewModel())
                         }
 
@@ -91,28 +97,24 @@ class MainActivity : FragmentActivity() {
                             RegisterScreen(navController = navController)
                         }
 
+                        // --- RUTAS DE TICKETS ---
                         composable(
                             route = "/tickets?status={status}",
-                            // 2. Definimos el argumento 'status'
                             arguments = listOf(
                                 navArgument("status") {
-                                    type = NavType.StringType // Es un texto
-                                    nullable = true        // Puede ser nulo (si no se pasa filtro)
-                                    defaultValue = null      // Valor por defecto si no se pasa
+                                    type = NavType.StringType
+                                    nullable = true
+                                    defaultValue = null
                                 }
                             )
-                        ) { backStackEntry -> // 'backStackEntry' contiene los argumentos
-                            // 3. Leemos el argumento 'status' que llegó
+                        ) { backStackEntry ->
                             val initialStatus = backStackEntry.arguments?.getString("status")
-
-                            // 4. Llamamos a TicketsScreen pasándole el filtro inicial
                             TicketsScreen(
                                 navController = navController,
                                 initialFilterStatus = initialStatus
                             )
                         }
                         composable(
-                            // La ruta base es diferente para evitar conflictos con /tickets?status
                             route = "/ticket/detail/{ticketId}",
                             arguments = listOf(
                                 navArgument("ticketId") {
@@ -121,45 +123,43 @@ class MainActivity : FragmentActivity() {
                             )
                         ) { backStackEntry ->
                             val ticketId = backStackEntry.arguments?.getString("ticketId") ?: "ID_INVALIDO"
-
-                            TicketDetailScreen(
-                                navController = navController,
-                                ticketId = ticketId
-                            )
+                            TicketDetailScreen(navController = navController, ticketId = ticketId)
                         }
                         composable(route = "/ticket/create") {
-                            CreateTicketScreen(
-                                navController = navController,
-                            )
+                            CreateTicketScreen(navController = navController)
                         }
 
+                        // --- RUTAS DE CONOCIMIENTO ---
                         composable(route = "/knowledge") {
                             KnowledgeBaseScreen(navController = navController)
                         }
                         composable(
                             route = "/knowledge/article/{articleId}",
                             arguments = listOf(
-                                navArgument("articleId") {
-                                    type = NavType.StringType
-                                }
+                                navArgument("articleId") { type = NavType.StringType }
                             )
                         ) { backStackEntry ->
                             val articleId = backStackEntry.arguments?.getString("articleId") ?: "ID_INVALIDO"
-
-                            KnowledgeArticleScreen(
-                                navController = navController,
-                                articleId = articleId,
-                            )
+                            KnowledgeArticleScreen(navController = navController, articleId = articleId)
                         }
 
                         composable(route = "/profile") {
                             ProfileScreen(
                                 navController = navController,
-                                currentTheme = themeSetting,
                                 viewModel = ProfileViewModel(),
+                                // TEMA
+                                currentTheme = themeSetting,
                                 onThemeChange = { newTheme ->
                                     themeSetting = newTheme
                                     themePrefs.setTheme(newTheme)
+                                },
+                                // IDIOMA
+                                currentLanguage = languageSetting,
+                                onLanguageChange = { newLang ->
+                                    languageSetting = newLang
+                                    languagePrefs.setLanguage(newLang)
+                                    LocaleHelper.setLocale(this@MainActivity, newLang)
+                                    recreate()
                                 }
                             )
                         }
@@ -168,6 +168,7 @@ class MainActivity : FragmentActivity() {
                             NotificationsScreen(navController = navController)
                         }
 
+                        // --- RUTAS DE CHAT ---
                         composable(route = "/conversation") {
                             ConversationsScreen(navController = navController)
                         }
@@ -175,22 +176,13 @@ class MainActivity : FragmentActivity() {
                             NewConversationScreen(navController = navController)
                         }
                         composable(
-                            // La ruta debe coincidir con la llamada: "/conversation/detail/{ID}"
                             route = "/conversation/detail/{chatId}",
                             arguments = listOf(
-                                navArgument("chatId") {
-                                    type = NavType.StringType // Es un texto
-                                }
+                                navArgument("chatId") { type = NavType.StringType }
                             )
                         ) { backStackEntry ->
-                            // 1. Obtenemos el ID del chat de la ruta
                             val chatId = backStackEntry.arguments?.getString("chatId") ?: "ID_INVALIDO"
-
-                            // 2. Llamamos a la pantalla de detalle del chat
-                            ConversationDetailScreen(
-                                navController = navController,
-                                chatId = chatId
-                            )
+                            ConversationDetailScreen(navController = navController, chatId = chatId)
                         }
                     }
                 }
@@ -200,7 +192,7 @@ class MainActivity : FragmentActivity() {
 }
 
 /**
- * Un Composable temporal para rellenar las pantallas que aún no has creado.
+ * Placeholder temporal
  */
 @Composable
 fun PlaceholderScreen(text: String, modifier: Modifier = Modifier) {

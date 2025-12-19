@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -25,13 +26,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import dev.boni.techhelpdesk.R
 import dev.boni.techhelpdesk.ui.components.BottomNavigation
 import dev.boni.techhelpdesk.ui.screens.viewmodels.ProfileViewModel
 import dev.boni.techhelpdesk.ui.theme.LightCustomColors
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 
-// --- Pantalla de Perfil ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -40,27 +41,27 @@ fun ProfileScreen(
     viewModel: ProfileViewModel,
     currentTheme: String,
     onThemeChange: (String) -> Unit,
+    currentLanguage: String,
+    onLanguageChange: (String) -> Unit
 ) {
     val context = LocalContext.current
 
-    // --- Estado ---
+    val uiState by viewModel.uiState.collectAsState()
+
+
     var biometricEnabled by remember { mutableStateOf(true) }
     var notificationsEnabled by remember { mutableStateOf(true) }
-    var selectedLanguage by remember { mutableStateOf("es") }
-    var selectedTheme by remember { mutableStateOf("system") }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
-    // --- Lógica ---
     val handleLogout = {
         showLogoutDialog = true
     }
 
-    // --- Diálogo de Confirmación de Logout ---
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Cerrar sesión") },
-            text = { Text("¿Estás seguro de que deseas cerrar sesión?") },
+            title = { Text(stringResource(R.string.profile_title_logout)) },
+            text = { Text(stringResource(R.string.dialog_logout_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -77,12 +78,12 @@ fun ProfileScreen(
 
                     }
                 ) {
-                    Text("Cerrar sesión", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.profile_title_logout), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.btn_cancel))
                 }
             }
         )
@@ -92,9 +93,9 @@ fun ProfileScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             ProfileHeader(
-                name = "Luis Rodríguez",
-                email = "luis.rodriguez@empresa.com",
-                role = "Usuario estándar",
+                name = uiState.name,
+                email = uiState.email,
+                role = uiState.role,
                 onEditClick = { /* Lógica para editar perfil */ }
             )
         },
@@ -117,71 +118,76 @@ fun ProfileScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // --- Item 1: Notificaciones ---
             item {
                 SettingsClickableItem(
-                    label = "Notificaciones",
-                    subtext = "Ver todas las notificaciones",
+                    label = stringResource(R.string.profile_title_notifications),
+                    subtext = stringResource(R.string.profile_subtext_notifications),
                     icon = Icons.Default.Notifications,
                     badgeCount = 3,
                     onClick = { navController.navigate("/notifications") }
                 )
             }
 
-            // Conocimiento (Preguntas frecuentes)
             item {
                 SettingsClickableItem(
-                    label = "Conocimiento",
-                    subtext = "Ver preguntas frecuentes",
+                    label = stringResource(R.string.profile_title_knowledge),
+                    subtext = stringResource(R.string.profile_subtext_knowledge),
                     icon = Icons.AutoMirrored.Filled.LibraryBooks,
                     onClick = { navController.navigate("/knowledge") }
                 )
             }
 
-            // --- Item 2: Idioma (Dropdown) ---
             item {
-                val languageOptions = mapOf("es" to "Español", "en" to "English", "pt" to "Português")
+                val languageOptions = mapOf(
+                    "system" to stringResource(R.string.option_lang_system),
+                    "es" to stringResource(R.string.option_lang_es),
+                    "en" to stringResource(R.string.option_lang_en)
+                )
+
                 SettingsDropdownItem(
-                    label = "Idioma",
+                    label = stringResource(R.string.profile_title_language),
                     icon = Icons.Default.Language,
                     options = languageOptions,
-                    selectedKey = selectedLanguage,
-                    onSelectionChange = { selectedLanguage = it }
+                    selectedKey = currentLanguage,
+                    onSelectionChange = onLanguageChange
                 )
             }
 
-            // --- Item 3: Biométrico (Toggle) ---
             item {
                 SettingsToggleItem(
-                    label = "Inicio biométrico",
-                    subtext = "Usar huella digital para acceder",
+                    label = stringResource(R.string.profile_title_biometric),
+                    subtext = stringResource(R.string.profile_subtext_biometric),
                     icon = Icons.Default.Fingerprint,
                     checked = biometricEnabled,
                     onCheckedChange = { biometricEnabled = it }
                 )
             }
 
-            // --- Item 4: Notificaciones Push (Toggle) ---
             item {
                 SettingsToggleItem(
-                    label = "Notificaciones push",
-                    subtext = "Recibir alertas y actualizaciones",
+                    label = stringResource(R.string.profile_title_push),
+                    subtext = stringResource(R.string.profile_subtext_push),
                     icon = Icons.Default.NotificationsActive,
                     checked = notificationsEnabled,
                     onCheckedChange = { notificationsEnabled = it }
                 )
             }
 
-            // --- Item 5: Tema Oscuro (Dropdown - CAMBIO) ---
             item {
-                val themeOptions = mapOf("system" to "Sistema", "light" to "Claro", "dark" to "Oscuro")
+                val themeOptions = mapOf(
+                    "system" to stringResource(R.string.option_theme_system),
+                    "light" to stringResource(R.string.option_theme_light),
+                    "dark" to stringResource(R.string.option_theme_dark)
+                )
+
                 val themeIcon = when(currentTheme) {
                     "light" -> Icons.Default.LightMode
                     "dark" -> Icons.Default.DarkMode
-                    else -> Icons.Default.SettingsBrightness // "system"
+                    else -> Icons.Default.SettingsBrightness
                 }
+
                 SettingsDropdownItem(
-                    label = "Tema oscuro",
+                    label = stringResource(R.string.profile_title_theme),
                     icon = themeIcon,
                     options = themeOptions,
                     selectedKey = currentTheme,
@@ -189,30 +195,26 @@ fun ProfileScreen(
                 )
             }
 
-            // --- Item 6: Política de Privacidad ---
             item {
                 SettingsClickableItem(
-                    label = "Política de privacidad",
+                    label = stringResource(R.string.profile_title_privacy),
                     icon = Icons.Default.PrivacyTip,
                     onClick = { /* Navegar a Política de Privacidad */ }
                 )
             }
 
-            // --- Item 7: Cerrar Sesión ---
             item {
                 SettingsClickableItem(
-                    label = "Cerrar sesión",
+                    label = stringResource(R.string.profile_title_logout),
                     icon = Icons.AutoMirrored.Filled.ExitToApp,
                     color = MaterialTheme.colorScheme.error,
                     onClick = handleLogout
                 )
             }
-        } // Fin LazyColumn
-    } // Fin Scaffold
+        }
+    }
 }
 
-
-// --- Componentes Helper para la UI de Perfil (en el mismo archivo) ---
 
 @Composable
 fun ProfileHeader(
@@ -243,7 +245,7 @@ fun ProfileHeader(
             ) {
                 Icon(
                     Icons.Filled.Person,
-                    contentDescription = "Avatar",
+                    contentDescription = stringResource(R.string.cd_avatar_image),
                     tint = Color.White,
                     modifier = Modifier.size(56.dp)
                 )
@@ -259,7 +261,7 @@ fun ProfileHeader(
                     contentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
-                Icon(Icons.Filled.Edit, contentDescription = "Editar perfil", modifier = Modifier.size(16.dp))
+                Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.cd_edit_profile), modifier = Modifier.size(16.dp))
             }
         }
         Spacer(Modifier.height(16.dp))
@@ -282,7 +284,7 @@ fun ProfileHeader(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class) // Para BadgedBox
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsClickableItem(
     label: String,
@@ -344,7 +346,7 @@ fun SettingsClickableItem(
             }
             Icon(
                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.cd_arrow_right_icon),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -405,7 +407,7 @@ fun SettingsToggleItem(
 fun SettingsDropdownItem(
     label: String,
     icon: ImageVector,
-    options: Map<String, String>, // <Key, Label>
+    options: Map<String, String>,
     selectedKey: String,
     onSelectionChange: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -479,24 +481,24 @@ fun SettingsDropdownItem(
     }
 }
 
-
-// --- Preview ---
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {
     TechHelpDeskTheme {
         CompositionLocalProvider(LocalCustomColors provides LightCustomColors) {
             val navController = rememberNavController()
-
-            // ViewModel falso ---
             val previewViewModel: ProfileViewModel = viewModel()
+
             var previewTheme by remember { mutableStateOf("system") }
+            var previewLang by remember { mutableStateOf("es") }
 
             ProfileScreen(
                 navController = navController,
-                viewModel = previewViewModel, // <-- Pasa el ViewModel
+                viewModel = previewViewModel,
                 currentTheme = previewTheme,
-                onThemeChange = { previewTheme = it }
+                onThemeChange = { previewTheme = it },
+                currentLanguage = previewLang,
+                onLanguageChange = { previewLang = it }
             )
         }
     }

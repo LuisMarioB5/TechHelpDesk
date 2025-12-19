@@ -8,7 +8,7 @@ import androidx.fragment.app.FragmentActivity
 
 /**
  * Verifica si el dispositivo tiene hardware biométrico y si el usuario ha registrado una huella.
- * Retorna TRUE solo si todo está listo para usarse.
+ * Retorna TRUE solo si el dispositivo está listo para usarse.
  */
 fun checkBiometricAvailability(context: Context): Boolean {
     val biometricManager = BiometricManager.from(context)
