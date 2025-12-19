@@ -16,8 +16,8 @@
     <string name="action_view_all_desc">Gestiona tus solicitudes</string>
     <string name="action_knowledge_title">Base de conocimiento</string>
     <string name="action_knowledge_desc">Encuentra respuestas rápidas</string>
-    <string name="action_chat_title">Chat de soporte</string>
-    <string name="action_chat_desc">Habla con un técnico</string>
+    <string name="action_chat_title">Chat</string>
+    <string name="action_chat_desc">Habla con otras personas</string>
 
     <string name="cd_profile_button">Ir al perfil</string>
     <string name="cd_new_ticket_icon">Icono agregar ticket</string>
@@ -271,7 +271,9 @@
     <string name="placeholder_chat_input">Escribe un mensaje...</string>
     <string name="cd_send_message">Enviar mensaje</string>
 
-    <string name="btn_mark_resolved">Marcar como resuelto</string>
+    <string name="btn_mark_in_progress">Tomar Ticket</string>
+    <string name="btn_mark_resolved">Marcar como Resuelto</string>
+    <string name="btn_mark_closed">Marcar como Cerrado</string>
     <string name="btn_edit_ticket">Editar ticket</string>
 
     <string name="status_open">Abierto</string>
@@ -284,6 +286,7 @@
     <string name="prio_low">Baja</string>
 
     <string name="title_my_tickets">Mis Tickets</string>
+    <string name="title_technician_panel">Panel de Técnico</string>
     <string name="placeholder_search_tickets">Buscar ticket o categoría</string>
     <string name="cd_filters">Filtros</string>
     <string name="cd_add_ticket">Nuevo Ticket</string>

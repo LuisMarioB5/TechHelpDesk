@@ -17,8 +17,8 @@
     <string name="action_view_all_desc">Manage your requests</string>
     <string name="action_knowledge_title">Knowledge Base</string>
     <string name="action_knowledge_desc">Find quick answers</string>
-    <string name="action_chat_title">Support Chat</string>
-    <string name="action_chat_desc">Talk to a technician</string>
+    <string name="action_chat_title">Chat</string>
+    <string name="action_chat_desc">Talk to other people</string>
 
     <string name="cd_profile_button">Go to profile</string>
     <string name="cd_new_ticket_icon">Add ticket icon</string>
@@ -272,7 +272,9 @@
     <string name="placeholder_chat_input">Type a message...</string>
     <string name="cd_send_message">Send message</string>
 
+    <string name="btn_mark_in_progress">Take Ticket</string>
     <string name="btn_mark_resolved">Mark as Resolved</string>
+    <string name="btn_mark_closed">Mark as Closed</string>
     <string name="btn_edit_ticket">Edit Ticket</string>
 
     <string name="status_open">Open</string>
@@ -285,6 +287,7 @@
     <string name="prio_low">Low</string>
 
     <string name="title_my_tickets">My Tickets</string>
+    <string name="title_technician_panel">Technical Panel</string>
     <string name="placeholder_search_tickets">Search ticket or category</string>
     <string name="cd_filters">Filters</string>
     <string name="cd_add_ticket">New Ticket</string>

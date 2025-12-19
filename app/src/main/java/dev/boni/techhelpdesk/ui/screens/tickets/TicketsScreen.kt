@@ -87,7 +87,6 @@ import dev.boni.techhelpdesk.ui.theme.LightCustomColors
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 
-// --- Pantalla Principal de Tickets ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TicketsScreen(
@@ -105,9 +104,10 @@ fun TicketsScreen(
     var showFilters by remember { mutableStateOf(false) }
 
     val uiState by viewModel.uiState.collectAsState()
+    val isTechnician by viewModel.isTechnician.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.loadUserTickets()
+        viewModel.checkRoleAndLoadTickets()
     }
 
     val allTickets = when (val state = uiState) {
@@ -157,7 +157,7 @@ fun TicketsScreen(
             AppHeader(
                 title = {
                     Text(
-                        text = stringResource(R.string.title_my_tickets),
+                        text = if (isTechnician) stringResource(R.string.title_technician_panel) else stringResource(R.string.title_my_tickets),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary

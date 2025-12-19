@@ -6,6 +6,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObjects
 import com.google.firebase.ktx.Firebase
 import dev.boni.techhelpdesk.data.model.Ticket
+import dev.boni.techhelpdesk.data.model.TicketStatus
 import kotlinx.coroutines.tasks.await
 
 class TicketRepository {
@@ -104,7 +105,8 @@ class TicketRepository {
             if (doc.exists()) {
                 val ticket = doc.toObject(Ticket::class.java)
                     ?: return Result.failure(Exception("Error al convertir ticket"))
-                Result.success(ticket)
+
+                Result.success(ticket.copy(id = doc.id))
             } else {
                 Result.failure(Exception("Ticket no encontrado"))
             }
@@ -117,16 +119,34 @@ class TicketRepository {
     /**
      * Actualiza el estado de un ticket
      */
-    suspend fun updateTicketStatus(ticketId: String, newStatus: String): Result<Unit> {
+    suspend fun updateTicketStatus(ticketId: String, newStatus: TicketStatus): Result<Unit> {
         return try {
             db.collection("tickets")
                 .document(ticketId)
-                .update("status", newStatus)
+                .update("status", newStatus.name)
                 .await()
 
             Result.success(Unit)
         } catch (e: Exception) {
             println("Error en updateTicketStatus: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Obtiene TODOS los tickets (Para el Dashboard del Técnico).
+     */
+    suspend fun getAllTickets(): Result<List<Ticket>> {
+        return try {
+            // Traemos todos, ordenados por fecha
+            val snapshot = db.collection("tickets")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .await()
+
+            val tickets = snapshot.toObjects<Ticket>()
+            Result.success(tickets)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }

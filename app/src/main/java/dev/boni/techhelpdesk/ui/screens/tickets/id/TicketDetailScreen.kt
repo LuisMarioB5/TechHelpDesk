@@ -65,9 +65,8 @@ fun TicketDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: TicketViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    // Datos de ejemplo para chat (Simulación)
     var newMessage by remember { mutableStateOf("") }
-    var hasConversation by remember { mutableStateOf(false) }
+    var hasConversation by remember { mutableStateOf(true) }
     val sampleMessages = remember {
         listOf(
             mapOf("sender" to "user", "senderName" to "Luis Rodríguez", "text" to "Hola, tengo problemas con mi impresora, no imprime.", "time" to "10:30 AM"),
@@ -79,10 +78,12 @@ fun TicketDetailScreen(
     var messages by remember { mutableStateOf(if (hasConversation) sampleMessages else emptyList()) }
 
     val ticket by viewModel.currentTicket.collectAsState()
+    val isTechnician by viewModel.isTechnician.collectAsState()
 
     // Cargar ticket al montar
     LaunchedEffect(ticketId) {
         viewModel.loadTicket(ticketId)
+        viewModel.checkUserRole()
     }
 
     val handleSendMessage = {
@@ -114,11 +115,10 @@ fun TicketDetailScreen(
         return
     }
 
-    // Formateo de fecha
     val createdDate = remember(ticket) {
         ticket?.createdAt?.toDate()?.let { date ->
             SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(date)
-        } ?: "" // Se manejará el string resource en el componente si está vacío
+        } ?: ""
     }
 
     Scaffold(
@@ -209,34 +209,74 @@ fun TicketDetailScreen(
 
             if (ticket?.status != "cerrado") {
                 item {
+                    val currentStatus = ticket?.status?.lowercase() ?: ""
+
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Button(
-                            onClick = { /* TODO: Marcar como resuelto */ },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = customColors.success,
-                                contentColor = customColors.onSuccess
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-                        ) {
-                            Icon(Icons.Filled.CheckCircle, contentDescription = null, modifier = Modifier.size(24.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.btn_mark_resolved), fontWeight = FontWeight.SemiBold)
+
+                        if (isTechnician) {
+                            if (currentStatus == "abierto") {
+                                Button(
+                                    onClick = {
+                                        viewModel.updateTicketStatus(dev.boni.techhelpdesk.data.model.TicketStatus.EN_PROGRESO)
+                                    },
+                                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = customColors.warning,
+                                        contentColor = customColors.onWarning
+                                    ),
+                                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                                ) {
+                                    Icon(Icons.Filled.Schedule, contentDescription = null, modifier = Modifier.size(24.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(R.string.btn_mark_in_progress), fontWeight = FontWeight.SemiBold)
+                                }
+                            }
+
+                            if (currentStatus == "en_progreso" || currentStatus == "en progreso") {
+                                Button(
+                                    onClick = {
+                                        viewModel.updateTicketStatus(dev.boni.techhelpdesk.data.model.TicketStatus.RESUELTO)
+                                    },
+                                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = customColors.success,
+                                        contentColor = customColors.onSuccess
+                                    ),
+                                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                                ) {
+                                    Icon(Icons.Filled.CheckCircle, contentDescription = null, modifier = Modifier.size(24.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(R.string.btn_mark_resolved), fontWeight = FontWeight.SemiBold)
+                                }
+                            }
                         }
-                        OutlinedButton(
-                            onClick = { /* TODO: Editar ticket */ },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                contentColor = MaterialTheme.colorScheme.onSurface
-                            )
-                        ) {
-                            Icon(Icons.Filled.Edit, contentDescription = null, modifier = Modifier.size(20.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.btn_edit_ticket), fontWeight = FontWeight.SemiBold)
+
+                        if (!isTechnician && currentStatus != "cerrado"){
+                            Button(
+                                onClick = {
+                                    viewModel.updateTicketStatus(dev.boni.techhelpdesk.data.model.TicketStatus.CERRADO)
+                                },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = customColors.success,
+                                    contentColor = customColors.onSuccess
+                                ),
+                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                            ) {
+                                Icon(
+                                    Icons.Filled.Schedule,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    stringResource(R.string.btn_mark_closed),
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
                         }
                     }
                 }
@@ -255,8 +295,6 @@ fun TicketInfoCardPreviewHelper(
     description: String,
     customColors: CustomColors
 ) {
-    // Mapeo manual para la categoría (esto es visual, para traducir lo que viene de BD)
-    // Asumimos que la BD guarda "email", "hardware", etc.
     val displayCategory = when(category.lowercase()) {
         "email" -> stringResource(R.string.cat_email)
         "hardware" -> stringResource(R.string.cat_hardware)
@@ -585,17 +623,17 @@ fun StatusChipPreviewHelper(status: String, customColors: CustomColors, size: St
 
     // Mapeo para visualización (traducción)
     val displayStatus = when (status.lowercase()) {
-        "abierto" -> stringResource(R.string.card_open)
-        "en progreso", "en_progreso" -> stringResource(R.string.card_in_progress)
-        "cerrado" -> stringResource(R.string.card_closed)
-        "resuelto" -> "Resuelto"
+        "abierto" -> stringResource(R.string.status_open)
+        "en progreso", "en_progreso" -> stringResource(R.string.status_in_progress)
+        "cerrado" -> stringResource(R.string.status_closed)
+        "resuelto" -> stringResource(R.string.status_resolved)
         else -> status
     }
 
     val (bgColor, contentColor, icon) = when (status.lowercase()) {
         "abierto" -> Triple(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.primary, null)
         "en progreso", "en_progreso" -> Triple(customColors.warningContainer, customColors.warning, Icons.Default.Schedule)
-        "cerrado" -> Triple(customColors.successContainer, customColors.success, Icons.Default.CheckCircleOutline)
+        "cerrado", "resuelto" -> Triple(customColors.successContainer, customColors.success, Icons.Default.CheckCircleOutline)
         else -> Triple(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant, null)
     }
 

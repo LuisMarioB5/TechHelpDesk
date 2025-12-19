@@ -113,10 +113,11 @@ class MainActivity : AppCompatActivity() {
                                 }
                             )
                         ) { backStackEntry ->
-                            val initialStatus = backStackEntry.arguments?.getString("status")
+                            val status = backStackEntry.arguments?.getString("status")
+
                             TicketsScreen(
                                 navController = navController,
-                                initialFilterStatus = initialStatus
+                                initialFilterStatus = status,
                             )
                         }
                         composable(
@@ -128,7 +129,10 @@ class MainActivity : AppCompatActivity() {
                             )
                         ) { backStackEntry ->
                             val ticketId = backStackEntry.arguments?.getString("ticketId") ?: "ID_INVALIDO"
-                            TicketDetailScreen(navController = navController, ticketId = ticketId)
+                            TicketDetailScreen(
+                                navController = navController,
+                                ticketId = ticketId,
+                            )
                         }
                         composable(route = "/ticket/create") {
                             CreateTicketScreen(navController = navController)

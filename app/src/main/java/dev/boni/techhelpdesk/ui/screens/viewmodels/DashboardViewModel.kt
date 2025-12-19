@@ -3,6 +3,7 @@ package dev.boni.techhelpdesk.ui.screens.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.boni.techhelpdesk.data.model.TicketStatus
+import dev.boni.techhelpdesk.data.model.UserRole
 import dev.boni.techhelpdesk.data.repository.AuthRepository
 import dev.boni.techhelpdesk.data.repository.TicketRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +17,8 @@ data class DashboardUiState(
     val openCount: Int = 0,
     val inProgressCount: Int = 0,
     val closedCount: Int = 0,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val userRole: UserRole = UserRole.CLIENT
 )
 
 class DashboardViewModel : ViewModel() {
@@ -52,8 +54,7 @@ class DashboardViewModel : ViewModel() {
                     }
 
                     val closed = tickets.count {
-                        it.status.equals(TicketStatus.CERRADO.name, ignoreCase = true) ||
-                                it.status.equals(TicketStatus.RESUELTO.name, ignoreCase = true)
+                        it.status.equals(TicketStatus.CERRADO.name, ignoreCase = true)
                     }
 
                     _uiState.update {
@@ -62,7 +63,8 @@ class DashboardViewModel : ViewModel() {
                             openCount = open,
                             inProgressCount = inProgress,
                             closedCount = closed,
-                            isLoading = false
+                            isLoading = false,
+                            userRole = currentUser?.role ?: UserRole.CLIENT
                         )
                     }
                 }.onFailure {

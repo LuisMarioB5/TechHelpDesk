@@ -58,6 +58,8 @@ import dev.boni.techhelpdesk.ui.screens.viewmodels.DashboardUiState
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.runtime.DisposableEffect
+import dev.boni.techhelpdesk.data.model.TicketStatus
+import dev.boni.techhelpdesk.data.model.UserRole
 
 /**
  * Pantalla principal del Dashboard.
@@ -99,6 +101,7 @@ fun DashboardContent(
     modifier: Modifier = Modifier,
     onRefresh: () -> Unit
 ) {
+    val isTechnician = uiState.userRole == UserRole.TECHNICIAN || uiState.userRole == UserRole.ADMIN
 
     Scaffold(
         topBar = {
@@ -188,7 +191,7 @@ fun DashboardContent(
                             count = uiState.openCount,
                             icon = Icons.Outlined.ConfirmationNumber,
                             onClick = {
-                                navController.navigate("/tickets?status=abierto") {
+                                navController.navigate("/tickets?status=${TicketStatus.ABIERTO.name.lowercase()}&isTech=${isTechnician}") {
                                     popUpTo(
                                         "/tickets"
                                     ) { inclusive = true }; launchSingleTop = true
@@ -204,7 +207,7 @@ fun DashboardContent(
                             count = uiState.inProgressCount,
                             icon = Icons.Outlined.Schedule,
                             onClick = {
-                                navController.navigate("/tickets?status=en_progreso") {
+                                navController.navigate("/tickets?status=${TicketStatus.EN_PROGRESO.name.lowercase()}&isTech=${isTechnician}") {
                                     popUpTo(
                                         "/tickets"
                                     ) { inclusive = true }; launchSingleTop = true
@@ -220,7 +223,7 @@ fun DashboardContent(
                             count = uiState.closedCount,
                             icon = Icons.Outlined.CheckCircleOutline,
                             onClick = {
-                                navController.navigate("/tickets?status=cerrado") {
+                                navController.navigate("/tickets?status=${TicketStatus.CERRADO.name.lowercase()}&isTech=$isTechnician") {
                                     popUpTo(
                                         "/tickets"
                                     ) { inclusive = true }; launchSingleTop = true

@@ -3,6 +3,9 @@ package dev.boni.techhelpdesk.ui.screens.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.boni.techhelpdesk.data.model.Ticket
+import dev.boni.techhelpdesk.data.model.TicketStatus
+import dev.boni.techhelpdesk.data.model.UserRole
+import dev.boni.techhelpdesk.data.repository.AuthRepository
 import dev.boni.techhelpdesk.data.repository.TicketRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,12 +28,56 @@ sealed class TicketUiState {
 class TicketViewModel : ViewModel() {
 
     private val repository = TicketRepository()
+    private val authRepo = AuthRepository()
+
 
     private val _uiState = MutableStateFlow<TicketUiState>(TicketUiState.Initial)
     val uiState: StateFlow<TicketUiState> = _uiState.asStateFlow()
 
     private val _currentTicket = MutableStateFlow<Ticket?>(null)
     val currentTicket: StateFlow<Ticket?> = _currentTicket.asStateFlow()
+
+    private val _isTechnician = MutableStateFlow(false)
+    val isTechnician: StateFlow<Boolean> = _isTechnician.asStateFlow()
+
+    /**
+     * Lógica maestra: Chequea rol y carga los tickets correspondientes.
+     * Úsala en TicketsScreen (Lista).
+     */
+    fun checkRoleAndLoadTickets() {
+        viewModelScope.launch {
+            _uiState.value = TicketUiState.Loading
+
+            val userResult = authRepo.getCurrentUser()
+            val user = userResult.getOrNull()
+            val isTech = user?.role == UserRole.TECHNICIAN || user?.role == UserRole.ADMIN
+
+            _isTechnician.value = isTech
+
+            val result = if (isTech) {
+                repository.getAllTickets()
+            } else {
+                repository.getUserTickets()
+            }
+
+            _uiState.value = if (result.isSuccess) {
+                TicketUiState.Success(result.getOrNull() ?: emptyList())
+            } else {
+                TicketUiState.Error(result.exceptionOrNull()?.message ?: "Error cargando tickets")
+            }
+        }
+    }
+
+    /**
+     * Solo chequea el rol (sin cargar lista).
+     * Úsala en TicketDetailScreen (Detalle) para saber si mostrar botones.
+     */
+    fun checkUserRole() {
+        viewModelScope.launch {
+            val user = authRepo.getCurrentUser().getOrNull()
+            _isTechnician.value = user?.role == UserRole.TECHNICIAN || user?.role == UserRole.ADMIN
+        }
+    }
 
     /**
      * Carga los tickets del usuario
@@ -79,5 +126,53 @@ class TicketViewModel : ViewModel() {
             title, description, category, priority,
             location, department, contactMethod
         )
+    }
+
+    /**
+     *  Carga TODOS los tickets (Modo Técnico)
+     */
+    fun loadAllTickets() {
+        viewModelScope.launch {
+            _uiState.value = TicketUiState.Loading
+            val result = repository.getAllTickets() // <--- Llamamos a la nueva función
+
+            _uiState.value = if (result.isSuccess) {
+                TicketUiState.Success(result.getOrNull() ?: emptyList())
+            } else {
+                TicketUiState.Error(result.exceptionOrNull()?.message ?: "Error al cargar tickets")
+            }
+        }
+    }
+
+    /**
+     *  Cambia el estado del ticket actual
+     */
+    fun updateTicketStatus(newStatus: TicketStatus) {
+        val ticket = _currentTicket.value ?: return
+
+        viewModelScope.launch {
+            val currentUserResult = authRepo.getCurrentUser()
+            val technicianName = currentUserResult.getOrNull()?.name ?: "Técnico"
+            val technicianId = currentUserResult.getOrNull()?.id ?: ""
+
+            val updateData = if (newStatus == TicketStatus.EN_PROGRESO) {
+                mapOf(
+                    "status" to newStatus.name,
+                    "assignedToId" to technicianId,
+                    "assignedToName" to technicianName
+                )
+            } else {
+                mapOf("status" to newStatus.name)
+            }
+
+            val result = repository.updateTicketStatus(ticket.id, newStatus)
+
+            if (result.isSuccess) {
+                _currentTicket.value = ticket.copy(status = newStatus.name)
+
+            } else {
+                println("Error actualizando status: ${result.exceptionOrNull()?.message}")
+            }
+        }
     }
 }
