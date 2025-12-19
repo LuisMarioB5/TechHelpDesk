@@ -2,6 +2,8 @@ package dev.boni.techhelpdesk.ui.screens.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldValue
 import dev.boni.techhelpdesk.data.model.Ticket
 import dev.boni.techhelpdesk.data.model.TicketStatus
 import dev.boni.techhelpdesk.data.model.UserRole
@@ -151,25 +153,31 @@ class TicketViewModel : ViewModel() {
         val ticket = _currentTicket.value ?: return
 
         viewModelScope.launch {
-            val currentUserResult = authRepo.getCurrentUser()
-            val technicianName = currentUserResult.getOrNull()?.name ?: "Técnico"
-            val technicianId = currentUserResult.getOrNull()?.id ?: ""
+            val currentUserResult = authRepo.getCurrentUser().getOrNull()
+            val technicianName = currentUserResult?.name ?: "Técnico"
+            val technicianId = currentUserResult?.id ?: ""
 
-            val updateData = if (newStatus == TicketStatus.EN_PROGRESO) {
-                mapOf(
-                    "status" to newStatus.name,
-                    "assignedToId" to technicianId,
-                    "assignedToName" to technicianName
-                )
-            } else {
-                mapOf("status" to newStatus.name)
+            val updateData = mutableMapOf<String, Any>(
+                "status" to newStatus.name,
+                "updatedAt" to FieldValue.serverTimestamp()
+            )
+
+            if (newStatus == TicketStatus.EN_PROGRESO) {
+                updateData["assignedToId"] = technicianId
+                updateData["assignedToName"] = technicianName
             }
 
-            val result = repository.updateTicketStatus(ticket.id, newStatus)
+            val result = repository.updateTicketFields(ticket.id, updateData)
 
             if (result.isSuccess) {
-                _currentTicket.value = ticket.copy(status = newStatus.name)
+                _currentTicket.value = ticket.copy(
+                    status = newStatus.name,
+                    updatedAt = Timestamp.now(),
+                    assignedToName = if (newStatus == TicketStatus.EN_PROGRESO) technicianName else ticket.assignedToName,
+                    assignedToId = if (newStatus == TicketStatus.EN_PROGRESO) technicianId else ticket.assignedToId
+                )
 
+                checkRoleAndLoadTickets()
             } else {
                 println("Error actualizando status: ${result.exceptionOrNull()?.message}")
             }

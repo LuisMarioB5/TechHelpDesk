@@ -7,6 +7,7 @@ import dev.boni.techhelpdesk.R
 import dev.boni.techhelpdesk.data.local.SettingsPreferences
 import dev.boni.techhelpdesk.data.model.UserRole
 import dev.boni.techhelpdesk.data.repository.AuthRepository
+import dev.boni.techhelpdesk.data.repository.TicketRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,8 +25,8 @@ data class ProfileUiState(
 )
 
 class ProfileViewModel() : ViewModel() {
-
     private val authRepo = AuthRepository()
+    private val ticketRepo = TicketRepository()
 
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
@@ -87,6 +88,12 @@ class ProfileViewModel() : ViewModel() {
         viewModelScope.launch {
             val result = authRepo.updateUserProfile(newName, newPhone)
             if (result.isSuccess) {
+                val userId = authRepo.getCurrentUser().getOrNull()?.id
+
+                if (userId != null) {
+                    ticketRepo.updateTicketsUserDisplayName(userId, newName)
+                }
+
                 _uiState.update {
                     it.copy(name = newName, isLoading = false)
                 }

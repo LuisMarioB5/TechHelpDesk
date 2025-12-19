@@ -150,4 +150,53 @@ class TicketRepository {
             Result.failure(e)
         }
     }
+
+    suspend fun updateTicketFields(ticketId: String, updates: Map<String, Any>): Result<Unit> {
+        return try {
+            db.collection("tickets")
+                .document(ticketId)
+                .update(updates)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Actualiza el nombre del usuario en TODOS sus tickets relacionados.
+     * (Tanto los que creó como los que tiene asignados).
+     */
+    suspend fun updateTicketsUserDisplayName(userId: String, newName: String) {
+        try {
+            val batch = db.batch()
+            var operationCount = 0
+
+            val createdSnapshot = db.collection("tickets")
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
+
+            for (doc in createdSnapshot.documents) {
+                batch.update(doc.reference, "createdBy", newName)
+                operationCount++
+            }
+
+            val assignedSnapshot = db.collection("tickets")
+                .whereEqualTo("assignedToId", userId)
+                .get()
+                .await()
+
+            for (doc in assignedSnapshot.documents) {
+                batch.update(doc.reference, "assignedToName", newName)
+                operationCount++
+            }
+
+            if (operationCount > 0) {
+                batch.commit().await()
+            }
+        } catch (e: Exception) {
+            println("Error actualizando nombre en tickets: ${e.message}")
+        }
+    }
 }

@@ -9,21 +9,20 @@ data class Ticket(
     val title: String = "",
     val description: String = "",
     val category: String = "",
-    val priority: String = "media", // baja, media, alta
-    val status: String = "abierto", // abierto, en_progreso, resuelto, cerrado
-    val userId: String = "", // ID del cliente que creó el ticket
-    val createdBy: String = "", // Nombre del cliente
+    val priority: String = "media",
+    val status: String = "abierto",
+    val userId: String = "",
+    val createdBy: String = "",
     val assignedToName: String = "Sin asignar",
-    val assignedToId: String? = null, // ID del técnico asignado
+    val assignedToId: String? = null,
     val createdAt: Timestamp = Timestamp.now(),
     val updatedAt: Timestamp = Timestamp.now(),
     val location: String = "",
     val department: String = "",
     val contactMethod: String = "",
-    val resolution: String? = null // Resolución del técnico (cuando se cierra)
+    val resolution: String? = null
 )
 
-// Estados posibles para filtros
 enum class TicketStatus(val value: String) {
     ABIERTO("abierto"),
     EN_PROGRESO("en_progreso"),
@@ -37,7 +36,6 @@ enum class TicketStatus(val value: String) {
     }
 }
 
-// Prioridades
 enum class TicketPriority(val value: String) {
     BAJA("baja"),
     MEDIA("media"),

@@ -508,6 +508,7 @@ fun TicketListItem(
     customColors: CustomColors
 ) {
     val categoryUI = TicketCategoryUI.fromString(ticket.category)
+    val timeAgo = remember(ticket.createdAt) { getShortRelativeTime(ticket.createdAt) }
 
     Surface(
         onClick = onClick,
@@ -581,7 +582,7 @@ fun TicketListItem(
                         )
                     }
                     Text(
-                        text = stringResource(R.string.text_recent),
+                        text = timeAgo,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -682,6 +683,22 @@ fun PriorityBadge(priority: String, customColors: CustomColors) {
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Medium
         )
+    }
+}
+
+fun getShortRelativeTime(timestamp: com.google.firebase.Timestamp?): String {
+    if (timestamp == null) return ""
+
+    val now = System.currentTimeMillis()
+    val time = timestamp.toDate().time
+    val diff = now - time
+
+    return when {
+        diff < 60 * 1000 -> "Ahora"
+        diff < 60 * 60 * 1000 -> "${diff / (60 * 1000)} min"
+        diff < 24 * 60 * 60 * 1000 -> "${diff / (60 * 60 * 1000)} h"
+        diff < 48 * 60 * 60 * 1000 -> "Ayer" // Ayer (aproximado)
+        else -> java.text.SimpleDateFormat("d MMM", java.util.Locale.getDefault()).format(time)
     }
 }
 
