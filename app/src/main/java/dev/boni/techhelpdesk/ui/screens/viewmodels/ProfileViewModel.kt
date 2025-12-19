@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.boni.techhelpdesk.R
+import dev.boni.techhelpdesk.data.local.SettingsPreferences
 import dev.boni.techhelpdesk.data.model.UserRole
 import dev.boni.techhelpdesk.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,19 +18,43 @@ data class ProfileUiState(
     val email: String = "",
     val phone: String = "",
     val roleResId: Int = R.string.role_client,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val isBiometricEnabled: Boolean = true,
+    val areNotificationsEnabled: Boolean = false
 )
 
-class ProfileViewModel : ViewModel() {
+class ProfileViewModel() : ViewModel() {
 
     private val authRepo = AuthRepository()
 
-    // Estado observable (Backing property)
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    init {
+    fun loadProfileInfo(context: Context) {
         loadUserProfile()
+        loadSettings(context)
+    }
+
+    private fun loadSettings(context: Context) {
+        val prefs = SettingsPreferences(context)
+        _uiState.update {
+            it.copy(
+                isBiometricEnabled = prefs.isBiometricEnabled(),
+                areNotificationsEnabled = prefs.areNotificationsEnabled()
+            )
+        }
+    }
+
+    fun toggleBiometric(context: Context, enabled: Boolean) {
+        val prefs = SettingsPreferences(context)
+        prefs.setBiometricEnabled(enabled)
+        _uiState.update { it.copy(isBiometricEnabled = enabled) }
+    }
+
+    fun toggleNotifications(context: Context, enabled: Boolean) {
+        val prefs = SettingsPreferences(context)
+        prefs.setNotificationsEnabled(enabled)
+        _uiState.update { it.copy(areNotificationsEnabled = enabled) }
     }
 
     private fun loadUserProfile() {

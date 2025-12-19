@@ -43,14 +43,18 @@ fun EditProfileScreen(
     var fullName by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
 
-    LaunchedEffect(uiState.isLoading, uiState.name) {
-        if (!uiState.isLoading) {
-            if (fullName.isBlank()) fullName = uiState.name
-             if (phone.isBlank()) phone = uiState.phone
+    var isDataInitialized by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadProfileInfo(context)
+    }
+    LaunchedEffect(uiState) {
+        if (!uiState.isLoading && !isDataInitialized) {
+            fullName = uiState.name
+            phone = uiState.phone
+            isDataInitialized = true
         }
     }
-
-    val isLoading = uiState.isLoading
 
     Scaffold(
         topBar = {
@@ -78,127 +82,133 @@ fun EditProfileScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(32.dp))
 
-            // Avatar Section
-            AvatarSection(
-                onChangePhoto = {
-                    // TODO: Implementar selector de imagen en el futuro
-                }
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // Form Fields
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+        if (uiState.isLoading && !isDataInitialized) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
             ) {
-                // Full Name Field
-                OutlinedTextField(
-                    value = fullName,
-                    onValueChange = { fullName = it },
-                    label = { Text(stringResource(R.string.label_full_name)) },
-                    placeholder = { Text(stringResource(R.string.placeholder_full_name)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                    )
-                )
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // Email Field (Read-only)
-                OutlinedTextField(
-                    value = uiState.email, // Viene directo del estado, no editable
-                    onValueChange = { },
-                    label = { Text(stringResource(R.string.label_email_readonly)) },
-                    singleLine = true,
-                    enabled = false,
-                    readOnly = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    supportingText = {
-                        Text(
-                            text = stringResource(R.string.helper_email_readonly),
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                AvatarSection(
+                    onChangePhoto = {
+                        // TODO: Implementar selector de imagen en el futuro
                     }
                 )
 
-                // Phone Field (Optional)
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { input ->
-                        if (input.length <= 10 && input.isDigitsOnly()) {
-                            phone = input
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    OutlinedTextField(
+                        value = fullName,
+                        onValueChange = { fullName = it },
+                        label = { Text(stringResource(R.string.label_full_name)) },
+                        placeholder = { Text(stringResource(R.string.placeholder_full_name)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = uiState.email,
+                        onValueChange = { },
+                        label = { Text(stringResource(R.string.label_email_readonly)) },
+                        singleLine = true,
+                        enabled = false,
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        supportingText = {
+                            Text(
+                                text = stringResource(R.string.helper_email_readonly),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    )
+
+                    OutlinedTextField(
+                        value = phone,
+                        onValueChange = { input ->
+                            if (input.length <= 10 && input.isDigitsOnly()) {
+                                phone = input
+                            }
+                        },
+                        label = { Text(stringResource(R.string.label_phone)) },
+                        placeholder = { Text(stringResource(R.string.placeholder_phone)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                ChangePasswordRow(
+                    onClick = {
+                        viewModel.triggerPasswordChange {
+                            android.widget.Toast.makeText(
+                                context,
+                                context.getString(R.string.msg_password_email_send),
+                                android.widget.Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = {
+                        viewModel.updateUserProfile(fullName, phone) {
+                            navController.popBackStack()
                         }
                     },
-                    label = { Text(stringResource(R.string.label_phone)) },
-                    placeholder = { Text(stringResource(R.string.placeholder_phone)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            ChangePasswordRow(
-                onClick = {
-                    viewModel.triggerPasswordChange {
-                        android.widget.Toast.makeText(
-                            context,
-                            context.getString(R.string.msg_password_email_send),
-                            android.widget.Toast.LENGTH_LONG
-                        ).show()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    enabled = !uiState.isLoading && fullName.isNotBlank(),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.btn_save_changes),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
-            )
 
-            Spacer(modifier = Modifier.weight(1f)) // Empuja el botón al fondo si hay espacio
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Save Button
-            Button(
-                onClick = {
-                    viewModel.updateUserProfile(fullName, phone) {
-                        navController.popBackStack() // Volver al perfil al terminar
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = !isLoading && fullName.isNotBlank(),
-                shape = RoundedCornerShape(16.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = Color.White,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = stringResource(R.string.btn_save_changes),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
+                Spacer(modifier = Modifier.height(32.dp))
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
@@ -208,7 +218,6 @@ private fun AvatarSection(
     onChangePhoto: () -> Unit
 ) {
     Box(contentAlignment = Alignment.Center) {
-        // Avatar Circle
         Box(
             modifier = Modifier
                 .size(120.dp)
@@ -229,7 +238,6 @@ private fun AvatarSection(
             )
         }
 
-        // Camera Badge
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)

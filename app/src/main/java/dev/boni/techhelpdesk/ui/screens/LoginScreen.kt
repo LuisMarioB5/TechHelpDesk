@@ -45,6 +45,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.res.stringResource
 import dev.boni.techhelpdesk.R
+import dev.boni.techhelpdesk.data.local.SettingsPreferences
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,9 +58,7 @@ fun LoginScreen(
 
     val authRepo = remember { AuthRepository() }
     val sessionPrefs = remember { SessionPreferences(context) }
-
-    val hasActiveSession = authRepo.isSessionActive()
-    val wantsToRemember = sessionPrefs.shouldRememberMe()
+    val settingsPreferences = remember { SettingsPreferences(context) }
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -68,9 +67,16 @@ fun LoginScreen(
 
     var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
+    val isBiometricHardwareAvailable = remember {
+        checkBiometricAvailability(context)
+    }
+    val hasActiveSession = authRepo.isSessionActive()
+    val wantsToRemember = sessionPrefs.shouldRememberMe()
+    val userWantBiometricLogin = settingsPreferences.isBiometricEnabled()
+    val canUseBiometrics = isBiometricHardwareAvailable && userWantBiometricLogin
+
     val showExtraProviders = false
 
-    var isBiometricHardwareAvailable by remember { mutableStateOf(false) }
 
     val navigateToDashboard = {
         navController.navigate("/dashboard") {
@@ -92,18 +98,17 @@ fun LoginScreen(
     }
 
     LaunchedEffect(Unit) {
-        isBiometricHardwareAvailable = checkBiometricAvailability(context)
+        if (!hasActiveSession) return@LaunchedEffect
 
-        if (hasActiveSession) {
-            if (wantsToRemember) {
-                if (isBiometricHardwareAvailable) {
-                    triggerBiometricLogin()
-                } else {
-                    navigateToDashboard()
-                }
-            } else {
-                authRepo.signOut(context)
-            }
+        if (!wantsToRemember) {
+            authRepo.signOut(context)
+            return@LaunchedEffect
+        }
+
+        if (canUseBiometrics) {
+            triggerBiometricLogin()
+        } else {
+            navigateToDashboard()
         }
     }
 
@@ -373,7 +378,7 @@ fun LoginScreen(
                         }
                     }
 
-                    if (isBiometricHardwareAvailable && hasActiveSession && wantsToRemember) {
+                    if (hasActiveSession && wantsToRemember && canUseBiometrics) {
                         Button(
                             onClick = { handleSocialLogin("Biometric") },
                             modifier = Modifier.fillMaxWidth().height(56.dp),

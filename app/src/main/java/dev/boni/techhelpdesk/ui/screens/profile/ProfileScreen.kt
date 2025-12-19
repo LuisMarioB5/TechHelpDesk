@@ -45,12 +45,12 @@ fun ProfileScreen(
     onLanguageChange: (String) -> Unit
 ) {
     val context = LocalContext.current
-
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.loadProfileInfo(context)
+    }
 
-    var biometricEnabled by remember { mutableStateOf(true) }
-    var notificationsEnabled by remember { mutableStateOf(true) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     val handleLogout = {
@@ -168,8 +168,10 @@ fun ProfileScreen(
                         label = stringResource(R.string.profile_title_biometric),
                         subtext = stringResource(R.string.profile_subtext_biometric),
                         icon = Icons.Default.Fingerprint,
-                        checked = biometricEnabled,
-                        onCheckedChange = { biometricEnabled = it }
+                        checked = uiState.isBiometricEnabled,
+                        onCheckedChange = { isChecked ->
+                            viewModel.toggleBiometric(context, isChecked)
+                        }
                     )
                 }
 
@@ -178,8 +180,10 @@ fun ProfileScreen(
                         label = stringResource(R.string.profile_title_push),
                         subtext = stringResource(R.string.profile_subtext_push),
                         icon = Icons.Default.NotificationsActive,
-                        checked = notificationsEnabled,
-                        onCheckedChange = { notificationsEnabled = it }
+                        checked = uiState.areNotificationsEnabled,
+                        onCheckedChange = { isChecked ->
+                            viewModel.toggleNotifications(context, isChecked)
+                        }
                     )
                 }
 

@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -28,23 +29,88 @@ import androidx.compose.ui.unit.sp
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 import dev.boni.techhelpdesk.R
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavController
+import dev.boni.techhelpdesk.data.local.SessionPreferences
+import dev.boni.techhelpdesk.data.local.SettingsPreferences
+import dev.boni.techhelpdesk.data.repository.AuthRepository
+import dev.boni.techhelpdesk.ui.auth.checkBiometricAvailability
 import kotlinx.coroutines.delay
 
 /**
- * Pantalla de bienvenida con animación de entrada.
+ * Pantalla de bienvenida (Splash) que maneja la lógica de sesión y navegación automática.
  *
  * @param modifier Modificador de Compose.
- * @param onNavigateToLogin Lambda a ejecutar para navegar a la pantalla de Login.
- * @param onNavigateToRegister Lambda a ejecutar para navegar a la pantalla de Registro.
+ * @param navController Controlador de navegación para redirigir al usuario.
  */
 @Composable
 fun SplashScreen(
     modifier: Modifier = Modifier,
-    onNavigateToLogin: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    navController: NavController
+) {
+    val context = LocalContext.current
+
+    val authRepo = remember { AuthRepository() }
+    val sessionPrefs = remember { SessionPreferences(context) }
+    val settingsPrefs = remember { SettingsPreferences(context) }
+
+    val hasActiveSession = authRepo.isSessionActive()
+    val wantsToRemember = sessionPrefs.shouldRememberMe()
+
+    val isBiometricHardwareAvailable = remember { checkBiometricAvailability(context) }
+    val userWantBiometricLogin = settingsPrefs.isBiometricEnabled()
+    val canUseBiometrics = isBiometricHardwareAvailable && userWantBiometricLogin
+
+    val navigateToLogin = {
+        navController.navigate("/login") {
+            popUpTo("/splash") { inclusive = true }
+        }
+    }
+
+    val navigateToRegister = {
+        navController.navigate("/register") {
+            popUpTo("/splash") { inclusive = true }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        delay(1500)
+
+        if (!wantsToRemember) {
+            authRepo.signOut(context)
+            return@LaunchedEffect
+        }
+
+        if (!hasActiveSession) {
+            return@LaunchedEffect
+        }
+
+        if (canUseBiometrics) {
+            navigateToLogin();
+        } else {
+            navController.navigate("/dashboard") {
+                popUpTo("/splash") { inclusive = true }
+            }
+        }
+    }
+
+    SplashContent(
+        modifier = modifier,
+        onNavigateToLogin = navigateToLogin,
+        onNavigateToRegister = navigateToRegister
+    )
+}
+
+/**
+ * Contenido visual de la pantalla Splash (Stateless).
+ * Se separa para facilitar el Preview y las pruebas de UI.
+ */
+@Composable
+fun SplashContent(
+    modifier: Modifier = Modifier,
+    onNavigateToLogin: () -> Unit = {},
+    onNavigateToRegister: () -> Unit = {}
 ) {
     var isAnimating by remember { mutableStateOf(true) }
-
     val density = LocalDensity.current
 
     LaunchedEffect(Unit) {
@@ -214,6 +280,6 @@ fun SplashScreen(
 @Composable
 fun SplashScreenPreview() {
     TechHelpDeskTheme {
-        SplashScreen(onNavigateToLogin = {}, onNavigateToRegister = {})
+        SplashContent()
     }
 }

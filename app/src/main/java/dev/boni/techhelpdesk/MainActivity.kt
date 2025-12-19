@@ -80,8 +80,8 @@ class MainActivity : AppCompatActivity() {
                     ) {
                         composable(route = "/splash") {
                             SplashScreen(
-                                onNavigateToLogin = { navController.navigate("/login") },
-                                onNavigateToRegister = { navController.navigate("/register") }
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
                             )
                         }
 
