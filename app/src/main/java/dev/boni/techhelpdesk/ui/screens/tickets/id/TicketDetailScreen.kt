@@ -6,11 +6,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
@@ -27,7 +26,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,19 +42,14 @@ import dev.boni.techhelpdesk.ui.theme.LightCustomColors
 import dev.boni.techhelpdesk.ui.theme.LocalCustomColors
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.material3.CircularProgressIndicator
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import dev.boni.techhelpdesk.data.model.ChatMessage
 
-/**
- * Muestra los detalles de un ticket específico y la conversación asociada.
- *
- * @param navController Controlador de navegación para manejar acciones como volver atrás.
- * @param ticketId El ID del ticket cuyos detalles se deben mostrar.
- * @param modifier Modificador de Compose opcional.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TicketDetailScreen(
@@ -65,51 +58,28 @@ fun TicketDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: TicketViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    var newMessage by remember { mutableStateOf("") }
-    var hasConversation by remember { mutableStateOf(true) }
-    val sampleMessages = remember {
-        listOf(
-            mapOf("sender" to "user", "senderName" to "Luis Rodríguez", "text" to "Hola, tengo problemas con mi impresora, no imprime.", "time" to "10:30 AM"),
-            mapOf("sender" to "technician", "senderName" to "Carlos Méndez", "text" to "Entendido. ¿Podrías confirmar si está conectada vía Wi-Fi o cable USB?", "time" to "10:35 AM"),
-            mapOf("sender" to "user", "senderName" to "Luis Rodríguez", "text" to "Está conectada por Wi-Fi.", "time" to "10:37 AM"),
-            mapOf("sender" to "technician", "senderName" to "Carlos Méndez", "text" to "Perfecto, verifica por favor si la red es la misma del equipo.", "time" to "10:40 AM"),
-        )
-    }
-    var messages by remember { mutableStateOf(if (hasConversation) sampleMessages else emptyList()) }
-
+    val messages by viewModel.messages.collectAsState()
     val ticket by viewModel.currentTicket.collectAsState()
     val isTechnician by viewModel.isTechnician.collectAsState()
 
-    // Cargar ticket al montar
+    val currentUserId = remember { Firebase.auth.currentUser?.uid ?: "" }
+
+    var newMessage by remember { mutableStateOf("") }
+
+    // Estado local para saber si el usuario decidió iniciar la conversación manualmente
+    var localConversationStarted by remember { mutableStateOf(false) }
+
+    // CARGA DE DATOS AL ENTRAR
     LaunchedEffect(ticketId) {
         viewModel.loadTicket(ticketId)
-        viewModel.checkUserRole()
+        viewModel.loadMessages(ticketId)
+        viewModel.checkRoleAndLoadTickets()
     }
-
-    val handleSendMessage = {
-        if (newMessage.isNotBlank()) {
-            val currentTime = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
-            val msg = mapOf(
-                "sender" to "user",
-                "senderName" to "Luis Rodríguez", // Idealmente vendría del AuthRepository
-                "text" to newMessage,
-                "time" to currentTime
-            )
-            messages = messages + msg
-            newMessage = ""
-            if (!hasConversation) hasConversation = true
-        }
-    }
-
-    val handleStartConversation = { hasConversation = true }
 
     val customColors = LocalCustomColors.current
 
     if (ticket == null) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
@@ -144,7 +114,6 @@ fun TicketDetailScreen(
                     },
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            // Ticket #1234
                             Text(
                                 text = stringResource(R.string.title_ticket_number, ticket?.id?.takeLast(8) ?: ticketId),
                                 style = MaterialTheme.typography.titleLarge,
@@ -179,7 +148,8 @@ fun TicketDetailScreen(
             contentPadding = PaddingValues(
                 top = innerPadding.calculateTopPadding() + 24.dp,
                 start = 16.dp,
-                end = 16.dp
+                end = 16.dp,
+                bottom = 16.dp
             ),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
@@ -195,93 +165,84 @@ fun TicketDetailScreen(
                 )
             }
 
+            // SECCIÓN DE CHAT
             item {
                 ConversationCardPreviewHelper(
                     messages = messages,
                     newMessage = newMessage,
                     onNewMessageChange = { newMessage = it },
-                    onSendMessage = handleSendMessage,
-                    hasConversation = hasConversation,
-                    onStartConversation = handleStartConversation,
-                    assigneeName = ticket?.assignedToName ?: "el técnico"
+                    onSendMessage = {
+                        viewModel.sendMessage(newMessage)
+                        newMessage = ""
+                    },
+                    currentUserId = currentUserId,
+                    assigneeName = ticket?.assignedToName ?: "el técnico",
+                    isChatActive = messages.isNotEmpty() || localConversationStarted,
+                    onStartChat = { localConversationStarted = true }
                 )
             }
 
-            if (ticket?.status != "cerrado") {
+            // BOTONES DE ACCIÓN
+            if (ticket?.status != "CERRADO" && ticket?.status != "cerrado") {
                 item {
-                    val currentStatus = ticket?.status?.lowercase() ?: ""
+                    val currentStatus = ticket?.status?.uppercase() ?: ""
 
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-
                         if (isTechnician) {
-                            if (currentStatus == "abierto") {
-                                Button(
-                                    onClick = {
-                                        viewModel.updateTicketStatus(dev.boni.techhelpdesk.data.model.TicketStatus.EN_PROGRESO)
-                                    },
-                                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                                    shape = RoundedCornerShape(16.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = customColors.warning,
-                                        contentColor = customColors.onWarning
-                                    ),
-                                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                            if (currentStatus == "ABIERTO") {
+                                ActionButton(
+                                    text = stringResource(R.string.btn_mark_in_progress),
+                                    icon = Icons.Filled.Schedule,
+                                    color = customColors.warning,
+                                    contentColor = customColors.onWarning
                                 ) {
-                                    Icon(Icons.Filled.Schedule, contentDescription = null, modifier = Modifier.size(24.dp))
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(stringResource(R.string.btn_mark_in_progress), fontWeight = FontWeight.SemiBold)
+                                    viewModel.updateTicketStatus(dev.boni.techhelpdesk.data.model.TicketStatus.EN_PROGRESO)
                                 }
                             }
 
-                            if (currentStatus == "en_progreso" || currentStatus == "en progreso") {
-                                Button(
-                                    onClick = {
-                                        viewModel.updateTicketStatus(dev.boni.techhelpdesk.data.model.TicketStatus.RESUELTO)
-                                    },
-                                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                                    shape = RoundedCornerShape(16.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = customColors.success,
-                                        contentColor = customColors.onSuccess
-                                    ),
-                                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                            if (currentStatus == "EN_PROGRESO" || currentStatus == "EN PROGRESO") {
+                                ActionButton(
+                                    text = stringResource(R.string.btn_mark_resolved),
+                                    icon = Icons.Filled.CheckCircle,
+                                    color = customColors.success,
+                                    contentColor = customColors.onSuccess
                                 ) {
-                                    Icon(Icons.Filled.CheckCircle, contentDescription = null, modifier = Modifier.size(24.dp))
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(stringResource(R.string.btn_mark_resolved), fontWeight = FontWeight.SemiBold)
+                                    viewModel.updateTicketStatus(dev.boni.techhelpdesk.data.model.TicketStatus.RESUELTO)
                                 }
                             }
                         }
 
-                        if (!isTechnician && currentStatus != "cerrado"){
-                            Button(
-                                onClick = {
+                        if (!isTechnician || currentStatus == "RESUELTO") {
+                            if(currentStatus != "CERRADO") {
+                                ActionButton(
+                                    text = stringResource(R.string.btn_mark_closed),
+                                    icon = Icons.Filled.Lock,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    contentColor = MaterialTheme.colorScheme.onSecondary
+                                ) {
                                     viewModel.updateTicketStatus(dev.boni.techhelpdesk.data.model.TicketStatus.CERRADO)
-                                },
-                                modifier = Modifier.fillMaxWidth().height(56.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = customColors.success,
-                                    contentColor = customColors.onSuccess
-                                ),
-                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-                            ) {
-                                Icon(
-                                    Icons.Filled.Schedule,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    stringResource(R.string.btn_mark_closed),
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ActionButton(text: String, icon: ImageVector, color: Color, contentColor: Color, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().height(56.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = color, contentColor = contentColor),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(text, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -425,13 +386,14 @@ fun InfoItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationCardPreviewHelper(
-    messages: List<Map<String, String>>,
+    messages: List<ChatMessage>,
     newMessage: String,
     onNewMessageChange: (String) -> Unit,
     onSendMessage: () -> Unit,
-    hasConversation: Boolean,
-    onStartConversation: () -> Unit,
+    currentUserId: String,
     assigneeName: String,
+    isChatActive: Boolean,
+    onStartChat: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -441,6 +403,7 @@ fun ConversationCardPreviewHelper(
         shadowElevation = 4.dp
     ) {
         Column {
+            // Header del Chat
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -460,18 +423,17 @@ fun ConversationCardPreviewHelper(
                     Icon(Icons.Filled.Forum, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                     Text(stringResource(R.string.title_conversation), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
-                if (hasConversation && messages.isNotEmpty()) {
+                if (messages.isNotEmpty()) {
                     Badge(
                         containerColor = Color.White.copy(alpha = 0.2f),
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     ){
-                        // Usamos stringResource con formato para el contador
-                        Text(stringResource(R.string.badge_messages_count, messages.size), style = MaterialTheme.typography.labelSmall)
+                        Text("${messages.size}", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
 
-            if (!hasConversation) {
+            if (!isChatActive) {
                 Column(
                     modifier = Modifier.padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -486,7 +448,10 @@ fun ConversationCardPreviewHelper(
                     ){
                         Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
                     }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)){
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ){
                         Text(stringResource(R.string.empty_conversation_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         Text(
                             text = stringResource(R.string.empty_conversation_desc),
@@ -497,7 +462,7 @@ fun ConversationCardPreviewHelper(
                         )
                     }
                     Button(
-                        onClick = onStartConversation,
+                        onClick = onStartChat,
                         shape = CircleShape,
                         contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp),
                         elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
@@ -512,70 +477,86 @@ fun ConversationCardPreviewHelper(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(max = 400.dp)
+                            .heightIn(min = 200.dp, max = 400.dp)
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
-                            .verticalScroll(rememberScrollState())
-                            .padding(24.dp)
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            messages.forEachIndexed { index, msg ->
-                                MessageBubblePreviewHelper(message = msg, key = index)
+                        if (messages.isNotEmpty()) {
+                            LazyColumn(
+                                modifier = Modifier.padding(24.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                reverseLayout = true
+                            ) {
+                                itemsIndexed(messages.reversed()) { index, msg ->
+                                    MessageBubblePreviewHelper(
+                                        message = msg,
+                                        isUser = msg.senderId == currentUserId
+                                    )
+                                }
                             }
                         }
                     }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surface)
-                            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant))
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = newMessage,
-                            onValueChange = onNewMessageChange,
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text(stringResource(R.string.placeholder_chat_input)) },
-                            shape = RoundedCornerShape(24.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = Color.Transparent,
-                                cursorColor = MaterialTheme.colorScheme.primary
-                            ),
-                            textStyle = MaterialTheme.typography.bodyMedium,
-                        )
-                        IconButton(
-                            onClick = onSendMessage,
-                            enabled = newMessage.isNotBlank(),
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
-                                .size(48.dp),
-                            colors = IconButtonDefaults.iconButtonColors(
-                                contentColor = MaterialTheme.colorScheme.onPrimary,
-                                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                                disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                            )
-                        ) {
-                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.cd_send_message))
-                        }
-                    }
+                    ChatInputArea(newMessage, onNewMessageChange, onSendMessage)
                 }
             }
         }
     }
 }
 
+@Composable
+fun ChatInputArea(
+    newMessage: String,
+    onNewMessageChange: (String) -> Unit,
+    onSendMessage: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        OutlinedTextField(
+            value = newMessage,
+            onValueChange = onNewMessageChange,
+            modifier = Modifier.weight(1f),
+            placeholder = { Text(stringResource(R.string.placeholder_chat_input)) },
+            shape = RoundedCornerShape(24.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = Color.Transparent,
+                cursorColor = MaterialTheme.colorScheme.primary
+            ),
+            textStyle = MaterialTheme.typography.bodyMedium,
+            singleLine = true
+        )
+        IconButton(
+            onClick = onSendMessage,
+            enabled = newMessage.isNotBlank(),
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(if (newMessage.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+                .size(48.dp)
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.Send,
+                contentDescription = stringResource(R.string.cd_send_message),
+                tint = if (newMessage.isNotBlank()) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
-fun MessageBubblePreviewHelper(message: Map<String, String>, key: Any) {
-    val isUser = message["sender"] == "user"
-    val senderName = message["senderName"] ?: ""
-    val text = message["text"] ?: ""
-    val time = message["time"] ?: ""
+fun MessageBubblePreviewHelper(message: ChatMessage, isUser: Boolean) {
+    val time = remember(message.timestamp) {
+        message.timestamp?.toDate()?.let {
+            SimpleDateFormat("h:mm a", Locale.getDefault()).format(it)
+        } ?: "..."
+    }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -593,28 +574,32 @@ fun MessageBubblePreviewHelper(message: Map<String, String>, key: Any) {
             shadowElevation = 1.dp
         ) {
             Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
+                if (!isUser) {
+                    Text(
+                        text = message.senderName,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    )
+                }
                 Text(
-                    text = senderName,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isUser) LocalContentColor.current.copy(alpha = 0.9f) else MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 6.dp)
-                )
-                Text(
-                    text = text,
+                    text = message.text,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
                     text = time,
                     style = MaterialTheme.typography.labelSmall,
-                    color = LocalContentColor.current.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(top = 8.dp)
+                    color = if (isUser) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp),
+                    textAlign = TextAlign.End
                 )
             }
         }
     }
 }
 
+// ... (Resto de Helpers como PriorityBadgePreviewHelper y StatusChipPreviewHelper que ya tenías)
 @Composable
 fun StatusChipPreviewHelper(status: String, customColors: CustomColors, size: String = "small") {
     val textStyle = if (size == "large") MaterialTheme.typography.bodySmall else MaterialTheme.typography.labelSmall

@@ -42,6 +42,9 @@ class TicketViewModel : ViewModel() {
     private val _isTechnician = MutableStateFlow(false)
     val isTechnician: StateFlow<Boolean> = _isTechnician.asStateFlow()
 
+    private val _messages = MutableStateFlow<List<dev.boni.techhelpdesk.data.model.ChatMessage>>(emptyList())
+    val messages = _messages.asStateFlow()
+
     /**
      * Lógica maestra: Chequea rol y carga los tickets correspondientes.
      * Úsala en TicketsScreen (Lista).
@@ -181,6 +184,33 @@ class TicketViewModel : ViewModel() {
             } else {
                 println("Error actualizando status: ${result.exceptionOrNull()?.message}")
             }
+        }
+    }
+
+    fun loadMessages(ticketId: String) {
+        viewModelScope.launch {
+            repository.getTicketMessages(ticketId).collect { msgs ->
+                _messages.value = msgs
+            }
+        }
+    }
+
+    fun sendMessage(text: String) {
+        if (text.isBlank()) return
+        val ticket = _currentTicket.value ?: return
+
+        viewModelScope.launch {
+            val userResult = authRepo.getCurrentUser()
+            val user = userResult.getOrNull() ?: return@launch
+
+            val newMessage = dev.boni.techhelpdesk.data.model.ChatMessage(
+                senderId = user.id,
+                senderName = user.name,
+                text = text,
+                timestamp = null
+            )
+
+            repository.sendMessage(ticket.id, newMessage)
         }
     }
 }

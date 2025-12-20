@@ -333,4 +333,14 @@
     <string name="msg_profile_updated">Perfil actualizado correctamente</string>
     <string name="msg_password_email_send">Se ha enviado un correo para cambiar tu contraseña</string>
 
+    <string name="title_my_conversations">Mis Conversaciones</string>
+    <string name="placeholder_search_conversations">Buscar...</string>
+
+    <string name="empty_conversations_search_title">No se encontraron conversaciones</string>
+    <string name="empty_conversations_list_title">No tienes conversaciones activas</string>
+
+    <string name="empty_conversations_search_desc">Prueba con otro término</string>
+    <string name="empty_conversations_list_desc">Crea un nuevo ticket para iniciar un chat de soporte</string>
+
+    <string name="btn_create_ticket_chat">Crear Ticket / Iniciar Chat</string>
 </resources>

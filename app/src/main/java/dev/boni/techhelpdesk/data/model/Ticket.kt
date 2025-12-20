@@ -20,7 +20,9 @@ data class Ticket(
     val location: String = "",
     val department: String = "",
     val contactMethod: String = "",
-    val resolution: String? = null
+    val resolution: String? = null,
+    val lastMessage: String? = null,
+    val lastMessageTimestamp: Timestamp? = null
 )
 
 enum class TicketStatus(val value: String) {

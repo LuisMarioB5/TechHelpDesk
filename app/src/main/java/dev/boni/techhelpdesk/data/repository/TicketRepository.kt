@@ -1,13 +1,16 @@
 package dev.boni.techhelpdesk.data.repository
 
-import com.google.firebase.auth.ktx.auth
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.toObjects
 import com.google.firebase.ktx.Firebase
-import dev.boni.techhelpdesk.data.model.Ticket
-import dev.boni.techhelpdesk.data.model.TicketStatus
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import dev.boni.techhelpdesk.data.model.Ticket
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.toObjects
+import dev.boni.techhelpdesk.data.model.TicketStatus
 
 class TicketRepository {
     private val db = Firebase.firestore
@@ -198,5 +201,76 @@ class TicketRepository {
         } catch (e: Exception) {
             println("Error actualizando nombre en tickets: ${e.message}")
         }
+    }
+
+    /**
+     * Escucha los mensajes de un ticket en tiempo real.
+     * Retorna un Flow (flujo de datos) que se actualiza solo.
+     */
+    fun getTicketMessages(ticketId: String): kotlinx.coroutines.flow.Flow<List<dev.boni.techhelpdesk.data.model.ChatMessage>> = callbackFlow {
+        val subscription = db.collection("tickets").document(ticketId)
+            .collection("messages")
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    close(e)
+                    return@addSnapshotListener
+                }
+
+                val messages = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(dev.boni.techhelpdesk.data.model.ChatMessage::class.java)?.copy(id = doc.id)
+                } ?: emptyList()
+
+                trySend(messages)
+            }
+
+        awaitClose { subscription.remove() }
+    }
+
+    /**
+     * Envía un mensaje a la subcolección del ticket.
+     */
+    suspend fun sendMessage(ticketId: String, message: dev.boni.techhelpdesk.data.model.ChatMessage): Result<Unit> {
+        return try {
+            db.collection("tickets").document(ticketId)
+                .collection("messages")
+                .add(message)
+                .await()
+
+            val updates = mapOf(
+                "lastMessage" to message.text,
+                "lastMessageTimestamp" to Timestamp.now(),
+                "updatedAt" to Timestamp.now()
+            )
+
+            db.collection("tickets").document(ticketId)
+                .update(updates)
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Obtiene TODOS los tickets en tiempo real.
+     * Retorna un Flow<List<Ticket>>.
+     */
+    fun getTicketsFlow(): kotlinx.coroutines.flow.Flow<List<dev.boni.techhelpdesk.data.model.Ticket>> = kotlinx.coroutines.flow.callbackFlow {
+        // Ordenamos por fecha de actualización para que los chats recientes salgan arriba
+        val subscription = db.collection("tickets")
+            .orderBy("updatedAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    close(e)
+                    return@addSnapshotListener
+                }
+
+                val tickets = snapshot?.toObjects(dev.boni.techhelpdesk.data.model.Ticket::class.java) ?: emptyList()
+                trySend(tickets)
+            }
+
+        awaitClose { subscription.remove() }
     }
 }

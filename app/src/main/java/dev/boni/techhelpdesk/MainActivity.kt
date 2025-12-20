@@ -28,8 +28,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dev.boni.techhelpdesk.data.local.LanguagePreferences
 import dev.boni.techhelpdesk.data.local.ThemePreferences
-// import dev.boni.techhelpdesk.utils.LocaleHelper <--- YA NO LO NECESITAS
-import dev.boni.techhelpdesk.ui.screens.ConversationsScreen
 import dev.boni.techhelpdesk.ui.screens.tickets.create.CreateTicketScreen
 import dev.boni.techhelpdesk.ui.screens.DashboardScreen
 import dev.boni.techhelpdesk.ui.screens.ForgotPasswordScreen
@@ -49,6 +47,7 @@ import dev.boni.techhelpdesk.ui.screens.viewmodels.ProfileViewModel
 import dev.boni.techhelpdesk.ui.theme.TechHelpDeskTheme
 import dev.boni.techhelpdesk.ui.screens.profile.edit.EditProfileScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.boni.techhelpdesk.ui.screens.conversation.ConversationsScreen
 
 
 class MainActivity : AppCompatActivity() {
