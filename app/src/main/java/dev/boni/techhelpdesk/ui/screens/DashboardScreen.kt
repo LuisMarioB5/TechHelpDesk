@@ -203,6 +203,25 @@ fun DashboardContent(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        if (!isTechnician) {
+                            TicketStatsCard(
+                                title = stringResource(R.string.card_open),
+                                count = uiState.openCount,
+                                icon = Icons.Outlined.ConfirmationNumber,
+                                onClick = {
+                                    navController.navigate("/tickets?status=${TicketStatus.ABIERTO.name.lowercase()}&isTech=${isTechnician}") {
+                                        popUpTo(
+                                            "/tickets"
+                                        ) { inclusive = true }; launchSingleTop = true
+                                    } },
+                                color = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                                iconBackgroundColor = MaterialTheme.colorScheme.onPrimary.copy(
+                                    alpha = 0.2f
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                         TicketStatsCard(
                             title = stringResource(R.string.card_in_progress),
                             count = uiState.inProgressCount,
@@ -235,25 +254,6 @@ fun DashboardContent(
                             iconBackgroundColor = customColors.onSuccess.copy(alpha = 0.2f),
                             modifier = Modifier.weight(1f)
                         )
-                        if (!isTechnician) {
-                            TicketStatsCard(
-                                title = stringResource(R.string.card_open),
-                                count = uiState.openCount,
-                                icon = Icons.Outlined.ConfirmationNumber,
-                                onClick = {
-                                    navController.navigate("/tickets?status=${TicketStatus.ABIERTO.name.lowercase()}&isTech=${isTechnician}") {
-                                        popUpTo(
-                                            "/tickets"
-                                        ) { inclusive = true }; launchSingleTop = true
-                                    } },
-                                color = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary,
-                                iconBackgroundColor = MaterialTheme.colorScheme.onPrimary.copy(
-                                    alpha = 0.2f
-                                ),
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
                     }
                 }
 

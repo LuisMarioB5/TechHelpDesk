@@ -212,16 +212,14 @@ fun TicketDetailScreen(
                             }
                         }
 
-                        if (!isTechnician || currentStatus == "RESUELTO") {
-                            if(currentStatus != "CERRADO") {
-                                ActionButton(
-                                    text = stringResource(R.string.btn_mark_closed),
-                                    icon = Icons.Filled.Lock,
-                                    color = MaterialTheme.colorScheme.secondary,
-                                    contentColor = MaterialTheme.colorScheme.onSecondary
-                                ) {
-                                    viewModel.updateTicketStatus(dev.boni.techhelpdesk.data.model.TicketStatus.CERRADO)
-                                }
+                        if (!isTechnician && currentStatus == "RESUELTO") {
+                            ActionButton(
+                                text = stringResource(R.string.btn_mark_closed),
+                                icon = Icons.Filled.Lock,
+                                color = customColors.success,
+                                contentColor = customColors.onSuccess
+                            ) {
+                                viewModel.updateTicketStatus(dev.boni.techhelpdesk.data.model.TicketStatus.CERRADO)
                             }
                         }
                     }

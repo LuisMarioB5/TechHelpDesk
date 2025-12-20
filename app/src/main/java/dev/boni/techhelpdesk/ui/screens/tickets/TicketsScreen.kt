@@ -216,17 +216,20 @@ fun TicketsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate("/ticket/create") },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = stringResource(R.string.cd_add_ticket)
-                )
+            if (!isTechnician) {
+                FloatingActionButton(
+                    onClick = { navController.navigate("/ticket/create") },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = stringResource(R.string.cd_add_ticket)
+                    )
+                }
             }
         },
+
         containerColor = Color.Transparent,
         bottomBar = {
             BottomNavigation(navController = navController)
@@ -529,7 +532,9 @@ fun TicketListItem(
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                Column(modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)) {
                     Text(
                         text = ticket.id,
                         style = MaterialTheme.typography.labelSmall,

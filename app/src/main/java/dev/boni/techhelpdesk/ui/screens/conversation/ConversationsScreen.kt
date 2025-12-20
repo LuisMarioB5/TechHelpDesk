@@ -24,9 +24,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import dev.boni.techhelpdesk.R
+import dev.boni.techhelpdesk.data.model.UserRole
+import dev.boni.techhelpdesk.data.repository.AuthRepository
 import dev.boni.techhelpdesk.ui.components.AppHeader
 import dev.boni.techhelpdesk.ui.components.BottomNavigation
+import dev.boni.techhelpdesk.ui.screens.Technician
 import dev.boni.techhelpdesk.ui.screens.viewmodels.ConversationViewModel
+import dev.boni.techhelpdesk.ui.screens.viewmodels.TicketViewModel
 
 data class Conversation(
     val id: String,
@@ -135,7 +139,7 @@ fun ConversationsScreen(
                         EmptyChatState(
                             searchQuery = searchQuery,
                             onClearSearch = { searchQuery = "" },
-                            onStartChat = { navController.navigate("/ticket/create") }
+                            onStartChat = { navController.navigate("/ticket/create") },
                         )
                     }
                 } else {
