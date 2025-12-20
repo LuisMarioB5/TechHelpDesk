@@ -39,41 +39,45 @@ class DashboardViewModel : ViewModel() {
             _uiState.update { it.copy(isLoading = true) }
 
             val currentUser = authRepo.getCurrentUser().getOrNull()
-            val userId = currentUser?.id ?: ""
-            val name = currentUser?.name?.split(" ")?.firstOrNull() ?: "Usuario"
-
-            if (userId.isNotEmpty()) {
-                val result = ticketRepo.getTicketsByUserId(userId)
-
-                result.onSuccess { tickets ->
-                    val open = tickets.count {
-                        it.status.equals(TicketStatus.ABIERTO.name, ignoreCase = true)
-                    }
-
-                    val inProgress = tickets.count {
-                        it.status.equals(TicketStatus.EN_PROGRESO.name, ignoreCase = true)
-                    }
-
-                    val closed = tickets.count {
-                        it.status.equals(TicketStatus.CERRADO.name, ignoreCase = true)
-                    }
-
-                    _uiState.update {
-                        it.copy(
-                            userName = name,
-                            openCount = open,
-                            inProgressCount = inProgress,
-                            closedCount = closed,
-                            isLoading = false,
-                            userRole = currentUser?.role ?: UserRole.CLIENT,
-                            userPhotoUrl = currentUser?.photoUrl
-                        )
-                    }
-                }.onFailure {
-                    _uiState.update { it.copy(isLoading = false, userName = name) }
-                }
-            } else {
+            if (currentUser == null) {
                 _uiState.update { it.copy(isLoading = false) }
+                return@launch
+            }
+
+            val myName = authRepo.getCachedDisplayName() ?: currentUser.name
+            val firstName = myName.split(" ").firstOrNull() ?: "Usuario"
+
+            ticketRepo.getTicketsFlow().collect { allTickets ->
+
+                val myTickets = allTickets.filter { ticket ->
+                    ticket.createdBy == myName || ticket.assignedToName == myName
+                }
+
+                val open = myTickets.count {
+                    it.status.equals(TicketStatus.ABIERTO.name, ignoreCase = true)
+                }
+
+                val inProgress = myTickets.count {
+                    it.status.equals(TicketStatus.EN_PROGRESO.name, ignoreCase = true) ||
+                            it.status.equals("EN PROGRESO", ignoreCase = true)
+                }
+
+                val closed = myTickets.count {
+                    it.status.equals(TicketStatus.CERRADO.name, ignoreCase = true) ||
+                            it.status.equals(TicketStatus.RESUELTO.name, ignoreCase = true)
+                }
+
+                _uiState.update {
+                    it.copy(
+                        userName = firstName,
+                        openCount = open,
+                        inProgressCount = inProgress,
+                        closedCount = closed,
+                        isLoading = false,
+                        userRole = currentUser.role,
+                        userPhotoUrl = currentUser.photoUrl
+                    )
+                }
             }
         }
     }

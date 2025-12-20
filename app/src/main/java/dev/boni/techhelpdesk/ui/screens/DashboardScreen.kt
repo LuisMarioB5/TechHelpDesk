@@ -204,22 +204,6 @@ fun DashboardContent(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         TicketStatsCard(
-                            title = stringResource(R.string.card_open),
-                            count = uiState.openCount,
-                            icon = Icons.Outlined.ConfirmationNumber,
-                            onClick = {
-                                navController.navigate("/tickets?status=${TicketStatus.ABIERTO.name.lowercase()}&isTech=${isTechnician}") {
-                                    popUpTo(
-                                        "/tickets"
-                                    ) { inclusive = true }; launchSingleTop = true
-                                }
-                            },
-                            color = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            iconBackgroundColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
-                            modifier = Modifier.weight(1f)
-                        )
-                        TicketStatsCard(
                             title = stringResource(R.string.card_in_progress),
                             count = uiState.inProgressCount,
                             icon = Icons.Outlined.Schedule,
@@ -236,7 +220,7 @@ fun DashboardContent(
                             modifier = Modifier.weight(1f)
                         )
                         TicketStatsCard(
-                            title = stringResource(R.string.card_closed),
+                            title = if (!isTechnician) stringResource(R.string.card_closed) else stringResource(R.string.card_resolved),
                             count = uiState.closedCount,
                             icon = Icons.Outlined.CheckCircleOutline,
                             onClick = {
@@ -251,24 +235,45 @@ fun DashboardContent(
                             iconBackgroundColor = customColors.onSuccess.copy(alpha = 0.2f),
                             modifier = Modifier.weight(1f)
                         )
+                        if (!isTechnician) {
+                            TicketStatsCard(
+                                title = stringResource(R.string.card_open),
+                                count = uiState.openCount,
+                                icon = Icons.Outlined.ConfirmationNumber,
+                                onClick = {
+                                    navController.navigate("/tickets?status=${TicketStatus.ABIERTO.name.lowercase()}&isTech=${isTechnician}") {
+                                        popUpTo(
+                                            "/tickets"
+                                        ) { inclusive = true }; launchSingleTop = true
+                                    } },
+                                color = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                                iconBackgroundColor = MaterialTheme.colorScheme.onPrimary.copy(
+                                    alpha = 0.2f
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
 
-                item {
-                    MobileButton(
-                        onClick = { navController.navigate("/ticket/create") },
-                        variant = MobileButtonVariant.FILLED,
-                        fullWidth = true,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AddCircle,
-                            contentDescription = null,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.btn_new_ticket),
-                            style = MaterialTheme.typography.labelLarge
-                        )
+                if (!isTechnician){
+                    item {
+                        MobileButton(
+                            onClick = { navController.navigate("/ticket/create") },
+                            variant = MobileButtonVariant.FILLED,
+                            fullWidth = true,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AddCircle,
+                                contentDescription = null,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.btn_new_ticket),
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
                     }
                 }
 

@@ -131,7 +131,13 @@ fun TicketsScreen(
                         categoryLabel.contains(searchQuery, ignoreCase = true) ||
                         ticket.id.contains(searchQuery, ignoreCase = true)
 
-                val matchesStatus = selectedStatus == null || ticketStatusUI == selectedStatus
+                val matchesStatus = if (selectedStatus == null) {
+                    true
+                } else if (selectedStatus == TicketStatusUI.CERRADO) {
+                    ticketStatusUI == TicketStatusUI.CERRADO || ticketStatusUI == TicketStatusUI.RESUELTO
+                } else {
+                    ticketStatusUI == selectedStatus
+                }
                 val matchesPriority = selectedPriority == null || ticketPriorityUI == selectedPriority
                 val matchesCategory = selectedCategory == null || ticketCategoryUI == selectedCategory
 

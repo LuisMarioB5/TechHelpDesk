@@ -10,6 +10,7 @@
     <string name="card_open">Abiertos</string>
     <string name="card_in_progress">En progreso</string>
     <string name="card_closed">Cerrados</string>
+    <string name="card_resolved">Resueltos</string>
     <string name="btn_new_ticket">Nuevo ticket</string>
 
     <string name="action_view_all_title">Ver todos los tickets</string>

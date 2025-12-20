@@ -11,6 +11,7 @@
     <string name="card_open">Open</string>
     <string name="card_in_progress">In Progress</string>
     <string name="card_closed">Closed</string>
+    <string name="card_resolved">Resolved</string>
     <string name="btn_new_ticket">New Ticket</string>
 
     <string name="action_view_all_title">View All Tickets</string>
@@ -333,4 +334,15 @@
     <string name="text_tap_change_photo">Tap to change photo</string>
     <string name="msg_profile_updated">Profile updated successfully</string>
     <string name="msg_password_email_send">An email has been sent to change your password</string>
+
+    <string name="title_my_conversations">My Conversations</string>
+    <string name="placeholder_search_conversations">Search...</string>
+
+    <string name="empty_conversations_search_title">No conversations found</string>
+    <string name="empty_conversations_list_title">You have no active conversations</string>
+
+    <string name="empty_conversations_search_desc">Try another term</string>
+    <string name="empty_conversations_list_desc">Create a new ticket to start a support chat</string>
+
+    <string name="btn_create_ticket_chat">Create Ticket / Start Chat</string>
 </resources>
