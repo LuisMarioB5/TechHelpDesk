@@ -15,6 +15,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import android.widget.Toast
+import com.google.firebase.storage.ktx.storage
 
 /**
  * Un repositorio para manejar todas las tareas de autenticación
@@ -25,6 +26,7 @@ class AuthRepository {
     // Obtener las instancias de Firebase Auth y Firestore
     private val auth: FirebaseAuth = Firebase.auth
     private val db = Firebase.firestore
+    private val storage = Firebase.storage
 
     /**
      * Cierra sesión COMPLETAMENTE: Firebase + Google.
@@ -292,6 +294,32 @@ class AuthRepository {
 
             Result.success(Unit)
         } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun uploadProfilePicture(imageUri: android.net.Uri): Result<String> {
+        return try {
+            val user = auth.currentUser ?: throw Exception("No user found")
+
+            val storageRef = storage.reference.child("profile_images/${user.uid}.jpg")
+            storageRef.putFile(imageUri).await()
+
+            val downloadUrl = storageRef.downloadUrl.await()
+            val urlString = downloadUrl.toString()
+
+            val profileUpdates = UserProfileChangeRequest.Builder()
+                .setPhotoUri(downloadUrl)
+                .build()
+            user.updateProfile(profileUpdates).await()
+
+            db.collection("users").document(user.uid)
+                .update("photoUrl", urlString)
+                .await()
+
+            Result.success(urlString)
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error subiendo foto: ${e.message}")
             Result.failure(e)
         }
     }

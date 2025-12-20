@@ -1,5 +1,8 @@
 package dev.boni.techhelpdesk.ui.screens.profile.edit
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,10 +27,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import dev.boni.techhelpdesk.R
 import dev.boni.techhelpdesk.ui.screens.viewmodels.ProfileViewModel
 
@@ -44,6 +50,16 @@ fun EditProfileScreen(
     var phone by remember { mutableStateOf("") }
 
     var isDataInitialized by remember { mutableStateOf(false) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            if (uri != null) {
+                // Si el usuario eligió una foto, la subimos
+                viewModel.updateProfilePicture(uri)
+            }
+        }
+    )
 
     LaunchedEffect(Unit) {
         viewModel.loadProfileInfo(context)
@@ -104,8 +120,12 @@ fun EditProfileScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 AvatarSection(
+                    photoUrl = uiState.photoUrl,
+                    isLoading = uiState.isLoading,
                     onChangePhoto = {
-                        // TODO: Implementar selector de imagen en el futuro
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
                     }
                 )
 
@@ -215,6 +235,8 @@ fun EditProfileScreen(
 
 @Composable
 private fun AvatarSection(
+    photoUrl: String?,
+    isLoading: Boolean,
     onChangePhoto: () -> Unit
 ) {
     Box(contentAlignment = Alignment.Center) {
@@ -227,15 +249,39 @@ private fun AvatarSection(
                     width = 3.dp,
                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                     shape = CircleShape
-                ),
+                )
+                .clickable { onChangePhoto() },
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                modifier = Modifier.size(56.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
+            if (photoUrl != null) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(photoUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(56.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color.White)
+                }
+            }
         }
 
         Box(

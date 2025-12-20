@@ -1,5 +1,6 @@
 package dev.boni.techhelpdesk.ui.screens.tickets.create
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -387,14 +388,16 @@ fun CreateTicketScreen(
                         AttachmentButton(
                             text = stringResource(R.string.btn_camera),
                             icon = Icons.Filled.PhotoCamera,
-                            onClick = { /* Lógica cámara */ },
-                            modifier = Modifier.weight(1f)
+                            onClick = {
+                                Toast.makeText(context, "Funcionalidad habilitada en la versión Pro", Toast.LENGTH_SHORT).show()
+                            },modifier = Modifier.weight(1f)
                         )
                         AttachmentButton(
                             text = stringResource(R.string.btn_gallery),
                             icon = Icons.Filled.Image,
-                            onClick = { /* Lógica galería */ },
-                            modifier = Modifier.weight(1f)
+                            onClick = {
+                                Toast.makeText(context, "Funcionalidad habilitada en la versión Pro", Toast.LENGTH_SHORT).show()
+                            },modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -673,8 +676,8 @@ fun AttachmentButton(
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier.height(56.dp), // h-14
-        shape = RoundedCornerShape(12.dp), // rounded-xl
+        modifier = modifier.height(56.dp),
+        shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) // border-dashed simulado con sólido
     ){
         Icon(icon, contentDescription = null, tint=MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))

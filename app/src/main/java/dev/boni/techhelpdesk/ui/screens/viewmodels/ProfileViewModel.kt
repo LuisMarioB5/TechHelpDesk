@@ -1,6 +1,7 @@
 package dev.boni.techhelpdesk.ui.screens.viewmodels
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.boni.techhelpdesk.R
@@ -19,6 +20,7 @@ data class ProfileUiState(
     val email: String = "",
     val phone: String = "",
     val roleResId: Int = R.string.role_client,
+    val photoUrl: String? = null,
     val isLoading: Boolean = true,
     val isBiometricEnabled: Boolean = true,
     val areNotificationsEnabled: Boolean = false
@@ -69,6 +71,7 @@ class ProfileViewModel() : ViewModel() {
                         name = user.name,
                         email = user.email,
                         phone = user.phone,
+                        photoUrl = user.photoUrl,
                         roleResId = getRoleResourceId(user.role),
                         isLoading = false
                     )
@@ -98,6 +101,23 @@ class ProfileViewModel() : ViewModel() {
                     it.copy(name = newName, isLoading = false)
                 }
                 onSuccess()
+            } else {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    fun updateProfilePicture(uri: Uri) {
+        _uiState.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch {
+            val result = authRepo.uploadProfilePicture(uri)
+
+            if (result.isSuccess) {
+                val newUrl = result.getOrNull()
+                _uiState.update {
+                    it.copy(isLoading = false, photoUrl = newUrl)
+                }
             } else {
                 _uiState.update { it.copy(isLoading = false) }
             }

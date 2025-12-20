@@ -58,6 +58,10 @@ import dev.boni.techhelpdesk.ui.screens.viewmodels.DashboardUiState
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import dev.boni.techhelpdesk.data.model.TicketStatus
 import dev.boni.techhelpdesk.data.model.UserRole
 
@@ -102,6 +106,7 @@ fun DashboardContent(
     onRefresh: () -> Unit
 ) {
     val isTechnician = uiState.userRole == UserRole.TECHNICIAN || uiState.userRole == UserRole.ADMIN
+    val photoUrl = uiState.userPhotoUrl
 
     Scaffold(
         topBar = {
@@ -135,12 +140,24 @@ fun DashboardContent(
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = stringResource(R.string.cd_profile_button),
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(28.dp)
-                            )
+                            if (photoUrl != null) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(photoUrl)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(28.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
                         }
                     }
                 }

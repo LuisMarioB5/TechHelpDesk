@@ -13,11 +13,13 @@ navigationCompose = "2.8.3"
 googleServices = "4.4.2"
 kotlinxCoroutines = "1.8.1"
 firebase = "33.1.2"
+firebaseStorage = "21.0.0"
 biometric = "1.1.0"
 appcompat = "1.7.0"
 googleAndroidGms = "21.0.0"
 ui = "1.10.0"
 material3 = "1.4.0"
+coil = "2.5.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -51,7 +53,8 @@ google-android-gms = { group = "com.google.android.gms", name = "play-services-a
 kotlinx-coroutines-playservices = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutines" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
-
+google-firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
+coil-kt = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

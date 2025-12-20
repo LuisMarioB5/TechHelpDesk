@@ -65,6 +65,8 @@ dependencies {
     implementation(libs.androidx.ui)
 
     implementation(libs.androidx.material3)
+    implementation(libs.google.firebase.storage)
+    implementation(libs.coil.kt)
 
     testImplementation(libs.junit)
 

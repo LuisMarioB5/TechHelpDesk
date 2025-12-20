@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import dev.boni.techhelpdesk.R
 import dev.boni.techhelpdesk.ui.components.BottomNavigation
 import dev.boni.techhelpdesk.ui.screens.viewmodels.ProfileViewModel
@@ -96,6 +99,7 @@ fun ProfileScreen(
                 name = uiState.name,
                 email = uiState.email,
                 role = stringResource(id = uiState.roleResId),
+                photoUrl = uiState.photoUrl,
                 onEditClick = { navController.navigate("/profile/edit") }
             )
         },
@@ -236,9 +240,11 @@ fun ProfileHeader(
     name: String,
     email: String,
     role: String,
+    photoUrl: String?,
     onEditClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -255,15 +261,29 @@ fun ProfileHeader(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.2f)),
+                    .background(
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Filled.Person,
-                    contentDescription = stringResource(R.string.cd_avatar_image),
-                    tint = Color.White,
-                    modifier = Modifier.size(56.dp)
-                )
+                if (photoUrl != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(photoUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(56.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
             IconButton(
                 onClick = onEditClick,
@@ -273,21 +293,21 @@ fun ProfileHeader(
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surface),
                 colors = IconButtonDefaults.iconButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary
+                    contentColor = MaterialTheme.colorScheme.onSurface
                 )
             ) {
                 Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.cd_edit_profile), modifier = Modifier.size(16.dp))
             }
         }
         Spacer(Modifier.height(16.dp))
-        Text(name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.White)
+        Text(name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
         Spacer(Modifier.height(4.dp))
-        Text(email, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.8f))
+        Text(email, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
         Spacer(Modifier.height(12.dp))
         Surface(
             shape = CircleShape,
-            color = Color.White.copy(alpha = 0.2f),
-            contentColor = Color.White
+            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
+            contentColor = MaterialTheme.colorScheme.onPrimary
         ) {
             Text(
                 text = role,

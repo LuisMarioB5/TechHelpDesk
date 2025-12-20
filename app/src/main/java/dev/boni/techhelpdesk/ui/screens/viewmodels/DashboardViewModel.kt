@@ -18,7 +18,8 @@ data class DashboardUiState(
     val inProgressCount: Int = 0,
     val closedCount: Int = 0,
     val isLoading: Boolean = true,
-    val userRole: UserRole = UserRole.CLIENT
+    val userRole: UserRole = UserRole.CLIENT,
+    val userPhotoUrl: String? = ""
 )
 
 class DashboardViewModel : ViewModel() {
@@ -64,7 +65,8 @@ class DashboardViewModel : ViewModel() {
                             inProgressCount = inProgress,
                             closedCount = closed,
                             isLoading = false,
-                            userRole = currentUser?.role ?: UserRole.CLIENT
+                            userRole = currentUser?.role ?: UserRole.CLIENT,
+                            userPhotoUrl = currentUser?.photoUrl
                         )
                     }
                 }.onFailure {
